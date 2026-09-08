@@ -159,9 +159,8 @@ Las especificaciones detalladas de cada módulo se encuentran en la carpeta [spe
 * [09. Tiendas y Parámetros Globales](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/09-tiendas.spec.md)
 * [10. Notificaciones](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/10-notificaciones.spec.md)
 
----
+## 6. Roadmap y Guia de Desarrollo del Backend
 
-## 6. Checklist de Desarrollo
+Para consultar el avance ordenado del backend paso a paso, fases y tareas por modulo:
+**[backend/ROADMAP.md](../../backend/ROADMAP.md)**
 
-Para seguir el avance ordenado del backend paso a paso, consulta el documento:
-👉 **[CHECKLIST_DESARROLLO.md](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/CHECKLIST_DESARROLLO.md)**

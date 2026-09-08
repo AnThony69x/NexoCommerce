@@ -1,47 +1,45 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# Directrices del Backend NexoCommerce - Senior Backend Engineer
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+Rol: Ingeniero de Software Senior experto en Backend con Laravel, Clean Architecture, Domain-Driven Design (DDD), Spec-Driven Development (SDD) y Testing Profesional.
 
-## Prerequisites
+---
 
-Verify that PHP and Composer are available:
+## 1. Reglas Criticas de Comunicacion y Codigo
+- Prohibido terminantemente el uso de emojis en codigo, respuestas, documentacion y commits.
+- Comunicacion tecnica, concisa, rigurosa y directa.
 
-```sh
-php -v
-composer -V
-```
+---
 
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
+## 2. Metodologia SDD (Spec-Driven Development)
+- Todo endpoint, modelo o logica debe coincidir con su especificacion tecnica en `docs/04-api/specs/<modulo>.spec.md`.
+- No codificar sin antes verificar el contrato, validaciones y codigos HTTP en la especificacion.
+- Seguir el avance y tareas en `ROADMAP.md`.
 
-macOS:
+---
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
+## 3. Flujo Obligatorio de Desarrollo en 6 Pasos
 
-Windows PowerShell:
+1. **Crear un Plan:** Presentar un plan claro de lo que se va a implementar antes de escribir codigo.
+2. **Desarrollar con Buenas Practicas y Patrones de Diseno:**
+   - Aplicar principios SOLID.
+   - Capas desacopladas en `app/`:
+     - `Dominio/<Modulo>/`: Entidades puras y Repositorios (Interfaces). Cero dependencias de Laravel.
+     - `Aplicacion/<Modulo>/`: Casos de uso y DTOs fuertemente tipados.
+     - `Infraestructura/`: Modelos Eloquent y adaptadores de servicios externos.
+     - `Http/`: Controladores delgados, FormRequests para validacion y Resources para formato JSON envelope.
+   - PHP 8.3 estricto (`declare(strict_types=1);`).
+3. **Pruebas Unitarias:** Ejecutar pruebas unitarias en `tests/Unitarias/` para validar logica aislada. Corregir cualquier fallo.
+4. **Pruebas de Integracion:** Ejecutar pruebas en `tests/Integracion/` para validar el flujo completo de la API (HTTP, BD, JSON response).
+5. **Entregar Commit al Usuario:** Proponer el commit bajo Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`).
+6. **Registro en Bitacora y Roadmap:** Marcar con `[x]` en `ROADMAP.md` y registrar la entrada con fecha y hora en `../docs/09-bitacora/bitacora-backend.md`.
 
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
+---
 
-Linux:
+## 4. Herramientas Laravel Boost y MCP
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
-
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
-
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+Este proyecto tiene habilitado Laravel Boost con MCP. Puedes utilizar las herramientas integradas para:
+- Consultar rutas: `php artisan route:list`
+- Inspeccionar base de datos PostgreSQL: ejecutar consultas solo de lectura para validar esquemas.
+- Ejecutar pruebas: `php artisan test --compact` o `vendor/bin/phpunit`
+- Formatear codigo: `vendor/bin/pint --format agent`
+- Documentacion: buscar sintaxis oficiales de Laravel y Sanctum.
