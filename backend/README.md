@@ -8,11 +8,13 @@ API REST principal de NexoCommerce.
 
 ## Tecnologías
 
-* Laravel
-* PHP
-* PostgreSQL
-* Laravel Sanctum
-* Docker
+* **PHP:** 8.3
+* **Framework:** Laravel 11
+* **Autenticación:** Laravel Sanctum
+* **Base de datos:** PostgreSQL (driver `pdo_pgsql`)
+* **Contenedores:** Docker
+* **Documentación API:** OpenAPI / Swagger (Scramble)
+* **Testing:** PHPUnit / Pest
 
 ## Responsabilidades
 
