@@ -31,12 +31,14 @@ Estado: En progreso
 - [x] Instalar y configurar `laravel/boost` con MCP para asistencia tecnica en desarrollo (Completado: 2026-09-07 23:55)
 - [x] Configurar directrices locales (`.agents/rules/`, `.agents/skills/`, `AGENTS.md`, `CLAUDE.md`) (Completado: 2026-09-08 00:05)
 - [x] Depurar y excluir del repositorio carpetas redundantes de IA generadas por Boost (Completado: 2026-09-08 00:13)
+- [x] Configurar CORS en `config/cors.php` para admitir peticiones de Frontend Web (React/Vite) y App Movil (Completado: 2026-09-08 00:26)
+- [x] Configurar excepciones globales en `bootstrap/app.php` para asegurar que todo error retorne envelope JSON (Completado: 2026-09-08 00:26)
+- [x] Eliminar capa web tradicional y configurar endpoints JSON de diagnostico y grupos v1 (Completado: 2026-09-08 00:26)
+- [x] Crear y aprobar pruebas automatizadas de integracion de configuracion API (Completado: 2026-09-08 00:26)
 - [ ] Configurar variables de entorno `.env` para conexion con PostgreSQL central (Laptop 4 - Melanie)
-- [ ] Configurar excepciones globales en `bootstrap/app.php` para asegurar que todo error retorne envelope JSON
-- [ ] Configurar CORS en `config/cors.php` para admitir peticiones de Frontend Web (React/Vite) y App Movil
 - [ ] Crear `Dockerfile` para contenedor del backend
 - [ ] Crear `docker-compose.yml` para ejecutar las dos instancias locales (`backend-1:8001` y `backend-2:8002`)
-- [ ] Verificar endpoint de salud `/up` y conexion con la base de datos
+- [ ] Verificar conexion remota con PostgreSQL y endpoint `/up`
 
 ---
 
