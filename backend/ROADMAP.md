@@ -25,11 +25,12 @@ Antes de marcar cualquier modulo como completado, debe cumplir con los 8 puntos:
 
 Estado: En progreso
 
-- [x] Inicializar proyecto Laravel 11/13 en `backend/`
-- [x] Estructurar capas desacopladas (`app/Dominio/`, `app/Aplicacion/`, `app/Infraestructura/`, `app/Http/`)
-- [x] Instalar y configurar `laravel/sanctum` para autenticacion API por tokens
-- [x] Instalar y configurar `laravel/boost` con MCP para asistencia tecnica en desarrollo
-- [x] Configurar directrices locales (`.agents/rules/`, `.agents/skills/`, `AGENTS.md`, `CLAUDE.md`)
+- [x] Inicializar proyecto Laravel 11/13 en `backend/` (Completado: 2026-09-07 23:15)
+- [x] Estructurar capas desacopladas (`app/Dominio/`, `app/Aplicacion/`, `app/Infraestructura/`, `app/Http/`) (Completado: 2026-09-07 23:30)
+- [x] Instalar y configurar `laravel/sanctum` para autenticacion API por tokens (Completado: 2026-09-07 23:30)
+- [x] Instalar y configurar `laravel/boost` con MCP para asistencia tecnica en desarrollo (Completado: 2026-09-07 23:55)
+- [x] Configurar directrices locales (`.agents/rules/`, `.agents/skills/`, `AGENTS.md`, `CLAUDE.md`) (Completado: 2026-09-08 00:05)
+- [x] Depurar y excluir del repositorio carpetas redundantes de IA generadas por Boost (Completado: 2026-09-08 00:13)
 - [ ] Configurar variables de entorno `.env` para conexion con PostgreSQL central (Laptop 4 - Melanie)
 - [ ] Configurar excepciones globales en `bootstrap/app.php` para asegurar que todo error retorne envelope JSON
 - [ ] Configurar CORS en `config/cors.php` para admitir peticiones de Frontend Web (React/Vite) y App Movil

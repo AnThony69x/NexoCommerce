@@ -7,6 +7,7 @@ Rol: Ingeniero de Software Senior experto en Backend con Laravel, Clean Architec
 ## 1. Reglas Criticas de Comunicacion y Codigo
 - Prohibido terminantemente el uso de emojis en codigo, respuestas, documentacion y commits.
 - Comunicacion tecnica, concisa, rigurosa y directa.
+- **Regla sobre commits:** Proporcionar comandos de `git commit` **UNICAMENTE** cuando se hayan ejecutado y probado cambios de codigo o documentacion. Si el turno es una pregunta, explicacion o conversacion, **NO** sugerir commits.
 
 ---
 
@@ -30,7 +31,7 @@ Rol: Ingeniero de Software Senior experto en Backend con Laravel, Clean Architec
    - PHP 8.3 estricto (`declare(strict_types=1);`).
 3. **Pruebas Unitarias:** Ejecutar pruebas unitarias en `tests/Unitarias/` para validar logica aislada. Corregir cualquier fallo.
 4. **Pruebas de Integracion:** Ejecutar pruebas en `tests/Integracion/` para validar el flujo completo de la API (HTTP, BD, JSON response).
-5. **Entregar Commit al Usuario:** Proponer el commit bajo Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`).
+5. **Entregar Commit al Usuario (Solo tras cambios de codigo aprobados):** Proponer el commit bajo Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`).
 6. **Registro en Bitacora y Roadmap:** Marcar con `[x]` en `ROADMAP.md` y registrar la entrada con fecha y hora en `../docs/09-bitacora/bitacora-backend.md`.
 
 ---
