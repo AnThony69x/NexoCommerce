@@ -7,13 +7,17 @@ En esta carpeta se almacena toda la documentación oficial del proyecto.
 ```text
 docs/
 │
-├── requisitos/
-├── arquitectura/
-├── base-datos/
-├── api/
-├── despliegue/
-├── pruebas/
-└── bitacora/
+├── 00-proyecto/
+├── 01-requisitos/
+├── 02-arquitectura/
+├── 03-base-datos/
+├── 04-api/
+├── 05-despliegue/
+├── 06-pruebas/
+├── 07-manuales/
+├── 08-proyecto
+├── 09-bitacora/
+└── README.md
 ```
 
 ## Contenido
