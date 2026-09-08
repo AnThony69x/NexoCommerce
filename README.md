@@ -42,7 +42,7 @@ App Móvil ─────┘                 │
 
 | Laptop | Componente              | Responsable |
 | ------ | ----------------------- | ----------- |
-| 1      | NGINX / Load Balancer   | Michi       |
+| 1      | NGINX / Load Balancer   | Michael     |
 | 2      | Frontend Web            | Nathalia    |
 | 3      | Backend Laravel ×2      | Anthony     |
 | 4      | PostgreSQL              | Melanie     |
