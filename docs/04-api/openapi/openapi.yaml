@@ -1,0 +1,129 @@
+openapi: 3.1.0
+info:
+  title: NexoCommerce REST API
+  description: >
+    API REST distribuida y modular de NexoCommerce, desarrollada bajo la metodología
+    Spec-Driven Development (SDD) para Frontend Web (React) y App Móvil (Kotlin).
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Servidor Local de Desarrollo
+  - url: http://192.168.1.30/api/v1
+    description: Servidor NGINX / Red LAN Distribuida
+
+paths:
+  /auth/registro:
+    post:
+      summary: Registro de nuevos clientes
+      tags: [Autenticacion]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, password_confirmation]
+              properties:
+                name: { type: string, example: "Juan Pérez" }
+                email: { type: string, format: email, example: "juan@example.com" }
+                password: { type: string, format: password, example: "Password123*" }
+                password_confirmation: { type: string, format: password, example: "Password123*" }
+                telefono: { type: string, example: "0991234567" }
+      responses:
+        '201':
+          description: Usuario registrado exitosamente
+        '422':
+          description: Error de validación
+
+  /auth/login:
+    post:
+      summary: Inicio de sesión y emisión de token Sanctum
+      tags: [Autenticacion]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, example: "juan@example.com" }
+                password: { type: string, format: password, example: "Password123*" }
+                device_name: { type: string, example: "Xiaomi Redmi" }
+      responses:
+        '200':
+          description: Token de autenticación retornado
+        '401':
+          description: Credenciales incorrectas
+
+  /categorias:
+    get:
+      summary: Listado del árbol de categorías y subcategorías
+      tags: [Categorias]
+      responses:
+        '200':
+          description: Listado de categorías públicas
+
+  /productos:
+    get:
+      summary: Catálogo de productos con filtros y paginación
+      tags: [Productos]
+      parameters:
+        - name: categoria_id
+          in: query
+          schema: { type: integer }
+        - name: buscar
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Listado de productos
+
+  /carrito:
+    get:
+      summary: Obtener el carrito del usuario autenticado
+      tags: [Carrito]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Detalle de ítems y totales del carrito
+
+  /pedidos:
+    post:
+      summary: Crear un nuevo pedido
+      tags: [Pedidos]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [direccion_envio, telefono_contacto, metodo_pago, items]
+              properties:
+                direccion_envio: { type: string }
+                telefono_contacto: { type: string }
+                metodo_pago: { type: string, enum: [transferencia, efectivo, tarjeta] }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required: [producto_id, cantidad]
+                    properties:
+                      producto_id: { type: integer }
+                      cantidad: { type: integer }
+      responses:
+        '201':
+          description: Pedido creado con éxito
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: SanctumToken
