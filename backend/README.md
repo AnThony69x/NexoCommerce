@@ -11,14 +11,14 @@ API REST principal de NexoCommerce construida con **Laravel 11**, estructurada b
 
 ## Tecnologias
 
-- **Lenguaje:** PHP 8.3 (Strict Types)
+- **Lenguaje:** PHP 8.3 (Strict Types: `declare(strict_types=1);`)
 - **Framework:** Laravel 11
+- **Gestor de dependencias:** Composer 2.x
 - **Autenticacion:** Laravel Sanctum (Tokens Bearer)
-- **Base de datos:** PostgreSQL (Driver `pdo_pgsql` - Laptop 4: Melanie)
-- **Contenedores:** Docker (2 instancias backend balanceadas)
-- **Herramientas de IA y Contexto:** Laravel Boost + MCP (.agents local)
-- **Documentacion y Contratos:** OpenAPI 3.1 + Specs Markdown en `../docs/04-api/`
+- **Base de datos (Driver):** PostgreSQL (Extension `pdo_pgsql`)
 - **Testing:** PHPUnit / Pest
+- **Estilo y formato de codigo:** Laravel Pint (PSR-12)
+- **Extensiones PHP requeridas:** `pdo_pgsql`, `mbstring`, `xml`, `curl`, `zip`, `bcmath`, `intl`, `fileinfo`, `openssl`
 
 ---
 

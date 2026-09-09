@@ -19,3 +19,4 @@
 | 2026-09-08 00:13 | Fase 0: Optimizacion | Limpieza de archivos redundantes generados por Boost en Git y exclusion en `.gitignore` | `chore: ignorar carpetas y configuraciones...` | Anthony |
 | 2026-09-08 00:16 | Fase 0: Directrices | Ajuste de regla para proponer commits unicamente ante cambios de codigo y actualizacion de ROADMAP.md | `chore: actualizar directrices de commits y roadmap` | Anthony |
 | 2026-09-08 00:27 | Fase 0: Base API | Configuracion de Laravel como API REST pura: CORS, blindaje JSON forzoso, eliminacion de vistas web y pruebas de integracion | `feat: configurar backend exclusivamente como API REST pura` | Anthony |
+| 2026-09-08 19:35 | Fase 0: Infraestructura | Documentacion detallada de tecnologias y extensiones requeridas del backend en README.md | `docs: detallar tecnologias y dependencias del backend` | Anthony |
