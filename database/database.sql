@@ -74,7 +74,10 @@ CREATE TABLE cuentas_oauth (
     actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT uq_cuenta_oauth_proveedor
-        UNIQUE (proveedor, id_proveedor)
+        UNIQUE (proveedor, id_proveedor),
+
+    CONSTRAINT chk_oauth_proveedor
+        CHECK (proveedor IN ('GOOGLE', 'FACEBOOK'))
 );
 
 
@@ -195,6 +198,11 @@ CREATE TABLE categorias (
         UNIQUE (categoria_padre_id, nombre)
 );
 
+-- Las categorías principales no pueden tener nombres repetidos.
+CREATE UNIQUE INDEX uq_categoria_raiz_nombre
+ON categorias(nombre)
+WHERE categoria_padre_id IS NULL;
+
 
 -- ============================================================
 -- 8. PRODUCTOS
@@ -232,6 +240,7 @@ CREATE TABLE tortas (
 
     tamano VARCHAR(50) NOT NULL,
     porciones INT NOT NULL,
+    sabor VARCHAR(100) NOT NULL,
 
     CONSTRAINT chk_torta_porciones
         CHECK (porciones > 0)
@@ -266,53 +275,16 @@ CREATE TABLE sublimaciones (
     tipo_material VARCHAR(100) NOT NULL
 );
 
-
 -- ============================================================
--- 12. RANGOS_PERSONAS
--- ============================================================
-
-CREATE TABLE rangos_personas (
-    id SERIAL PRIMARY KEY,
-
-    personas_minimas INT NOT NULL,
-    personas_maximas INT NOT NULL,
-
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-
-    creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT chk_rango_personas_minimo
-        CHECK (personas_minimas > 0),
-
-    CONSTRAINT chk_rango_personas_maximo
-        CHECK (personas_maximas >= personas_minimas)
-);
-
-
--- ============================================================
--- 13. RANGO_PERSONA_TORTA
--- ============================================================
-
-CREATE TABLE rango_persona_torta (
-    rango_personas_id INT NOT NULL
-        REFERENCES rangos_personas(id)
-        ON DELETE CASCADE,
-
-    torta_id INT NOT NULL
-        REFERENCES tortas(producto_id)
-        ON DELETE CASCADE,
-
-    PRIMARY KEY (rango_personas_id, torta_id)
-);
-
-
--- ============================================================
--- 14. DISENOS_TORTA
+-- 12. DISENOS_TORTA
 -- ============================================================
 
 CREATE TABLE disenos_torta (
     id SERIAL PRIMARY KEY,
+
+    torta_id INT NOT NULL
+        REFERENCES tortas(producto_id)
+        ON DELETE CASCADE,
 
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
@@ -334,7 +306,7 @@ CREATE TABLE disenos_torta (
 
 
 -- ============================================================
--- 15. PLANTILLAS_DISENO
+-- 13. PLANTILLAS_DISENO
 -- ============================================================
 
 CREATE TABLE plantillas_diseno (
@@ -364,7 +336,7 @@ CREATE TABLE plantillas_diseno (
 
 
 -- ============================================================
--- 16. DISENOS_PERSONALIZADOS
+-- 14. DISENOS_PERSONALIZADOS
 -- ============================================================
 
 CREATE TABLE disenos_personalizados (
@@ -390,7 +362,7 @@ CREATE TABLE disenos_personalizados (
 
 
 -- ============================================================
--- 17. PRODUCTO_MULTIMEDIA
+-- 15. PRODUCTO_MULTIMEDIA
 -- ============================================================
 
 CREATE TABLE producto_multimedia (
@@ -411,9 +383,14 @@ CREATE TABLE producto_multimedia (
         CHECK (orden >= 0)
 );
 
+-- Un producto solo puede tener una imagen principal.
+CREATE UNIQUE INDEX uq_producto_multimedia_principal
+ON producto_multimedia(producto_id)
+WHERE es_principal = TRUE;
+
 
 -- ============================================================
--- 18. PUBLICACIONES
+-- 16. PUBLICACIONES
 -- ============================================================
 
 CREATE TABLE publicaciones (
@@ -442,7 +419,7 @@ CREATE TABLE publicaciones (
 
 
 -- ============================================================
--- 19. PUBLICACION_MULTIMEDIA
+-- 17. PUBLICACION_MULTIMEDIA
 -- ============================================================
 
 CREATE TABLE publicacion_multimedia (
@@ -464,7 +441,7 @@ CREATE TABLE publicacion_multimedia (
 
 
 -- ============================================================
--- 20. CARRITOS
+-- 18. CARRITOS
 -- ============================================================
 
 CREATE TABLE carritos (
@@ -488,7 +465,7 @@ WHERE activo = TRUE;
 
 
 -- ============================================================
--- 21. DETALLES_CARRITO
+-- 19. DETALLES_CARRITO
 -- ============================================================
 
 CREATE TABLE detalles_carrito (
@@ -539,7 +516,7 @@ CREATE TABLE detalles_carrito (
 
 
 -- ============================================================
--- 22. PEDIDOS
+-- 20. PEDIDOS
 -- ============================================================
 
 CREATE TABLE pedidos (
@@ -578,7 +555,7 @@ CREATE TABLE pedidos (
 
 
 -- ============================================================
--- 23. DETALLES_PEDIDO
+-- 21. DETALLES_PEDIDO
 -- ============================================================
 
 CREATE TABLE detalles_pedido (
@@ -641,7 +618,7 @@ CREATE TABLE detalles_pedido (
 
 
 -- ============================================================
--- 24. CONFIGURACION_PRODUCCION
+-- 22. CONFIGURACION_PRODUCCION
 -- ============================================================
 
 CREATE TABLE configuracion_produccion (
@@ -666,7 +643,7 @@ CREATE TABLE configuracion_produccion (
 
 
 -- ============================================================
--- 25. PAGOS
+-- 23. PAGOS
 -- ============================================================
 
 CREATE TABLE pagos (
@@ -712,7 +689,7 @@ CREATE TABLE pagos (
 
 
 -- ============================================================
--- 26. COMPROBANTES_PAGO
+-- 24. COMPROBANTES_PAGO
 -- ============================================================
 
 CREATE TABLE comprobantes_pago (
@@ -738,7 +715,7 @@ CREATE TABLE comprobantes_pago (
 
 
 -- ============================================================
--- 27. NOTIFICACIONES
+-- 25. NOTIFICACIONES
 -- ============================================================
 
 CREATE TABLE notificaciones (
@@ -765,7 +742,7 @@ CREATE TABLE notificaciones (
     fecha_lectura TIMESTAMP NULL,
 
     creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+); 
 
 
 -- ============================================================
