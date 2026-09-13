@@ -2,124 +2,708 @@ openapi: 3.1.0
 info:
   title: NexoCommerce REST API
   description: >
-    API REST distribuida y modular de NexoCommerce, desarrollada bajo la metodología
-    Spec-Driven Development (SDD) para Frontend Web (React) y App Móvil (Kotlin).
-  version: 1.0.0
+    API REST v1 alineada a database/database.sql (25 tablas PostgreSQL).
+    Los nombres JSON coinciden con las columnas SQL. Roles: ADMIN, CLIENTE.
+  version: 1.1.0
 servers:
   - url: http://localhost:8000/api/v1
-    description: Servidor Local de Desarrollo
+    description: Desarrollo local
   - url: http://192.168.1.30/api/v1
-    description: Servidor NGINX / Red LAN Distribuida
+    description: NGINX / LAN
+
+tags:
+  - name: Autenticacion
+  - name: Usuarios
+  - name: Categorias
+  - name: Productos
+  - name: Carrito
+  - name: Pedidos
+  - name: Pagos
+  - name: Multimedia
+  - name: Tienda
+  - name: Notificaciones
+  - name: Publicaciones
+  - name: Produccion
 
 paths:
   /auth/registro:
     post:
-      summary: Registro de nuevos clientes
       tags: [Autenticacion]
+      summary: Registro de cliente (rol CLIENTE)
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [name, email, password, password_confirmation]
+              required: [nombre_completo, correo, password, password_confirmation, terminos_aceptados, version_terminos]
               properties:
-                name: { type: string, example: "Juan Pérez" }
-                email: { type: string, format: email, example: "juan@example.com" }
-                password: { type: string, format: password, example: "Password123*" }
-                password_confirmation: { type: string, format: password, example: "Password123*" }
-                telefono: { type: string, example: "0991234567" }
+                nombre_completo: { type: string, maxLength: 150 }
+                correo: { type: string, format: email, maxLength: 150 }
+                password: { type: string, minLength: 8 }
+                password_confirmation: { type: string }
+                telefono: { type: string, maxLength: 20 }
+                terminos_aceptados: { type: boolean }
+                version_terminos: { type: string, maxLength: 20 }
       responses:
-        '201':
-          description: Usuario registrado exitosamente
-        '422':
-          description: Error de validación
+        '201': { description: Usuario creado y token emitido }
+        '422': { description: Validacion }
 
   /auth/login:
     post:
-      summary: Inicio de sesión y emisión de token Sanctum
       tags: [Autenticacion]
+      summary: Login con correo y password
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [email, password]
+              required: [correo, password]
               properties:
-                email: { type: string, format: email, example: "juan@example.com" }
-                password: { type: string, format: password, example: "Password123*" }
-                device_name: { type: string, example: "Xiaomi Redmi" }
+                correo: { type: string, format: email }
+                password: { type: string }
+                device_name: { type: string, maxLength: 100 }
       responses:
-        '200':
-          description: Token de autenticación retornado
-        '401':
-          description: Credenciales incorrectas
+        '200': { description: Token Sanctum }
+        '401': { description: Credenciales invalidas }
+        '429': { description: Cuenta bloqueada }
+
+  /auth/logout:
+    post:
+      tags: [Autenticacion]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Token revocado }
+
+  /auth/perfil:
+    get:
+      tags: [Autenticacion]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Perfil con columnas de usuarios }
+
+  /auth/verificar-correo:
+    post:
+      tags: [Autenticacion]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [codigo]
+              properties:
+                codigo: { type: string, maxLength: 100 }
+      responses:
+        '200': { description: correo_verificado = true }
+        '400': { description: Codigo invalido o expirado }
+
+  /auth/reenviar-verificacion:
+    post:
+      tags: [Autenticacion]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Nuevo registro en verificaciones_correo }
+
+  /auth/oauth:
+    post:
+      tags: [Autenticacion]
+      summary: Login o alta via GOOGLE o FACEBOOK
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [proveedor, id_proveedor, nombre_completo, correo, terminos_aceptados, version_terminos]
+              properties:
+                proveedor: { type: string, enum: [GOOGLE, FACEBOOK] }
+                id_proveedor: { type: string }
+                nombre_completo: { type: string }
+                correo: { type: string, format: email }
+                terminos_aceptados: { type: boolean }
+                version_terminos: { type: string }
+      responses:
+        '200': { description: Sesion iniciada }
+        '201': { description: Usuario creado }
+
+  /admin/usuarios:
+    get:
+      tags: [Usuarios]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: rol, in: query, schema: { type: string, enum: [ADMIN, CLIENTE] } }
+        - { name: buscar, in: query, schema: { type: string } }
+        - { name: activo, in: query, schema: { type: boolean } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Listado paginado }
+        '403': { description: Requiere ADMIN }
+
+  /admin/usuarios/{id}:
+    patch:
+      tags: [Usuarios]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rol: { type: string, enum: [ADMIN, CLIENTE] }
+                activo: { type: boolean }
+      responses:
+        '200': { description: Actualizado }
+
+  /usuarios/perfil:
+    put:
+      tags: [Usuarios]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre_completo]
+              properties:
+                nombre_completo: { type: string, maxLength: 150 }
+                telefono: { type: string, maxLength: 20 }
+      responses:
+        '200': { description: Perfil actualizado }
+
+  /usuarios/cambiar-password:
+    put:
+      tags: [Usuarios]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password_actual, password_nueva, password_nueva_confirmation]
+              properties:
+                password_actual: { type: string }
+                password_nueva: { type: string, minLength: 8 }
+                password_nueva_confirmation: { type: string }
+      responses:
+        '200': { description: password_hash actualizado }
 
   /categorias:
     get:
-      summary: Listado del árbol de categorías y subcategorías
       tags: [Categorias]
+      summary: Arbol con categoria_padre_id
       responses:
-        '200':
-          description: Listado de categorías públicas
+        '200': { description: Categorias y subcategorias }
 
-  /productos:
-    get:
-      summary: Catálogo de productos con filtros y paginación
-      tags: [Productos]
-      parameters:
-        - name: categoria_id
-          in: query
-          schema: { type: integer }
-        - name: buscar
-          in: query
-          schema: { type: string }
-        - name: page
-          in: query
-          schema: { type: integer }
-      responses:
-        '200':
-          description: Listado de productos
-
-  /carrito:
-    get:
-      summary: Obtener el carrito del usuario autenticado
-      tags: [Carrito]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Detalle de ítems y totales del carrito
-
-  /pedidos:
+  /admin/categorias:
     post:
-      summary: Crear un nuevo pedido
-      tags: [Pedidos]
-      security:
-        - bearerAuth: []
+      tags: [Categorias]
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [direccion_envio, telefono_contacto, metodo_pago, items]
+              required: [nombre]
               properties:
-                direccion_envio: { type: string }
-                telefono_contacto: { type: string }
-                metodo_pago: { type: string, enum: [transferencia, efectivo, tarjeta] }
-                items:
-                  type: array
-                  items:
-                    type: object
-                    required: [producto_id, cantidad]
-                    properties:
-                      producto_id: { type: integer }
-                      cantidad: { type: integer }
+                categoria_padre_id: { type: integer, nullable: true }
+                nombre: { type: string, maxLength: 100 }
+                descripcion: { type: string, nullable: true }
+                imagen_id: { type: integer, nullable: true }
+                activo: { type: boolean }
       responses:
-        '201':
-          description: Pedido creado con éxito
+        '201': { description: Categoria creada }
+
+  /admin/categorias/{id}:
+    put:
+      tags: [Categorias]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Actualizada }
+    delete:
+      tags: [Categorias]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Desactivada (activo=false) }
+
+  /productos:
+    get:
+      tags: [Productos]
+      parameters:
+        - { name: categoria_id, in: query, schema: { type: integer } }
+        - { name: tipo, in: query, schema: { type: string, enum: [TORTA, DETALLE, SUBLIMACION] } }
+        - { name: buscar, in: query, schema: { type: string } }
+        - { name: precio_min, in: query, schema: { type: number } }
+        - { name: precio_max, in: query, schema: { type: number } }
+        - { name: porciones_min, in: query, schema: { type: integer } }
+        - { name: porciones_max, in: query, schema: { type: integer } }
+        - { name: sabor, in: query, schema: { type: string } }
+        - { name: ordenar, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Catalogo paginado }
+
+  /productos/{id}:
+    get:
+      tags: [Productos]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Detalle con torta, detalle o sublimacion }
+
+  /admin/productos:
+    post:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [categoria_id, nombre, precio_base, tipo]
+              properties:
+                categoria_id: { type: integer }
+                nombre: { type: string, maxLength: 150 }
+                descripcion: { type: string, nullable: true }
+                precio_base: { type: number, minimum: 0 }
+                activo: { type: boolean }
+                tipo: { type: string, enum: [TORTA, DETALLE, SUBLIMACION] }
+                torta:
+                  type: object
+                  properties:
+                    tamano: { type: string }
+                    porciones: { type: integer, minimum: 1 }
+                    sabor: { type: string }
+                detalle:
+                  type: object
+                  properties:
+                    stock: { type: integer, minimum: 0 }
+                sublimacion:
+                  type: object
+                  properties:
+                    tipo_material: { type: string }
+      responses:
+        '201': { description: Producto y especializacion creados }
+
+  /admin/productos/{id}:
+    put:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Actualizado }
+    delete:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Desactivado }
+
+  /admin/tortas/{producto_id}/disenos:
+    post:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: producto_id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre]
+              properties:
+                nombre: { type: string }
+                descripcion: { type: string, nullable: true }
+                costo_adicional: { type: number, minimum: 0 }
+                multimedia_id: { type: integer, nullable: true }
+                activo: { type: boolean }
+      responses:
+        '201': { description: disenos_torta creado }
+
+  /admin/sublimaciones/{producto_id}/plantillas:
+    post:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: producto_id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '201': { description: plantillas_diseno creada }
+
+  /disenos-personalizados:
+    get:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Diseños del usuario autenticado }
+    post:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sublimacion_id, multimedia_id]
+              properties:
+                sublimacion_id: { type: integer }
+                multimedia_id: { type: integer }
+                indicaciones: { type: string, nullable: true }
+      responses:
+        '201': { description: disenos_personalizados creado }
+
+  /carrito:
+    get:
+      tags: [Carrito]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Carrito activo y detalles_carrito }
+    delete:
+      tags: [Carrito]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Items eliminados }
+
+  /carrito/items:
+    post:
+      tags: [Carrito]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [producto_id, cantidad]
+              properties:
+                producto_id: { type: integer }
+                cantidad: { type: integer, minimum: 1 }
+                comentario: { type: string, nullable: true }
+                diseno_torta_id: { type: integer, nullable: true }
+                plantilla_diseno_id: { type: integer, nullable: true }
+                diseno_personalizado_id: { type: integer, nullable: true }
+      responses:
+        '201': { description: Item agregado }
+        '400': { description: Stock o configuracion invalida }
+
+  /carrito/items/{id}:
+    put:
+      tags: [Carrito]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cantidad]
+              properties:
+                cantidad: { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Cantidad actualizada }
+    delete:
+      tags: [Carrito]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Item eliminado }
+
+  /pedidos:
+    get:
+      tags: [Pedidos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: estado, in: query, schema: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO] } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Pedidos del usuario }
+    post:
+      tags: [Pedidos]
+      security: [{ bearerAuth: [] }]
+      summary: Crea pedido desde el carrito activo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fecha_entrega]
+              properties:
+                fecha_entrega: { type: string, format: date }
+      responses:
+        '201': { description: Pedido PENDIENTE }
+        '400': { description: Carrito vacio, stock o capacidad }
+
+  /pedidos/{id}:
+    get:
+      tags: [Pedidos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Pedido y detalles_pedido }
+
+  /admin/pedidos:
+    get:
+      tags: [Pedidos]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Todos los pedidos }
+
+  /admin/pedidos/{id}/estado:
+    patch:
+      tags: [Pedidos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO] }
+      responses:
+        '200': { description: Estado actualizado }
+        '400': { description: Salto de estado o pago no aprobado }
+
+  /pagos:
+    post:
+      tags: [Pagos]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pedido_id, metodo, monto]
+              properties:
+                pedido_id: { type: integer }
+                metodo: { type: string, enum: [PASARELA, TRANSFERENCIA] }
+                monto: { type: number, minimum: 0 }
+                referencia_pasarela: { type: string, nullable: true }
+                multimedia_id: { type: integer, nullable: true }
+      responses:
+        '201': { description: Pago PENDIENTE }
+
+  /pedidos/{pedido_id}/pago:
+    get:
+      tags: [Pagos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: pedido_id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Pago y comprobante si existe }
+
+  /admin/pagos/{id}/verificar:
+    patch:
+      tags: [Pagos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { type: string, enum: [APROBADO, RECHAZADO] }
+                comentario_revision: { type: string, nullable: true }
+      responses:
+        '200': { description: Pago verificado; pedido sigue PENDIENTE }
+
+  /multimedia:
+    post:
+      tags: [Multimedia]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [archivo, destino]
+              properties:
+                archivo: { type: string, format: binary }
+                destino:
+                  type: string
+                  enum: [productos, comprobantes, personalizaciones, tienda, categorias, publicaciones, disenos]
+      responses:
+        '201': { description: Fila multimedia con id }
+
+  /multimedia/{id}:
+    get:
+      tags: [Multimedia]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Metadatos }
+    delete:
+      tags: [Multimedia]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: activo=false }
+
+  /tienda/configuracion:
+    get:
+      tags: [Tienda]
+      responses:
+        '200': { description: configuracion_tienda activa }
+
+  /admin/tienda/configuracion:
+    put:
+      tags: [Tienda]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre_tienda, color_primario, color_secundario]
+              properties:
+                nombre_tienda: { type: string }
+                logo_url: { type: string, nullable: true }
+                favicon_url: { type: string, nullable: true }
+                color_primario: { type: string }
+                color_secundario: { type: string }
+                color_acento: { type: string, nullable: true }
+                color_fondo: { type: string, nullable: true }
+                color_texto: { type: string, nullable: true }
+                telefono: { type: string, nullable: true }
+                correo: { type: string, nullable: true }
+                direccion: { type: string, nullable: true }
+                activo: { type: boolean }
+      responses:
+        '200': { description: Actualizada }
+
+  /notificaciones:
+    get:
+      tags: [Notificaciones]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Buzon del usuario }
+
+  /notificaciones/leer-todas:
+    patch:
+      tags: [Notificaciones]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Todas leidas }
+
+  /notificaciones/{id}/leida:
+    patch:
+      tags: [Notificaciones]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: leida y fecha_lectura }
+
+  /publicaciones:
+    get:
+      tags: [Publicaciones]
+      responses:
+        '200': { description: Publicaciones activas }
+
+  /publicaciones/{id}:
+    get:
+      tags: [Publicaciones]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Detalle }
+
+  /admin/publicaciones:
+    post:
+      tags: [Publicaciones]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '201': { description: Publicacion creada }
+
+  /admin/publicaciones/{id}:
+    put:
+      tags: [Publicaciones]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Actualizada }
+    delete:
+      tags: [Publicaciones]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Desactivada }
+
+  /produccion/disponibilidad:
+    get:
+      tags: [Produccion]
+      parameters:
+        - { name: fecha, in: query, required: true, schema: { type: string, format: date } }
+        - { name: categoria_id, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Cupo calculado }
+
+  /admin/produccion:
+    get:
+      tags: [Produccion]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Configuraciones }
+    post:
+      tags: [Produccion]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fecha, capacidad_maxima]
+              properties:
+                fecha: { type: string, format: date }
+                categoria_id: { type: integer, nullable: true }
+                capacidad_maxima: { type: integer, minimum: 1 }
+                activo: { type: boolean }
+      responses:
+        '201': { description: Cupo creado }
+
+  /admin/produccion/{id}:
+    put:
+      tags: [Produccion]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Actualizada }
+    delete:
+      tags: [Produccion]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Desactivada }
 
 components:
   securitySchemes:

@@ -1,52 +1,65 @@
-# Módulo 02: Usuarios y Roles — Especificación Técnica (SDD)
+# Modulo 02: Usuarios y Roles — Especificacion Tecnica (SDD)
 
-* **Versión del contrato:** 1.0.0
+* **Version del contrato:** 1.1.0
+* **Fecha:** 2026-09-13
 * **Prefijo base:** `/api/v1/usuarios`
-* **Mecanismo:** Laravel Sanctum + Middleware de Roles
-* **Estado:** Aprobado para revisión
+* **Estado:** Aprobado para implementacion
+* **Fuente de datos:** `database/database.sql` tablas `usuarios`, `roles`
+* **Responsables:** Backend Anthony / Web Nathalia / Movil Emilio / BD Melanie
 
 ---
 
-## 1. Propósito y Alcance
-Gestionar los perfiles de usuario del sistema (Clientes y Administradores), permitiendo la actualización de datos personales, cambio de contraseñas y la administración de cuentas por parte de los administradores.
+## 1. Proposito y Alcance
+Gestion de perfiles. No existe tabla `clientes`: el tipo de usuario es `usuarios.rol_id` → `roles.nombre` (`ADMIN` o `CLIENTE`).
 
 ---
 
-## 2. Reglas de Negocio
-* **RN-USR-01:** Los roles disponibles en el sistema son `administrador` y `cliente`.
-* **RN-USR-02:** Un cliente solo puede consultar y editar su propio perfil.
-* **RN-USR-03:** Solo los usuarios con rol `administrador` pueden listar todos los usuarios o cambiar el rol de un usuario.
-* **RN-USR-04:** No se permite eliminar la última cuenta con rol `administrador` para evitar bloqueo del sistema.
-* **RN-USR-05:** Para cambiar contraseña, se debe verificar obligatoriamente la contraseña actual.
+## 2. Reglas de Negocio e Invariantes
+* **RN-USR-01:** Roles permitidos: `ADMIN`, `CLIENTE`.
+* **RN-USR-02:** Un CLIENTE solo consulta y edita su propio perfil.
+* **RN-USR-03:** Solo ADMIN lista usuarios, cambia `activo` o asigna rol.
+* **RN-USR-04:** No se elimina el ultimo usuario con rol `ADMIN`.
+* **RN-USR-05:** Cambio de contraseña exige `password_actual`. No aplica a cuentas solo OAuth (`password_hash` NULL): 400 `AUTH_SIN_PASSWORD_LOCAL`.
+* **RN-USR-06:** No hay DELETE fisico de usuarios; se usa `activo = false`.
 
 ---
 
-## 3. Endpoints
+## 3. Modelo de Datos (PostgreSQL)
 
-### 3.1 Listar Usuarios (Solo Administrador)
-* **Método:** `GET`
+Tablas `roles` y `usuarios` segun spec 01. Campos editables por el propio usuario: `nombre_completo`, `telefono`. Campos solo ADMIN: `rol_id`, `activo`.
+
+---
+
+## 4. Endpoints
+
+### 4.1 Listar usuarios (ADMIN)
+* **Metodo:** `GET`
 * **Ruta:** `/api/v1/admin/usuarios`
-* **Autenticación:** `Bearer <token>` (Rol: `administrador`)
+* **Autenticacion:** Sanctum
+* **Roles autorizados:** ADMIN
 
-#### Parámetros de Query
-| Parámetro | Tipo | Descripción |
+#### Query
+| Parametro | Tipo | Descripcion |
 | :--- | :--- | :--- |
-| `rol` | string | Filtrar por `cliente` o `administrador` |
-| `buscar` | string | Búsqueda por nombre o email |
-| `page` | integer | Número de página (default: 1) |
+| `rol` | string | `CLIENTE` o `ADMIN` |
+| `buscar` | string | `nombre_completo` o `correo` |
+| `activo` | boolean | Filtro de estado |
+| `page` | integer | Default 1 |
 
-#### Respuesta 200 OK
+#### 200 OK
 ```json
 {
   "success": true,
   "data": [
     {
       "id": 1,
-      "name": "Administrador Principal",
-      "email": "admin@nexocommerce.com",
-      "rol": "administrador",
+      "nombre_completo": "Administrador Principal",
+      "correo": "admin@dulcesaesca.com",
       "telefono": "0990000000",
-      "created_at": "2026-09-01T12:00:00.000000Z"
+      "rol": "ADMIN",
+      "correo_verificado": true,
+      "activo": true,
+      "creado_en": "2026-09-01T12:00:00.000000Z"
     }
   ],
   "meta": {
@@ -58,47 +71,53 @@ Gestionar los perfiles de usuario del sistema (Clientes y Administradores), perm
 }
 ```
 
+CLIENTE en esta ruta: 403 `AUTH_FORBIDDEN`.
+
 ---
 
-### 3.2 Actualizar Datos del Perfil Propio
-* **Método:** `PUT`
+### 4.2 Actualizar perfil propio
+* **Metodo:** `PUT`
 * **Ruta:** `/api/v1/usuarios/perfil`
-* **Autenticación:** `Bearer <token>`
+* **Autenticacion:** Sanctum
+* **Roles autorizados:** CLIENTE, ADMIN
 
-#### Request Body
+#### Payload
 ```json
 {
-  "name": "Juan Carlos Pérez",
+  "nombre_completo": "Juan Carlos Perez",
   "telefono": "0998765432"
 }
 ```
 
 #### Validaciones
-* `name`: `required|string|max:100`
+* `nombre_completo`: `required|string|max:150`
 * `telefono`: `nullable|string|max:20`
 
-#### Respuesta 200 OK
+#### 200 OK
 ```json
 {
   "success": true,
   "message": "Perfil actualizado correctamente.",
   "data": {
     "id": 2,
-    "name": "Juan Carlos Pérez",
-    "email": "juan.perez@example.com",
-    "telefono": "0998765432"
+    "nombre_completo": "Juan Carlos Perez",
+    "correo": "juan.perez@example.com",
+    "telefono": "0998765432",
+    "rol": "CLIENTE"
   }
 }
 ```
 
+El correo no se cambia por este endpoint.
+
 ---
 
-### 3.3 Cambiar Contraseña
-* **Método:** `PUT`
+### 4.3 Cambiar contraseña
+* **Metodo:** `PUT`
 * **Ruta:** `/api/v1/usuarios/cambiar-password`
-* **Autenticación:** `Bearer <token>`
+* **Autenticacion:** Sanctum
 
-#### Request Body
+#### Payload
 ```json
 {
   "password_actual": "AntiguaPassword123*",
@@ -111,10 +130,34 @@ Gestionar los perfiles de usuario del sistema (Clientes y Administradores), perm
 * `password_actual`: `required|string`
 * `password_nueva`: `required|string|min:8|confirmed|different:password_actual`
 
-#### Respuesta 200 OK
+Actualiza `usuarios.password_hash`. Password actual incorrecto: 400.
+
+---
+
+### 4.4 Cambiar estado o rol (ADMIN)
+* **Metodo:** `PATCH`
+* **Ruta:** `/api/v1/admin/usuarios/{id}`
+* **Autenticacion:** Sanctum
+* **Roles autorizados:** ADMIN
+
+#### Payload
 ```json
 {
-  "success": true,
-  "message": "Contraseña actualizada exitosamente."
+  "rol": "CLIENTE",
+  "activo": false
 }
 ```
+
+#### Validaciones
+* `rol`: `nullable|in:ADMIN,CLIENTE`
+* `activo`: `nullable|boolean`
+
+Si `rol` cambia, se resuelve `rol_id` contra `roles.nombre`. No desactivar ni degradar al ultimo ADMIN: 400 `USR_ULTIMO_ADMIN`.
+
+---
+
+## 5. Criterios de Aceptacion
+* [ ] **TC-01:** CLIENTE en `GET /admin/usuarios` recibe 403.
+* [ ] **TC-02:** PUT perfil persiste `nombre_completo` y `telefono` del usuario autenticado.
+* [ ] **TC-03:** Cambio de password con actual incorrecta: 400.
+* [ ] **TC-04:** No se puede dejar el sistema sin ningun ADMIN activo.

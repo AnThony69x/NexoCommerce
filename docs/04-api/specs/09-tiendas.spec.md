@@ -1,70 +1,139 @@
-# Módulo 09: Tienda y Configuración Parametrizable — Especificación Técnica (SDD)
+# Modulo 09: Tienda — Especificacion Tecnica (SDD)
 
-* **Versión del contrato:** 1.0.0
+* **Version del contrato:** 1.1.0
+* **Fecha:** 2026-09-13
 * **Prefijo base:** `/api/v1/tienda`
-* **Mecanismo:** Lectura pública / Edición administrador
-* **Estado:** Aprobado para revisión
+* **Estado:** Aprobado para implementacion
+* **Fuente de datos:** `configuracion_tienda`
+* **Responsables:** Backend Anthony / Web Nathalia / Movil Emilio / BD Melanie
 
 ---
 
-## 1. Propósito y Alcance
-Permite que NexoCommerce sea un sistema **parametrizable y modular** capaz de adaptarse a cualquier negocio (Repostería, Detalles, Sublimación, Ropa, etc.) sin modificar el código base del backend, administrando datos generales de la tienda, moneda, redes de contacto y políticas.
+## 1. Proposito y Alcance
+Una fila de configuracion por instalacion (seed inicial: Dulces Aesca). Personaliza identidad visual y datos de contacto sin cambiar codigo. Logo y favicon son URLs/referencias; el binario no esta en PostgreSQL.
+
+No existen en SQL: `lema`, `tipo_negocio`, `moneda_simbolo`, `moneda_codigo`, `permite_pedidos`, `nombre_comercial`.
 
 ---
 
-## 2. Reglas de Negocio
-* **RN-TND-01:** Los parámetros de la tienda son consumidos por el Frontend Web y la App Móvil al iniciar (splash screen / header).
-* **RN-TND-02:** Solo el usuario con rol `administrador` puede alterar los parámetros de la tienda.
+## 2. Reglas de Negocio e Invariantes
+* **RN-TND-01:** GET publico para splash / header de Web y Movil.
+* **RN-TND-02:** Solo ADMIN altera la fila.
+* **RN-TND-03:** `color_primario` y `color_secundario` son NOT NULL.
+* **RN-TND-04:** `logo_url` y `favicon_url` son VARCHAR de referencia (pueden originarse en `multimedia.ruta_archivo`).
+* **RN-TND-05:** No se crea una segunda instalacion por API; se actualiza el registro existente (`activo = true`).
 
 ---
 
-## 3. Endpoints
+## 3. Modelo de Datos (PostgreSQL)
 
-### 3.1 Obtener Configuración de la Tienda (Público)
-* **Método:** `GET`
+### Tabla: `configuracion_tienda`
+| Campo | Tipo | Nulo | Descripcion |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | NO | PK |
+| `nombre_tienda` | VARCHAR(150) | NO | Seed: Dulces Aesca |
+| `logo_url` | VARCHAR(500) | SI | |
+| `favicon_url` | VARCHAR(500) | SI | |
+| `color_primario` | VARCHAR(20) | NO | Seed `#8B5CF6` |
+| `color_secundario` | VARCHAR(20) | NO | Seed `#EC4899` |
+| `color_acento` | VARCHAR(20) | SI | `#F59E0B` |
+| `color_fondo` | VARCHAR(20) | SI | `#FFF7ED` |
+| `color_texto` | VARCHAR(20) | SI | `#1F2937` |
+| `telefono` | VARCHAR(20) | SI | |
+| `correo` | VARCHAR(150) | SI | |
+| `direccion` | VARCHAR(255) | SI | |
+| `activo` | BOOLEAN | NO | Default TRUE |
+| `creado_en` | TIMESTAMP | NO | |
+| `actualizado_en` | TIMESTAMP | NO | |
+
+---
+
+## 4. Endpoints
+
+### 4.1 Obtener configuracion (publico)
+* **Metodo:** `GET`
 * **Ruta:** `/api/v1/tienda/configuracion`
-* **Autenticación:** Ninguna
+* **Autenticacion:** Ninguna
 
-#### Respuesta 200 OK
+Devuelve la fila `activo = true`.
+
+#### 200 OK
 ```json
 {
   "success": true,
   "data": {
-    "nombre_comercial": "NexoCommerce Studio",
-    "lema": "Personalización y detalles a tu medida",
-    "tipo_negocio": "Sublimacion y Regalos",
-    "moneda_simbolo": "$",
-    "moneda_codigo": "USD",
-    "telefono_whatsapp": "+593991234567",
-    "email_contacto": "contacto@nexocommerce.com",
-    "direccion_fisica": "Manta, Manabí, Ecuador",
+    "id": 1,
+    "nombre_tienda": "Dulces Aesca",
     "logo_url": "http://192.168.1.50/storage/tienda/logo.png",
-    "permite_pedidos": true
+    "favicon_url": "http://192.168.1.50/storage/tienda/favicon.ico",
+    "color_primario": "#8B5CF6",
+    "color_secundario": "#EC4899",
+    "color_acento": "#F59E0B",
+    "color_fondo": "#FFF7ED",
+    "color_texto": "#1F2937",
+    "telefono": "0991234567",
+    "correo": "hola@dulcesaesca.com",
+    "direccion": "Manta, Manabi, Ecuador",
+    "activo": true
   }
 }
 ```
 
 ---
 
-### 3.2 Actualizar Configuración (Admin)
-* **Método:** `PUT`
+### 4.2 Actualizar configuracion (ADMIN)
+* **Metodo:** `PUT`
 * **Ruta:** `/api/v1/admin/tienda/configuracion`
-* **Autenticación:** `Bearer <token>` (Rol: `administrador`)
+* **Autenticacion:** Sanctum
+* **Roles autorizados:** ADMIN
 
-#### Request Body
 ```json
 {
-  "nombre_comercial": "NexoCommerce Pastelería Gourmet",
-  "lema": "Dulces momentos para compartir",
-  "tipo_negocio": "Reposteria",
-  "telefono_whatsapp": "+593998765432"
+  "nombre_tienda": "Dulces Aesca",
+  "logo_url": "tienda/logo.png",
+  "favicon_url": "tienda/favicon.ico",
+  "color_primario": "#8B5CF6",
+  "color_secundario": "#EC4899",
+  "color_acento": "#F59E0B",
+  "color_fondo": "#FFF7ED",
+  "color_texto": "#1F2937",
+  "telefono": "0998765432",
+  "correo": "hola@dulcesaesca.com",
+  "direccion": "Manta, Manabi, Ecuador",
+  "activo": true
 }
 ```
 
-#### Respuesta 200 OK
+#### Validaciones
+* `nombre_tienda`: `required|string|max:150`
+* `logo_url`: `nullable|string|max:500`
+* `favicon_url`: `nullable|string|max:500`
+* `color_primario`: `required|string|max:20`
+* `color_secundario`: `required|string|max:20`
+* `color_acento`: `nullable|string|max:20`
+* `color_fondo`: `nullable|string|max:20`
+* `color_texto`: `nullable|string|max:20`
+* `telefono`: `nullable|string|max:20`
+* `correo`: `nullable|email|max:150`
+* `direccion`: `nullable|string|max:255`
+* `activo`: `boolean`
+
+#### 200 OK
 ```json
 {
   "success": true,
-  "message": "Configuración de la tienda actualizada con éxito."
+  "message": "Configuracion de la tienda actualizada.",
+  "data": {
+    "id": 1,
+    "nombre_tienda": "Dulces Aesca"
+  }
 }
 ```
+
+---
+
+## 5. Criterios de Aceptacion
+* [ ] **TC-01:** GET publico expone `nombre_tienda` y colores; no `lema` ni `moneda_codigo`.
+* [ ] **TC-02:** Seed inicial es Dulces Aesca.
+* [ ] **TC-03:** CLIENTE en PUT admin: 403.
+* [ ] **TC-04:** PUT sin `color_primario`: 422.

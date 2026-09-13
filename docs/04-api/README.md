@@ -1,95 +1,71 @@
 # NexoCommerce — Especificación y Metodología SDD (API REST v1)
 
-Este directorio contiene los contratos, especificaciones técnicas y estándares de la API REST de **NexoCommerce**, diseñados bajo la metodología **SDD (Spec-Driven Development / Desarrollo Dirigido por Especificaciones)**.
+Este directorio contiene los contratos de la API REST de **NexoCommerce**, alineados con el esquema PostgreSQL de [`database/database.sql`](../../database/database.sql) (25 tablas). Fuente de verdad de datos: ese SQL. Ningún endpoint se implementa en Laravel si contradice esas tablas.
+
+Metodología: **SDD (Spec-Driven Development)**.
 
 ---
 
-## 1. ¿Qué es SDD (Spec-Driven Development)?
-
-En **NexoCommerce**, el desarrollo de la API sigue estrictamente el principio:
-
-> **"Ningún endpoint se codifica en Laravel sin antes contar con su especificación técnica aprobada."**
-
-### Flujo de trabajo SDD
+## 1. Flujo de trabajo SDD
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│ 1. ESPECIFICACIÓN (Spec)                                    │
-│    Redacción del contrato en docs/04-api/specs/              │
-│    - Endpoints, payloads JSON, validaciones, códigos HTTP   │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 2. REVISIÓN Y ACUERDO (Frontend Web + App Móvil)            │
-│    Nathalia (Web) y Emilio (Móvil) revisan y validan        │
-│    que el contrato cubra sus necesidades de pantalla.       │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 3. PRUEBAS BASADAS EN LA SPEC (Test First / TDD)            │
-│    Anthony escribe los tests de Feature en backend/tests/   │
-│    esperando el payload y los códigos de la especificación. │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 4. IMPLEMENTACIÓN EN LARAVEL                                │
-│    Dominio → Aplicación (Casos de Uso/DTOs) →                │
-│    Infraestructura (Eloquent/PostgreSQL) → Http             │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 5. VERIFICACIÓN Y PUBLICACIÓN                               │
-│    Pasan los tests automatizados y el contrato se publica   │
-│    en OpenAPI/Swagger para consumo de los clientes.         │
-└─────────────────────────────────────────────────────────────┘
+1. ESPECIFICACIÓN     Contrato en docs/04-api/specs/ (tablas, payloads, HTTP)
+2. REVISIÓN           Frontend Web (Nathalia) y App Móvil (Emilio)
+3. PRUEBAS            Tests de Feature según el contrato
+4. IMPLEMENTACIÓN     Dominio → Aplicación → Infraestructura (Eloquent) → Http
+5. PUBLICACIÓN        OpenAPI en docs/04-api/openapi/openapi.yaml
 ```
+
+Regla: **ningún endpoint se codifica sin especificación aprobada.**
 
 ---
 
-## 2. Estándares Globales de la API REST
+## 2. Estándares globales
 
-### 2.1 Prefijo y Versionamiento
-Todas las rutas de la API utilizan prefijo de versión:
+### 2.1 Prefijo
 ```text
 /api/v1
 ```
 
-### 2.2 Cabeceras Obligatorias
-* `Accept: application/json` (Garantiza respuestas en JSON incluso ante excepciones de Laravel).
-* `Content-Type: application/json` (Para peticiones con body `POST`, `PUT`, `PATCH`).
-* `Authorization: Bearer <token_sanctum>` (Para rutas protegidas).
+### 2.2 Cabeceras
+* `Accept: application/json`
+* `Content-Type: application/json` (POST, PUT, PATCH con body JSON)
+* `Authorization: Bearer <token_sanctum>` (rutas protegidas)
+
+### 2.3 Convención de campos JSON
+Los nombres del JSON coinciden con las columnas de PostgreSQL (`nombre_completo`, `correo`, `categoria_padre_id`, `creado_en`). No se usan alias Laravel (`name`, `email`, `created_at`).
+
+Roles y estados se exponen **exactamente** como en los `CHECK` / seeds del SQL:
+
+| Concepto | Valores |
+| :--- | :--- |
+| Roles | `ADMIN`, `CLIENTE` |
+| OAuth | `GOOGLE`, `FACEBOOK` |
+| Pedido | `PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO` |
+| Pago método | `PASARELA`, `TRANSFERENCIA` |
+| Pago estado | `PENDIENTE`, `APROBADO`, `RECHAZADO` |
+| Tipo de producto | `TORTA`, `DETALLE`, `SUBLIMACION` (derivado de la tabla especializada 1:1) |
+
+Los tokens Sanctum viven en tablas de Laravel (`personal_access_tokens`), no en las 25 tablas de negocio.
 
 ---
 
-## 3. Formato Estándar de Respuestas (Envelope JSON)
+## 3. Envelope JSON
 
-Para asegurar consistencia en Web (React) y Móvil (Kotlin), toda respuesta de la API sigue esta estructura:
-
-### 3.1 Respuesta Exitosa (200 OK, 201 Created)
+### 3.1 Éxito (200, 201)
 ```json
 {
   "success": true,
-  "message": "Operación realizada con éxito.",
-  "data": {
-    "id": 1,
-    "nombre": "Camiseta Personalizada",
-    "precio": 15.50
-  }
+  "message": "Operacion realizada con exito.",
+  "data": {}
 }
 ```
 
-### 3.2 Respuesta con Paginación (200 OK)
+### 3.2 Paginación (200)
 ```json
 {
   "success": true,
-  "data": [
-    { "id": 1, "nombre": "Producto A" },
-    { "id": 2, "nombre": "Producto B" }
-  ],
+  "data": [],
   "meta": {
     "pagina_actual": 1,
     "por_pagina": 15,
@@ -99,68 +75,79 @@ Para asegurar consistencia en Web (React) y Móvil (Kotlin), toda respuesta de l
 }
 ```
 
-### 3.3 Respuesta de Error de Validación (422 Unprocessable Content)
+### 3.3 Validación (422)
 ```json
 {
   "success": false,
-  "message": "Los datos proporcionados no son válidos.",
+  "message": "Los datos proporcionados no son validos.",
   "errors": {
-    "email": [
-      "El campo email es obligatorio.",
-      "El email ya se encuentra registrado."
-    ],
-    "password": [
-      "La contraseña debe contener al menos 8 caracteres."
-    ]
+    "correo": ["El correo ya se encuentra registrado."]
   }
 }
 ```
 
-### 3.4 Respuestas de Error General (400, 401, 403, 404, 500)
+### 3.4 Error de negocio o autorización (400, 401, 403, 404, 500)
 ```json
 {
   "success": false,
-  "message": "No tienes autorización para acceder a este recurso.",
-  "codigo_error": "AUTH_UNAUTHORIZED"
+  "message": "Descripcion del error.",
+  "codigo_error": "CODIGO_OPCIONAL"
 }
 ```
 
 ---
 
-## 4. Códigos de Estado HTTP Convencionales
+## 4. Códigos HTTP
 
-| Código | Significado | Uso en NexoCommerce |
-| :--- | :--- | :--- |
-| **200 OK** | Éxito general | Consultas (`GET`), actualizaciones (`PUT`/`PATCH`), listados. |
-| **201 Created** | Recurso creado | Creación de pedidos, registros, productos, tokens (`POST`). |
-| **204 No Content** | Sin contenido | Eliminación exitosa de un recurso (`DELETE`). |
-| **400 Bad Request** | Petición incorrecta | Lógica de negocio inválida (ej. stock insuficiente, cupón vencido). |
-| **401 Unauthorized** | No autenticado | Token ausente, inválido o expirado. |
-| **403 Forbidden** | Acceso prohibido | El usuario no tiene rol o permisos suficientes (ej. cliente intentando crear producto). |
-| **404 Not Found** | No encontrado | ID de pedido, producto o usuario inexistente. |
-| **422 Unprocessable** | Error de validación | Formulario o JSON con datos que no cumplen las reglas de la solicitud. |
-| **500 Internal Error** | Error del servidor | Error no controlado (base de datos caída, fallo de infraestructura). |
+| Código | Uso |
+| :--- | :--- |
+| **200** | GET, PUT, PATCH |
+| **201** | POST que crea recurso |
+| **204** | DELETE sin cuerpo |
+| **400** | Regla de negocio (stock, capacidad, estado invalido) |
+| **401** | Token ausente o invalido |
+| **403** | Rol insuficiente o recurso ajeno |
+| **404** | Recurso inexistente |
+| **422** | Validacion de FormRequest |
+| **429** | Cuenta bloqueada por intentos fallidos |
+| **500** | Error no controlado |
 
 ---
 
-## 5. Índice de Especificaciones por Módulo
+## 5. Mapa tablas SQL → especificaciones
 
-Las especificaciones detalladas de cada módulo se encuentran en la carpeta [specs/](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs):
+| Tablas PostgreSQL | Spec |
+| :--- | :--- |
+| `roles`, `usuarios`, `cuentas_oauth`, `verificaciones_correo` | 01, 02 |
+| `categorias` | 03 |
+| `productos`, `tortas`, `detalles`, `sublimaciones`, `disenos_torta`, `plantillas_diseno`, `disenos_personalizados`, `producto_multimedia` | 04 |
+| `carritos`, `detalles_carrito` | 05 |
+| `pedidos`, `detalles_pedido` | 06 |
+| `pagos`, `comprobantes_pago` | 07 |
+| `multimedia` | 08 |
+| `configuracion_tienda` | 09 |
+| `notificaciones` | 10 |
+| `publicaciones`, `publicacion_multimedia` | 11 |
+| `configuracion_produccion` | 12 |
 
-* [00. Plantilla Base de Especificación](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/00-plantilla-modulo.spec.md)
-* [01. Autenticación y Tokens](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/01-autenticacion.spec.md)
-* [02. Usuarios y Roles](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/02-usuarios.spec.md)
-* [03. Categorías](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/03-categorias.spec.md)
-* [04. Productos y Personalización](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/04-productos.spec.md)
-* [05. Carrito de Compras](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/05-carrito.spec.md)
-* [06. Pedidos](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/06-pedidos.spec.md)
-* [07. Pagos y Comprobantes](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/07-pagos.spec.md)
-* [08. Multimedia y Servidor de Archivos](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/08-multimedia.spec.md)
-* [09. Tiendas y Parámetros Globales](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/09-tiendas.spec.md)
-* [10. Notificaciones](file:///c:/Users/antho/Documents/Proyectos/NexoCommerce/docs/04-api/specs/10-notificaciones.spec.md)
+---
 
-## 6. Roadmap y Guia de Desarrollo del Backend
+## 6. Índice de especificaciones
 
-Para consultar el avance ordenado del backend paso a paso, fases y tareas por modulo:
-**[backend/ROADMAP.md](../../backend/ROADMAP.md)**
+* [00. Plantilla](specs/00-plantilla-modulo.spec.md)
+* [01. Autenticacion](specs/01-autenticacion.spec.md)
+* [02. Usuarios y roles](specs/02-usuarios.spec.md)
+* [03. Categorias](specs/03-categorias.spec.md)
+* [04. Productos y personalizacion](specs/04-productos.spec.md)
+* [05. Carrito](specs/05-carrito.spec.md)
+* [06. Pedidos](specs/06-pedidos.spec.md)
+* [07. Pagos y comprobantes](specs/07-pagos.spec.md)
+* [08. Multimedia](specs/08-multimedia.spec.md)
+* [09. Tienda](specs/09-tiendas.spec.md)
+* [10. Notificaciones](specs/10-notificaciones.spec.md)
+* [11. Publicaciones](specs/11-publicaciones.spec.md)
+* [12. Produccion](specs/12-produccion.spec.md)
 
+Contrato unificado: [openapi/openapi.yaml](openapi/openapi.yaml)
+
+Guia de implementacion del backend: [backend/ROADMAP.md](../../backend/ROADMAP.md)
