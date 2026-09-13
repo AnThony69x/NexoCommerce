@@ -1,6 +1,8 @@
 # Backend - NexoCommerce API REST
 
-API REST principal de NexoCommerce construida con **Laravel 11**, estructurada bajo **Clean Architecture / DDD** y desarrollada bajo la metodologia **SDD (Spec-Driven Development / Desarrollo Dirigido por Especificaciones)**.
+API REST pura de NexoCommerce (Laravel). **No hay capa web:** sin Blade, Vite, Tailwind ni sesiones de navegador. Web y Movil consumen `/api/v1`.
+
+Estructura: **Clean Architecture / DDD**. Metodo: **SDD**. Fuente de datos: `../database/database.sql`. Contratos: `../docs/04-api/`.
 
 ---
 
@@ -12,7 +14,7 @@ API REST principal de NexoCommerce construida con **Laravel 11**, estructurada b
 ## Tecnologias
 
 - **Lenguaje:** PHP 8.3 (Strict Types: `declare(strict_types=1);`)
-- **Framework:** Laravel 11
+- **Framework:** Laravel 11/13 (modo API)
 - **Gestor de dependencias:** Composer 2.x
 - **Autenticacion:** Laravel Sanctum (Tokens Bearer)
 - **Base de datos (Driver):** PostgreSQL (Extension `pdo_pgsql`)
@@ -24,13 +26,14 @@ API REST principal de NexoCommerce construida con **Laravel 11**, estructurada b
 
 ## Metodologia: SDD (Spec-Driven Development)
 
-Ningun endpoint o logica se codifica en Laravel sin antes contar con su contrato tecnico aprobado.
+Ningun endpoint se codifica sin especificacion aprobada.
 
-Toda la documentacion de especificaciones y contratos se encuentra centralizada en:
-- **Guia y Roadmap del backend:** [ROADMAP.md](ROADMAP.md)
-- **Directorio de contratos:** [../docs/04-api/](../docs/04-api/)
-- **Especificaciones por modulo:** [../docs/04-api/specs/](../docs/04-api/specs/)
-- **Contrato OpenAPI unificado:** [../docs/04-api/openapi/openapi.yaml](../docs/04-api/openapi/openapi.yaml)
+- **Guia y Roadmap:** [ROADMAP.md](ROADMAP.md)
+- **Contratos:** [../docs/04-api/](../docs/04-api/)
+- **Specs:** [../docs/04-api/specs/](../docs/04-api/specs/)
+- **OpenAPI:** [../docs/04-api/openapi/openapi.yaml](../docs/04-api/openapi/openapi.yaml)
+- **Bitacora:** [../docs/09-bitacora/bitacora-backend.md](../docs/09-bitacora/bitacora-backend.md)
+- **SQL:** [../database/database.sql](../database/database.sql)
 
 ---
 
@@ -38,53 +41,43 @@ Toda la documentacion de especificaciones y contratos se encuentra centralizada 
 
 El progreso detallado, dependencias tecnicas y estado de cada modulo se gestionan en [ROADMAP.md](ROADMAP.md):
 
-- **Fase 0: Configuracion Base e Infraestructura** (En progreso: Laravel 11, Sanctum, Boost MCP, .agents)
-- **Fase 1: Autenticacion y Usuarios** (Login, registro, roles admin/cliente, tokens)
-- **Fase 2: Tiendas y Parametrizacion** (Configuracion global del negocio)
-- **Fase 3: Catalogo** (Categorias, subcategorias y productos)
-- **Fase 4: Personalizaciones** (Opciones dinamicas: texto, color, tamano, diseno)
-- **Fase 5: Carrito de Compras** (Persistencia, calculo de subtotales)
-- **Fase 6: Gestion de Pedidos** (Transacciones atomicas, reserva de stock, maquina de estados)
-- **Fase 7: Pagos y Comprobantes** (Transferencias bancarias, validacion administrativa)
-- **Fase 8: Integracion Multimedia** (Servidor de archivos Linux de Laptop 5)
-- **Fase 9: Notificaciones del Sistema** (Alertas de pedidos y pagos)
-- **Fase 10: Pruebas de Carga y Despliegue** (Docker dual + balanceo NGINX)
+- **Fase 0: Configuracion Base e Infraestructura** (En progreso: Laravel, Sanctum, Boost, migraciones desde `database.sql`)
+- **Fase 1: Autenticacion y Usuarios** (`usuarios`, roles `ADMIN`/`CLIENTE`, OAuth, verificacion de correo)
+- **Fase 2: Multimedia** (tabla `multimedia`, subida con `id` para FKs)
+- **Fase 3: Tienda** (`configuracion_tienda`, Dulces Aesca)
+- **Fase 4: Categorias** (`categoria_padre_id`, sin slug)
+- **Fase 5: Productos y personalizacion** (TORTA / DETALLE / SUBLIMACION)
+- **Fase 6: Publicaciones**
+- **Fase 7: Produccion** (`configuracion_produccion`)
+- **Fase 8: Carrito** (`detalles_carrito`, una sola FK de diseño)
+- **Fase 9: Pedidos** (`fecha_entrega`, estados SQL)
+- **Fase 10: Pagos y comprobantes** (`PASARELA` / `TRANSFERENCIA`)
+- **Fase 11: Notificaciones**
+- **Fase 12: Pruebas de carga y despliegue** (Docker dual + NGINX)
 
 ---
 
-## Flujo de Trabajo Obligatorio en 6 Pasos
+## Flujo de Trabajo Obligatorio
 
-Todo desarrollo sigue rigurosamente esta secuencia:
+Orden fijo. Un commit por entrega, ejecutado por Anthony.
 
-1. **Paso 1: Planificacion**
-   Analizar el contrato en `../docs/04-api/specs/<modulo>.spec.md` y presentar un plan detallado antes de escribir codigo.
+1. **Bitacora:** leer el ultimo cambio en `../docs/09-bitacora/bitacora-backend.md`.
+2. **Roadmap:** tomar la siguiente tarea `[ ]` en [ROADMAP.md](ROADMAP.md).
+3. **Spec:** leer `../docs/04-api/specs/<modulo>.spec.md` y planear antes de codificar.
+4. **Codigo:** API JSON, capas Dominio / Aplicacion / Infraestructura / Http. PHP estricto. Sin UI.
+5. **Pruebas unitarias:** `tests/Unitarias/`.
+6. **Pruebas de integracion:** `tests/Integracion/` (HTTP, PostgreSQL, envelope JSON).
+7. **Roadmap:** marcar `[x]` con fecha y hora.
+8. **Bitacora:** registrar la fila (fecha, fase, tarea, mensaje de commit, Anthony).
+9. **Commit:** el agente entrega **un** mensaje Conventional Commits. Anthony lo lee, ejecuta y sube. El agente no hace `git commit` ni `git push`.
 
-2. **Paso 2: Desarrollo con Buenas Practicas y Patrones de Diseno**
-   - Principios SOLID y diseno guiado por el dominio (DDD).
-   - Separacion estricta de capas en `app/`.
-   - PHP 8.3 estricto (`declare(strict_types=1);`).
-
-3. **Paso 3: Pruebas Unitarias**
-   - Ejecutar pruebas unitarias en `tests/Unitarias/` para validar logica de negocio y entidades aisladas de la base de datos.
-   - Corregir fallos de inmediato.
-
-4. **Paso 4: Pruebas de Integracion**
-   - Ejecutar pruebas en `tests/Integracion/` contra PostgreSQL.
-   - Validar el flujo completo: autenticacion, validaciones (422), persistencia y envelope JSON de respuesta.
-
-5. **Paso 5: Generacion del Commit**
-   Una vez que todas las pruebas pasen en verde, se propone el commit con el formato correspondiente:
-   - Nueva funcionalidad: `git commit -m "feat: agrega endpoint para productos"`
-   - Correccion de errores: `git commit -m "fix: corrige validacion de productos"`
-   - Refactorizacion: `git commit -m "refactor: separa logica de productos en servicios"`
-   - Pruebas: `git commit -m "test: agrega pruebas para productos"`
-   - Documentacion: `git commit -m "docs: actualiza contrato de pedidos"`
-   - Mantenimiento: `git commit -m "chore: ajusta variables de entorno"`
-
-6. **Paso 6: Registro y Trazabilidad (Obligatorio)**
-   Inmediatamente tras el commit:
-   - Marcar con `[x]` en [ROADMAP.md](ROADMAP.md) con fecha y hora.
-   - Registrar la entrada en [../docs/09-bitacora/bitacora-backend.md](../docs/09-bitacora/bitacora-backend.md) con fecha, modulo, tarea, commit y responsable.
+Formatos de mensaje:
+- `feat: ...`
+- `fix: ...`
+- `refactor: ...`
+- `test: ...`
+- `docs: ...`
+- `chore: ...`
 
 ---
 
@@ -100,8 +93,9 @@ backend/
 │   │   ├── Usuarios/
 │   │   ├── Tiendas/
 │   │   ├── Categorias/
-│   │   ├── Productos/
-│   │   ├── Personalizacion/
+│   │   ├── Productos/           # Incluye TORTA, DETALLE, SUBLIMACION y disenos
+│   │   ├── Publicaciones/
+│   │   ├── Produccion/
 │   │   ├── Carrito/
 │   │   ├── Pedidos/
 │   │   ├── Pagos/
@@ -113,6 +107,8 @@ backend/
 │   │   ├── Usuarios/
 │   │   ├── Tiendas/
 │   │   ├── Catalogo/
+│   │   ├── Publicaciones/
+│   │   ├── Produccion/
 │   │   ├── Carrito/
 │   │   ├── Pedidos/
 │   │   ├── Pagos/
@@ -193,8 +189,8 @@ php artisan key:generate
 # 3. Migrar base de datos PostgreSQL
 php artisan migrate --seed
 
-# 4. Iniciar servidor de desarrollo
-php artisan serve
+# 4. Iniciar API de desarrollo
+php artisan serve --host=0.0.0.0 --port=8000
 ```
 
 ---
@@ -229,3 +225,5 @@ Ambas instancias comparten el mismo codigo fuente en `backend/`.
 3. **Desacoplamiento:** Las clases en `Dominio/` nunca deben importar clases de Eloquent ni Facades de Laravel.
 4. **Respuestas Estandarizadas:** Toda respuesta de la API debe utilizar el envelope JSON estandar `{ success, data/errors, message }`.
 5. **Sin Emojis:** Prohibido el uso de emojis en codigo, comentarios, documentacion o mensajes de commit.
+6. **API pura:** prohibido Blade, Vite, Tailwind y sesiones web en este servicio.
+7. **Flujo SDD:** bitacora → roadmap → spec → codigo → pruebas → roadmap/bitacora → un mensaje de commit para Anthony.
