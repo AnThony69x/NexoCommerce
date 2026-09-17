@@ -2,7 +2,7 @@
 
 Servidor encargado del almacenamiento centralizado de archivos utilizados por NexoCommerce.
 
-## Responsable
+## Responsabled
 
 **Emilio**
 
