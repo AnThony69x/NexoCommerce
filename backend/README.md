@@ -1,6 +1,6 @@
 # Backend - NexoCommerce API REST
 
-API REST pura de NexoCommerce. **No hay capa web:** sin Blade, Vite, Tailwind ni sesiones de navegador. Web y Movil consumen `/api/v1`.
+API REST pura de NexoCommerce consumen `/api/v1`.
 
 Estructura objetivo: **Clean Architecture / DDD**. Metodo: **SDD**. Fuente de datos: `../database/database.sql`. Contratos: `../docs/04-api/`.
 
@@ -11,25 +11,19 @@ Estructura objetivo: **Clean Architecture / DDD**. Metodo: **SDD**. Fuente de da
 
 ---
 
-## Stack verificado (2026-09-17)
-
-Valores tomados de esta maquina y de `composer.lock`. No se usa Pest. No se usa npm.
+## Stack Tecnologico (2026-09-17)
 
 | Componente | Version instalada | Notas |
 | :--- | :--- | :--- |
 | PHP | 8.5.10 | `composer.json` exige `^8.3` (8.5 cumple) |
 | Composer | 2.10.3 | Unico gestor de dependencias de la API |
-| Laravel | **13.30.1** | No es Laravel 11 |
+| Laravel | **13.30.1** | Framework de la API |
 | Sanctum | 4.3.3 | Tokens Bearer |
 | PHPUnit | 12.5.34 | Suites: `tests/Unit`, `tests/Feature`, `tests/Integracion` |
 | Pint | 1.31.0 | Formato PSR-12 |
 | Boost | 2.8.1 | Dev / MCP |
 
 **Extensiones PHP cargadas:** `pdo_pgsql`, `pgsql`, `intl`, `mbstring`, `xml`, `curl`, `zip`, `bcmath`, `openssl`, `fileinfo`, `iconv`.
-
-En CachyOS, `mbstring`, `openssl` y `fileinfo` van compiladas en PHP. `iconv` se habilita como modulo en `php.ini` (`extension=iconv`).
-
-**Fuera de la API:** `package.json`, `vite.config.js` y Tailwind 4 son residuos del skeleton de Laravel. No ejecutar `npm install` ni `npm run dev` para levantar este servicio.
 
 ---
 
