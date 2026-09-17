@@ -60,7 +60,7 @@ Antes de marcar cualquier modulo como completado, debe cumplir con los 8 puntos:
 
 Estado: En progreso
 
-- [x] Inicializar proyecto Laravel 11/13 en `backend/` (Completado: 2026-09-07 23:15)
+- [x] Inicializar proyecto Laravel 13 en `backend/` (Completado: 2026-09-07 23:15; stack verificado 2026-09-17: Laravel 13.30.1 / PHP 8.5.10)
 - [x] Estructurar capas desacopladas (`app/Dominio/`, `app/Aplicacion/`, `app/Infraestructura/`, `app/Http/`) (Completado: 2026-09-07 23:30)
 - [x] Instalar y configurar `laravel/sanctum` para autenticacion API por tokens (Completado: 2026-09-07 23:30)
 - [x] Instalar y configurar `laravel/boost` con MCP para asistencia tecnica en desarrollo (Completado: 2026-09-07 23:55)

@@ -1,8 +1,8 @@
 # Backend - NexoCommerce API REST
 
-API REST pura de NexoCommerce (Laravel). **No hay capa web:** sin Blade, Vite, Tailwind ni sesiones de navegador. Web y Movil consumen `/api/v1`.
+API REST pura de NexoCommerce. **No hay capa web:** sin Blade, Vite, Tailwind ni sesiones de navegador. Web y Movil consumen `/api/v1`.
 
-Estructura: **Clean Architecture / DDD**. Metodo: **SDD**. Fuente de datos: `../database/database.sql`. Contratos: `../docs/04-api/`.
+Estructura objetivo: **Clean Architecture / DDD**. Metodo: **SDD**. Fuente de datos: `../database/database.sql`. Contratos: `../docs/04-api/`.
 
 ---
 
@@ -11,16 +11,25 @@ Estructura: **Clean Architecture / DDD**. Metodo: **SDD**. Fuente de datos: `../
 
 ---
 
-## Tecnologias
+## Stack verificado (2026-09-17)
 
-- **Lenguaje:** PHP 8.3 (Strict Types: `declare(strict_types=1);`)
-- **Framework:** Laravel 11/13 (modo API)
-- **Gestor de dependencias:** Composer 2.x
-- **Autenticacion:** Laravel Sanctum (Tokens Bearer)
-- **Base de datos (Driver):** PostgreSQL (Extension `pdo_pgsql`)
-- **Testing:** PHPUnit / Pest
-- **Estilo y formato de codigo:** Laravel Pint (PSR-12)
-- **Extensiones PHP requeridas:** `pdo_pgsql`, `mbstring`, `xml`, `curl`, `zip`, `bcmath`, `intl`, `fileinfo`, `openssl`
+Valores tomados de esta maquina y de `composer.lock`. No se usa Pest. No se usa npm.
+
+| Componente | Version instalada | Notas |
+| :--- | :--- | :--- |
+| PHP | 8.5.10 | `composer.json` exige `^8.3` (8.5 cumple) |
+| Composer | 2.10.3 | Unico gestor de dependencias de la API |
+| Laravel | **13.30.1** | No es Laravel 11 |
+| Sanctum | 4.3.3 | Tokens Bearer |
+| PHPUnit | 12.5.34 | Suites: `tests/Unit`, `tests/Feature`, `tests/Integracion` |
+| Pint | 1.31.0 | Formato PSR-12 |
+| Boost | 2.8.1 | Dev / MCP |
+
+**Extensiones PHP cargadas:** `pdo_pgsql`, `pgsql`, `intl`, `mbstring`, `xml`, `curl`, `zip`, `bcmath`, `openssl`, `fileinfo`, `iconv`.
+
+En CachyOS, `mbstring`, `openssl` y `fileinfo` van compiladas en PHP. `iconv` se habilita como modulo en `php.ini` (`extension=iconv`).
+
+**Fuera de la API:** `package.json`, `vite.config.js` y Tailwind 4 son residuos del skeleton de Laravel. No ejecutar `npm install` ni `npm run dev` para levantar este servicio.
 
 ---
 
@@ -41,7 +50,7 @@ Ningun endpoint se codifica sin especificacion aprobada.
 
 El progreso detallado, dependencias tecnicas y estado de cada modulo se gestionan en [ROADMAP.md](ROADMAP.md):
 
-- **Fase 0: Configuracion Base e Infraestructura** (En progreso: Laravel, Sanctum, Boost, migraciones desde `database.sql`)
+- **Fase 0: Configuracion Base e Infraestructura** (En progreso: Laravel 13.30.1, PHP 8.5.10, Sanctum 4.3.3, migraciones desde `database.sql`)
 - **Fase 1: Autenticacion y Usuarios** (`usuarios`, roles `ADMIN`/`CLIENTE`, OAuth, verificacion de correo)
 - **Fase 2: Multimedia** (tabla `multimedia`, subida con `id` para FKs)
 - **Fase 3: Tienda** (`configuracion_tienda`, Dulces Aesca)
@@ -64,9 +73,9 @@ Orden fijo. Un commit por entrega, ejecutado por Anthony.
 1. **Bitacora:** leer el ultimo cambio en `../docs/09-bitacora/bitacora-backend.md`.
 2. **Roadmap:** tomar la siguiente tarea `[ ]` en [ROADMAP.md](ROADMAP.md).
 3. **Spec:** leer `../docs/04-api/specs/<modulo>.spec.md` y planear antes de codificar.
-4. **Codigo:** API JSON, capas Dominio / Aplicacion / Infraestructura / Http. PHP estricto. Sin UI.
-5. **Pruebas unitarias:** `tests/Unitarias/`.
-6. **Pruebas de integracion:** `tests/Integracion/` (HTTP, PostgreSQL, envelope JSON).
+4. **Codigo:** API JSON, capas Dominio / Aplicacion / Infraestructura / Http. PHP estricto (`declare(strict_types=1);`). Sin UI.
+5. **Pruebas unitarias:** `tests/Unit/` (objetivo tambien `tests/Unitarias/`).
+6. **Pruebas de integracion:** `tests/Integracion/` y `tests/Feature/` (HTTP, PostgreSQL, envelope JSON).
 7. **Roadmap:** marcar `[x]` con fecha y hora.
 8. **Bitacora:** registrar la fila (fecha, fase, tarea, mensaje de commit, Anthony).
 9. **Commit:** el agente entrega **un** mensaje Conventional Commits. Anthony lo lee, ejecuta y sube. El agente no hace `git commit` ni `git push`.
@@ -83,7 +92,7 @@ Formatos de mensaje:
 
 ## Arquitectura por Capas (`app/`)
 
-Se conserva la estructura del framework integrando la arquitectura por capas dentro de `app/`:
+Objetivo SDD (Fases 1+). Hoy el esqueleto sigue siendo el default de Laravel 13 (`app/Models/User.php`, `app/Http/Controllers`, `app/Providers`). Las carpetas de dominio se crean al implementar cada modulo.
 
 ```text
 backend/
@@ -179,18 +188,27 @@ Toda respuesta de la API cumple con el siguiente formato:
 ## Ejecucion Local
 
 ```bash
-# 1. Instalar dependencias
+# 1. Instalar dependencias PHP (no npm)
 composer install
 
 # 2. Configurar entorno
 cp .env.example .env
 php artisan key:generate
 
-# 3. Migrar base de datos PostgreSQL
+# 3. Migrar base de datos PostgreSQL (cuando existan las migraciones del SQL)
 php artisan migrate --seed
 
-# 4. Iniciar API de desarrollo
+# 4. Iniciar API
 php artisan serve --host=0.0.0.0 --port=8000
+# o: composer run dev
+```
+
+Comprobar stack:
+
+```bash
+php -v
+php artisan --version
+composer show laravel/framework laravel/sanctum phpunit/phpunit
 ```
 
 ---
