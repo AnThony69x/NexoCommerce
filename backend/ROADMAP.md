@@ -76,9 +76,10 @@ Estado: En progreso
 - [x] Fijar flujo SDD de API REST pura: bitacora → roadmap → spec → codigo → pruebas → bitacora → un commit para Anthony (Completado: 2026-09-13 12:37)
 - [x] Configurar `.env` temporal contra PostgreSQL de Supabase (session pooler, `DB_CONNECTION=pgsql`, `DB_SSLMODE=require`). Destino final: Laptop 4 (Completado: 2026-09-20 21:08)
 - [x] Confirmar API REST pura: sin `routes/web.php`, sin Vite/Tailwind, JSON forzoso (`PrefersJsonResponses`), Sanctum stateless (Completado: 2026-09-20 21:12)
-- [ ] Configurar variables de entorno `.env` para conexion con PostgreSQL central (Laptop 4 - Melanie) 
-- [ ] Portar `database/database.sql` a migraciones Laravel (25 tablas, indices, CHECK, seeds `ADMIN`/`CLIENTE` y tienda Dulces Aesca)
-- [ ] Desactivar/omitir migraciones default de Laravel que creen `users` como tabla de negocio
+- [ ] Configurar variables de entorno `.env` para conexion con PostgreSQL central (Laptop 4 - Melanie)
+      Temporal (desarrollo): se usa PostgreSQL de Supabase (`DB_CONNECTION=pgsql`, session pooler, `DB_SSLMODE=require`). El schema es el mismo. Cuando Melanie levante el servidor, solo cambian host, puerto, usuario y password.
+- [x] Portar `database/database.sql` a migraciones Laravel (25 tablas, indices, CHECK, seeds `ADMIN`/`CLIENTE` y tienda Dulces Aesca) (Completado: 2026-09-20 21:22)
+- [x] Desactivar/omitir migraciones default de Laravel que creen `users` como tabla de negocio (Completado: 2026-09-20 21:22)
 - [ ] Crear `Dockerfile` para contenedor del backend
 - [ ] Crear `docker-compose.yml` para ejecutar las dos instancias locales (`backend-1:8001` y `backend-2:8002`)
 - [ ] Verificar conexion remota con PostgreSQL y endpoint `/up`
