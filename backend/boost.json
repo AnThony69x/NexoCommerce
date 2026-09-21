@@ -1,4 +1,11 @@
 {
+    "agents": [
+        "claude_code",
+        "antigravity",
+        "codex",
+        "cursor",
+        "opencode"
+    ],
     "cloud": false,
     "guidelines": true,
     "mcp": true,
@@ -7,7 +14,6 @@
     "skills": [
         "infer-conventions",
         "laravel-best-practices",
-        "testing-best-practices",
-        "tailwindcss-development"
+        "testing-best-practices"
     ]
 }

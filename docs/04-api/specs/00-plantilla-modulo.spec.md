@@ -1,80 +1,75 @@
-# [NOMBRE DEL MÓDULO] — Especificación Técnica (SDD)
+# [NOMBRE DEL MODULO] — Especificacion Tecnica (SDD)
 
-* **Versión del contrato:** 1.0.0
+* **Version del contrato:** 1.0.0
 * **Fecha:** YYYY-MM-DD
-* **Estado:** [Borrador / En Revisión / Aprobado / Implementado]
-* **Responsables:** 
+* **Estado:** [Borrador / En Revision / Aprobado / Implementado]
+* **Fuente de datos:** `database/database.sql`
+* **Responsables:**
   * Backend: Anthony
   * Frontend Web: Nathalia
-  * App Móvil: Emilio
+  * App Movil: Emilio
   * Base de Datos: Melanie
 
 ---
 
-## 1. Propósito y Alcance
-Descripción de la funcionalidad del módulo y qué problema de negocio resuelve.
+## 1. Proposito y Alcance
+Descripcion del modulo y problema de negocio que resuelve. Debe referenciar las tablas PostgreSQL involucradas.
 
 ---
 
 ## 2. Reglas de Negocio e Invariantes
-* **RN-01:** Regla de negocio 1 (ej: Stock no puede ser negativo).
-* **RN-02:** Regla de negocio 2 (ej: Solo pedidos en estado pendiente pueden cancelarse).
+* **RN-01:** Extraer de `docs/03-base-datos/diseño-bd.md` seccion 7 o de los `CHECK` del SQL.
+* **RN-02:** Los nombres JSON coinciden con las columnas SQL.
 
 ---
 
 ## 3. Modelo de Datos (PostgreSQL)
-Tablas y campos involucrados:
+Copiar campos reales de `database/database.sql`. Usar `SERIAL`, `creado_en`, `actualizado_en`. No inventar `slug`, `created_at` ni tablas Laravel de negocio.
 
 ### Tabla: `nombre_tabla`
-| Campo | Tipo | Nulo | Descripción |
+| Campo | Tipo | Nulo | Descripcion |
 | :--- | :--- | :--- | :--- |
-| `id` | BIGSERIAL | NO | Llave primaria |
-| `nombre` | VARCHAR(255) | NO | Nombre del recurso |
-| `created_at` | TIMESTAMP | NO | Auditoría |
+| `id` | SERIAL | NO | Llave primaria |
+| `creado_en` | TIMESTAMP | NO | Auditoria |
 
 ---
 
 ## 4. Endpoints de la API (`/api/v1/...`)
 
 ### 4.1 [Nombre del Caso de Uso]
-* **Método:** `POST` / `GET` / `PUT` / `PATCH` / `DELETE`
+* **Metodo:** `POST` / `GET` / `PUT` / `PATCH` / `DELETE`
 * **Ruta:** `/api/v1/recurso`
-* **Autenticación:** [Pública / Sanctum (Bearer Token)]
-* **Roles autorizados:** [Todos / Clientes / Administradores]
+* **Autenticacion:** [Publica / Sanctum (Bearer Token)]
+* **Roles autorizados:** [Todos / CLIENTE / ADMIN]
 
-#### Parámetros / Headers
-| Parámetro | Ubicación | Tipo | Requerido | Descripción |
-| :--- | :--- | :--- | :--- | :--- |
-| `Authorization` | Header | String | Sí | `Bearer <token>` |
-
-#### Payload de Entrada (Request Body)
+#### Payload de Entrada
 ```json
 {
   "campo": "valor"
 }
 ```
 
-#### Reglas de Validación (Laravel FormRequest)
+#### Reglas de Validacion (FormRequest)
 * `campo`: `required|string|max:255`
 
 #### Respuestas Esperadas
 
-##### 200 OK / 201 Created (Éxito)
+##### 200 OK / 201 Created
 ```json
 {
   "success": true,
-  "message": "Operación completada.",
+  "message": "Operacion completada.",
   "data": {
     "id": 1
   }
 }
 ```
 
-##### 422 Unprocessable Content (Error de validación)
+##### 422 Unprocessable Content
 ```json
 {
   "success": false,
-  "message": "Los datos proporcionados no son válidos.",
+  "message": "Los datos proporcionados no son validos.",
   "errors": {
     "campo": ["El campo es obligatorio."]
   }
@@ -83,7 +78,7 @@ Tablas y campos involucrados:
 
 ---
 
-## 5. Criterios de Aceptación (Casos de Prueba)
-* [ ] **TC-01:** Si se envían datos válidos, responde 200/201 y guarda el registro en PostgreSQL.
-* [ ] **TC-02:** Si falta un campo requerido, responde 422 con mensaje descriptivo.
-* [ ] **TC-03:** Si el token falta en rutas protegidas, responde 401 Unauthorized.
+## 5. Criterios de Aceptacion
+* [ ] **TC-01:** Datos validos: 200/201 y persistencia en PostgreSQL.
+* [ ] **TC-02:** Campo requerido ausente: 422.
+* [ ] **TC-03:** Ruta protegida sin token: 401.

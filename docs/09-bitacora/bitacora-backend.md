@@ -20,3 +20,5 @@
 | 2026-09-08 00:16 | Fase 0: Directrices | Ajuste de regla para proponer commits unicamente ante cambios de codigo y actualizacion de ROADMAP.md | `chore: actualizar directrices de commits y roadmap` | Anthony |
 | 2026-09-08 00:27 | Fase 0: Base API | Configuracion de Laravel como API REST pura: CORS, blindaje JSON forzoso, eliminacion de vistas web y pruebas de integracion | `feat: configurar backend exclusivamente como API REST pura` | Anthony |
 | 2026-09-08 19:35 | Fase 0: Infraestructura | Documentacion detallada de tecnologias y extensiones requeridas del backend en README.md | `docs: detallar tecnologias y dependencias del backend` | Anthony |
+| 2026-09-13 11:38 | Fase 0: Contratos SDD | Realineacion de `docs/04-api` (specs 01-12, OpenAPI 1.1.0) y `backend/ROADMAP.md` con las 25 tablas de `database/database.sql` | incluido en el commit de flujo SDD | Anthony |
+| 2026-09-17 08:22 | Fase 0: Stack | Verificacion del runtime: PHP 8.5.10, Laravel 13.30.1, Sanctum 4.3.3, Composer 2.10.3, PHPUnit 12.5.34. README del backend actualizado. `package.json`/Vite no forman parte de la API | `docs: alinear README del backend con Laravel 13 y PHP 8.5` | Anthony |
