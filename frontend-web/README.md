@@ -77,3 +77,5 @@ VITE_API_URL=http://<IP_NGINX>/api/v1
 ## Estado
 
 En desarrollo.
+
+proceso de maquetado espererando aceptacion de maquetado para comenzar con el codigo
