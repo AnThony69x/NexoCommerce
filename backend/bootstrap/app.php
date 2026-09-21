@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ForzarJson;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -7,27 +8,37 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            Route::middleware('api')->get('/', function () {
+                return response()->json([
+                    'success' => true,
+                    'servicio' => 'NexoCommerce REST API',
+                    'version' => 'v1',
+                    'estado' => 'operativo',
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+            });
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Configuracion stateless para API REST
+        $middleware->prepend(ForzarJson::class);
+        $middleware->redirectGuestsTo(null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Forzar respuestas exclusivamente en JSON
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => true,
         );
 
-        // Error de validacion (422)
         $exceptions->render(function (ValidationException $e) {
             return response()->json([
                 'success' => false,
@@ -36,7 +47,6 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 422);
         });
 
-        // Error de autenticacion (401)
         $exceptions->render(function (AuthenticationException $e) {
             return response()->json([
                 'success' => false,
@@ -45,7 +55,6 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 401);
         });
 
-        // Error de autorizacion (403)
         $exceptions->render(function (AccessDeniedHttpException|AuthorizationException $e) {
             return response()->json([
                 'success' => false,
@@ -54,7 +63,6 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 403);
         });
 
-        // Recurso o ruta no encontrada (404)
         $exceptions->render(function (NotFoundHttpException|ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,

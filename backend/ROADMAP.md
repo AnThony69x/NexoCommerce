@@ -75,7 +75,8 @@ Estado: En progreso
 - [x] Alinear contratos SDD `docs/04-api` (specs 01-12 y OpenAPI 1.1.0) con `database/database.sql` (Completado: 2026-09-13 11:30)
 - [x] Fijar flujo SDD de API REST pura: bitacora → roadmap → spec → codigo → pruebas → bitacora → un commit para Anthony (Completado: 2026-09-13 12:37)
 - [x] Configurar `.env` temporal contra PostgreSQL de Supabase (session pooler, `DB_CONNECTION=pgsql`, `DB_SSLMODE=require`). Destino final: Laptop 4 (Completado: 2026-09-20 21:08)
-- [ ] Configurar variables de entorno `.env` para conexion con PostgreSQL central (Laptop 4 - Melanie)
+- [x] Confirmar API REST pura: sin `routes/web.php`, sin Vite/Tailwind, JSON forzoso (`PrefersJsonResponses`), Sanctum stateless (Completado: 2026-09-20 21:12)
+- [ ] Configurar variables de entorno `.env` para conexion con PostgreSQL central (Laptop 4 - Melanie) 
 - [ ] Portar `database/database.sql` a migraciones Laravel (25 tablas, indices, CHECK, seeds `ADMIN`/`CLIENTE` y tienda Dulces Aesca)
 - [ ] Desactivar/omitir migraciones default de Laravel que creen `users` como tabla de negocio
 - [ ] Crear `Dockerfile` para contenedor del backend
