@@ -80,9 +80,9 @@ Estado: En progreso
       Temporal (desarrollo): se usa PostgreSQL de Supabase (`DB_CONNECTION=pgsql`, session pooler, `DB_SSLMODE=require`). El schema es el mismo. Cuando Melanie levante el servidor, solo cambian host, puerto, usuario y password.
 - [x] Portar `database/database.sql` a migraciones Laravel (25 tablas, indices, CHECK, seeds `ADMIN`/`CLIENTE` y tienda Dulces Aesca) (Completado: 2026-09-20 21:22)
 - [x] Desactivar/omitir migraciones default de Laravel que creen `users` como tabla de negocio (Completado: 2026-09-20 21:22)
-- [ ] Crear `Dockerfile` para contenedor del backend
-- [ ] Crear `docker-compose.yml` para ejecutar las dos instancias locales (`backend-1:8001` y `backend-2:8002`)
-- [ ] Verificar conexion remota con PostgreSQL y endpoint `/up`
+- [x] Crear `Dockerfile` para contenedor del backend (Completado: 2026-09-20 21:31)
+- [x] Crear `docker-compose.yml` para ejecutar las dos instancias locales (`backend-1:8001` y `backend-2:8002`) (Completado: 2026-09-20 21:31)
+- [x] Verificar conexion remota con PostgreSQL y endpoint `/up` (Completado: 2026-09-20 21:31)
 
 ---
 

@@ -240,7 +240,7 @@ composer show laravel/framework laravel/sanctum phpunit/phpunit
 
 ## Docker y Despliegue Distribuido
 
-El backend se ejecuta en **dos instancias independientes** detras del balanceador de carga NGINX (Laptop 1 - Michael):
+El backend se ejecuta en **dos instancias independientes** detras del balanceador de carga NGINX (Laptop 1 - Michael). No son microservicios: misma imagen, mismo codigo, misma base de datos.
 
 ```text
                        NGINX
@@ -254,10 +254,26 @@ El backend se ejecuta en **dos instancias independientes** detras del balanceado
              └───────────┬───────────┘
                          ▼
                     PostgreSQL
-                    (Laptop 4)
+              (hoy Supabase; destino Laptop 4)
 ```
 
-Ambas instancias comparten el mismo codigo fuente en `backend/`.
+Ambas instancias comparten el mismo codigo en `backend/` y leen `.env` en tiempo de ejecucion (no se copia a la imagen). El proceso escucha `0.0.0.0:$PORT` (`PORT=8000` dentro del contenedor). Runtime de la imagen: PHP 8.4 CLI (`php:8.4-cli-bookworm`); el host local sigue en PHP 8.5.
+
+```bash
+cd backend
+docker compose up --build -d
+
+curl -s http://127.0.0.1:8001/up
+curl -s http://127.0.0.1:8002/up
+curl -s http://127.0.0.1:8001/api/v1/salud
+
+docker compose exec backend-1 php artisan db:show
+docker compose down
+```
+
+- `backend-1` publica `8001 -> 8000`
+- `backend-2` publica `8002 -> 8000`
+- Healthcheck interno: `GET http://127.0.0.1:8000/up`
 
 ---
 
