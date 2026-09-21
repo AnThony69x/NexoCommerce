@@ -86,17 +86,34 @@ Formatos de mensaje:
 
 ## Arquitectura por Capas (`app/`)
 
-Objetivo SDD (Fases 1+). Hoy el esqueleto sigue siendo el default de Laravel 13 (`app/Models/User.php`, `app/Http/Controllers`, `app/Providers`). Las carpetas de dominio se crean al implementar cada modulo.
+Capas SDD listas para Fases 1+. Laravel 13 conserva `app/Models/` y `app/Http/Controllers/Controller.php` hasta migrar cada modulo. Hoy solo existen carpetas y `.gitkeep`. Los `.php` del arbol son la convencion de nombres; se crean al implementar cada spec.
+
+**Idioma de carpetas**
+
+| Capa | Carpetas | Archivos |
+| :--- | :--- | :--- |
+| `Dominio/` | Espanol (modulo + `Entidades/`, `Repositorios/`, `Servicios/`) | Espanol (`Usuario.php`, `UsuarioRepositorio.php`) |
+| `Aplicacion/` | Espanol (modulo + `CasosUso/`, `DTOs/`) | Espanol (`IniciarSesion.php`, `IniciarSesionDatos.php`) |
+| `Infraestructura/` | Espanol (`Persistencia/`, `Modelos/`, `Repositorios/`, ...) | Espanol (`EloquentUsuarioRepositorio.php`) |
+| `Http/` | Ingles (convencion Laravel: `Controllers/`, `Requests/`, `Resources/`, `Middleware/`) | Espanol + sufijo Laravel (`UsuarioController.php`, `IniciarSesionRequest.php`) |
 
 ```text
 backend/
 ├── app/
-│   ├── Dominio/                 # Logica de negocio pura (Sin dependencias de Laravel)
-│   │   ├── Autenticacion/       # Entidades, Repositorios (Interfaces), Servicios de Dominio
+│   ├── Dominio/                          # Logica de negocio pura. Cero Laravel.
+│   │   ├── Autenticacion/
+│   │   │   ├── Entidades/
+│   │   │   ├── Repositorios/            # Interfaces (contratos)
+│   │   │   └── Servicios/
 │   │   ├── Usuarios/
+│   │   │   ├── Entidades/
+│   │   │   │   └── Usuario.php
+│   │   │   ├── Repositorios/
+│   │   │   │   └── UsuarioRepositorio.php
+│   │   │   └── Servicios/
 │   │   ├── Tiendas/
 │   │   ├── Categorias/
-│   │   ├── Productos/           # Incluye TORTA, DETALLE, SUBLIMACION y disenos
+│   │   ├── Productos/                   # TORTA, DETALLE, SUBLIMACION y disenos
 │   │   ├── Publicaciones/
 │   │   ├── Produccion/
 │   │   ├── Carrito/
@@ -105,8 +122,15 @@ backend/
 │   │   ├── Notificaciones/
 │   │   └── Multimedia/
 │   │
-│   ├── Aplicacion/              # Casos de uso y DTOs
-│   │   ├── Autenticacion/       # CasosUso/ y DTOs/
+│   ├── Aplicacion/                       # Casos de uso y DTOs
+│   │   ├── Autenticacion/
+│   │   │   ├── CasosUso/
+│   │   │   │   ├── RegistrarCliente.php
+│   │   │   │   ├── IniciarSesion.php
+│   │   │   │   └── CerrarSesion.php
+│   │   │   └── DTOs/
+│   │   │       ├── RegistrarClienteDatos.php
+│   │   │       └── IniciarSesionDatos.php
 │   │   ├── Usuarios/
 │   │   ├── Tiendas/
 │   │   ├── Catalogo/
@@ -117,28 +141,35 @@ backend/
 │   │   ├── Pagos/
 │   │   └── Multimedia/
 │   │
-│   ├── Infraestructura/         # Implementaciones tecnologicas
+│   ├── Infraestructura/                  # Adaptadores (Eloquent, storage, pagos)
 │   │   ├── Persistencia/
 │   │   │   └── Eloquent/
-│   │   │       ├── Modelos/     # Modelos Eloquent de base de datos
-│   │   │       └── Repositorios/# Implementacion de interfaces de Dominio
-│   │   ├── Almacenamiento/      # Conexion con Servidor de Archivos Linux (Laptop 5)
+│   │   │       ├── Modelos/
+│   │   │       │   └── Usuario.php
+│   │   │       └── Repositorios/
+│   │   │           └── EloquentUsuarioRepositorio.php
+│   │   ├── Almacenamiento/              # Servidor de archivos (Laptop 5)
 │   │   ├── Pagos/
 │   │   └── Notificaciones/
 │   │
-│   └── Http/                    # Entrada y salida HTTP
-│       ├── Controladores/       # Controladores delgados (delegan a Casos de Uso)
-│       ├── Solicitudes/         # FormRequests (validacion segun especificaciones)
-│       ├── Recursos/            # API Resources (envelope JSON estandarizado)
-│       └── Middleware/          # Autenticacion Sanctum y autorizacion por roles
+│   └── Http/                             # Entrada y salida HTTP. Carpetas en ingles.
+│       ├── Controllers/
+│       │   └── AutenticacionController.php
+│       ├── Requests/
+│       │   ├── RegistrarClienteRequest.php
+│       │   └── IniciarSesionRequest.php
+│       ├── Resources/
+│       │   └── UsuarioResource.php
+│       └── Middleware/
+│           └── VerificarRol.php
 │
-├── .agents/                     # Rules y Skills de Antigravity / Laravel Boost
+├── .agents/                              # Rules y Skills de Laravel Boost
 │   ├── rules/backend-rules.md
 │   └── skills/sdd-module-implementation/
 │
-├── database/                    # Migraciones, Seeders y Factories de PostgreSQL
-├── routes/                      # Rutas de API versionadas (/api/v1/...)
-└── tests/                       # Pruebas automatizadas (Unitarias, Integracion)
+├── database/                             # Migraciones, Seeders y Factories de PostgreSQL
+├── routes/                               # Rutas de API versionadas (/api/v1/...)
+└── tests/                                # Pruebas automatizadas (Unitarias, Integracion)
 ```
 
 ---

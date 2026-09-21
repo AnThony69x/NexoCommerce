@@ -62,6 +62,8 @@ Estado: En progreso
 
 - [x] Inicializar proyecto Laravel 13 en `backend/` (Completado: 2026-09-07 23:15; stack verificado 2026-09-17: Laravel 13.30.1 / PHP 8.5.10)
 - [x] Estructurar capas desacopladas (`app/Dominio/`, `app/Aplicacion/`, `app/Infraestructura/`, `app/Http/`) (Completado: 2026-09-07 23:30)
+- [x] Versionar el esqueleto de capas con `.gitkeep` para que Git conserve las carpetas vacias tras un clone (Completado: 2026-09-20 18:20)
+- [x] Alinear el esqueleto: `Dominio`/`Aplicacion`/`Infraestructura` en espanol (subcarpetas incluidas) y `Http` en ingles (`Controllers`, `Requests`, `Resources`, `Middleware`) (Completado: 2026-09-20 18:26)
 - [x] Instalar y configurar `laravel/sanctum` para autenticacion API por tokens (Completado: 2026-09-07 23:30)
 - [x] Instalar y configurar `laravel/boost` con MCP para asistencia tecnica en desarrollo (Completado: 2026-09-07 23:55)
 - [x] Configurar directrices locales (`.agents/rules/`, `.agents/skills/`, `AGENTS.md`, `CLAUDE.md`) (Completado: 2026-09-08 00:05)
@@ -72,6 +74,7 @@ Estado: En progreso
 - [x] Crear y aprobar pruebas automatizadas de integracion de configuracion API (Completado: 2026-09-08 00:26)
 - [x] Alinear contratos SDD `docs/04-api` (specs 01-12 y OpenAPI 1.1.0) con `database/database.sql` (Completado: 2026-09-13 11:30)
 - [x] Fijar flujo SDD de API REST pura: bitacora → roadmap → spec → codigo → pruebas → bitacora → un commit para Anthony (Completado: 2026-09-13 12:37)
+- [x] Configurar `.env` temporal contra PostgreSQL de Supabase (session pooler, `DB_CONNECTION=pgsql`, `DB_SSLMODE=require`). Destino final: Laptop 4 (Completado: 2026-09-20 21:08)
 - [ ] Configurar variables de entorno `.env` para conexion con PostgreSQL central (Laptop 4 - Melanie)
 - [ ] Portar `database/database.sql` a migraciones Laravel (25 tablas, indices, CHECK, seeds `ADMIN`/`CLIENTE` y tienda Dulces Aesca)
 - [ ] Desactivar/omitir migraciones default de Laravel que creen `users` como tabla de negocio
