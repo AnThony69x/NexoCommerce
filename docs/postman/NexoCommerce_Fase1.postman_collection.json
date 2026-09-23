@@ -1,0 +1,761 @@
+{
+  "info": {
+    "name": "NexoCommerce - Fase 1: Autenticacion y Usuarios",
+    "description": "Coleccion completa para probar los endpoints de la Fase 1.\n\nFlujo sugerido:\n1. Registro -> Login -> usar el token en las rutas protegidas\n2. El token se guarda automaticamente en la variable `token` tras cada login exitoso\n3. Las rutas de admin requieren hacer login con un usuario ADMIN\n\nVariable de entorno requerida: `base_url` (ej: http://localhost:8001/api/v1)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8001/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "usuario_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00. Healthcheck",
+      "item": [
+        {
+          "name": "GET salud",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/salud",
+              "host": ["{{base_url}}"],
+              "path": ["salud"]
+            },
+            "description": "Verifica que la API este activa."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01. Autenticacion - Publicas",
+      "item": [
+        {
+          "name": "POST auth/registro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.token) {",
+                  "    pm.collectionVariables.set('token', res.data.token);",
+                  "    console.log('Token guardado:', res.data.token);",
+                  "}",
+                  "if (res.data && res.data.usuario && res.data.usuario.id) {",
+                  "    pm.collectionVariables.set('usuario_id', res.data.usuario.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_completo\": \"Juan Perez\",\n  \"correo\": \"juan@ejemplo.com\",\n  \"password\": \"Password123*\",\n  \"password_confirmation\": \"Password123*\",\n  \"telefono\": \"+51987654321\",\n  \"terminos_aceptados\": true,\n  \"version_terminos\": \"1.0\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/registro",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "registro"]
+            },
+            "description": "TC-01: Registra un nuevo usuario CLIENTE.\nEspera 201 con envelope { success, message, data: { usuario, token } }.\nGuarda el token automaticamente en la variable de coleccion."
+          },
+          "response": [
+            {
+              "name": "201 - Registro exitoso",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Registro exitoso\",\n  \"data\": {\n    \"usuario\": {\n      \"id\": 1,\n      \"nombre_completo\": \"Juan Perez\",\n      \"correo\": \"juan@ejemplo.com\",\n      \"rol\": \"CLIENTE\",\n      \"correo_verificado\": false,\n      \"activo\": true,\n      \"creado_en\": \"2026-09-22T20:30:00.000000Z\"\n    },\n    \"token\": \"1|abcdef...\"\n  }\n}"
+            },
+            {
+              "name": "422 - Correo duplicado (TC-02)",
+              "status": "Unprocessable Content",
+              "code": 422,
+              "body": "{\n  \"success\": false,\n  \"message\": \"El correo ya esta registrado\",\n  \"data\": {\n    \"errors\": {\n      \"correo\": [\"El correo ya esta registrado\"]\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST auth/registro - correo duplicado (TC-02)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_completo\": \"Otro Usuario\",\n  \"correo\": \"juan@ejemplo.com\",\n  \"password\": \"Password123*\",\n  \"password_confirmation\": \"Password123*\",\n  \"terminos_aceptados\": true,\n  \"version_terminos\": \"1.0\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/registro",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "registro"]
+            },
+            "description": "TC-02: Intenta registrar un correo ya existente.\nEspera 422 con error en el campo 'correo'."
+          },
+          "response": []
+        },
+        {
+          "name": "POST auth/login - exitoso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.token) {",
+                  "    pm.collectionVariables.set('token', res.data.token);",
+                  "    console.log('Token guardado:', res.data.token);",
+                  "}",
+                  "if (res.data && res.data.usuario && res.data.usuario.id) {",
+                  "    pm.collectionVariables.set('usuario_id', res.data.usuario.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"juan@ejemplo.com\",\n  \"password\": \"Password123*\",\n  \"device_name\": \"postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Inicia sesion con credenciales validas.\nGuarda el token automaticamente."
+          },
+          "response": [
+            {
+              "name": "200 - Login exitoso",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Sesion iniciada\",\n  \"data\": {\n    \"usuario\": {\n      \"id\": 1,\n      \"nombre_completo\": \"Juan Perez\",\n      \"correo\": \"juan@ejemplo.com\",\n      \"rol\": \"CLIENTE\",\n      \"correo_verificado\": false,\n      \"activo\": true\n    },\n    \"token\": \"2|xyz789...\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST auth/login - credenciales invalidas",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"juan@ejemplo.com\",\n  \"password\": \"PasswordIncorrecta\",\n  \"device_name\": \"postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "TC-03: Intento fallido. Incrementa intentos_fallidos.\nDespues de 5 intentos fallidos consecutivos, la cuenta se bloquea 15 min (TC-04 -> 429)."
+          },
+          "response": [
+            {
+              "name": "401 - Credenciales invalidas",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Credenciales invalidas\",\n  \"data\": {\n    \"codigo_error\": \"AUTH_CREDENCIALES_INVALIDAS\"\n  }\n}"
+            },
+            {
+              "name": "429 - Cuenta bloqueada (TC-04, tras 5 fallos)",
+              "status": "Too Many Requests",
+              "code": 429,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Cuenta temporalmente bloqueada\",\n  \"data\": {\n    \"codigo_error\": \"AUTH_CUENTA_BLOQUEADA\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST auth/login - como ADMIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.token) {",
+                  "    pm.collectionVariables.set('token', res.data.token);",
+                  "    console.log('Token ADMIN guardado:', res.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"admin@nexocommerce.com\",\n  \"password\": \"Password123*\",\n  \"device_name\": \"postman-admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login con cuenta ADMIN. Usa las credenciales reales del admin en tu DB de desarrollo.\nTraskl login exitoso, el token queda en la variable de coleccion y puedes usar las rutas /admin/*."
+          },
+          "response": []
+        },
+        {
+          "name": "POST auth/oauth - GOOGLE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.token) {",
+                  "    pm.collectionVariables.set('token', res.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proveedor\": \"GOOGLE\",\n  \"id_proveedor\": \"google-uid-123456\",\n  \"nombre_completo\": \"Maria Garcia\",\n  \"correo\": \"maria@gmail.com\",\n  \"terminos_aceptados\": true,\n  \"version_terminos\": \"1.0\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/oauth",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "oauth"]
+            },
+            "description": "RN-AUTH-09: Autentica via OAuth.\n- Si el par (proveedor, id_proveedor) ya existe -> login\n- Si el correo existe pero sin OAuth -> vincula la cuenta + login\n- Si nada existe -> crea usuario nuevo (password_hash=NULL, correo_verificado=true) + login"
+          },
+          "response": [
+            {
+              "name": "200 - OAuth exitoso",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Sesion iniciada\",\n  \"data\": {\n    \"usuario\": {\n      \"id\": 2,\n      \"nombre_completo\": \"Maria Garcia\",\n      \"correo\": \"maria@gmail.com\",\n      \"rol\": \"CLIENTE\",\n      \"correo_verificado\": true,\n      \"activo\": true\n    },\n    \"token\": \"3|oauth_token...\"\n  }\n}"
+            },
+            {
+              "name": "422 - Proveedor invalido (TC-06)",
+              "status": "Unprocessable Content",
+              "code": 422,
+              "body": "{\n  \"success\": false,\n  \"message\": \"El campo proveedor seleccionado es invalido\",\n  \"data\": {\n    \"errors\": {\n      \"proveedor\": [\"El campo proveedor seleccionado es invalido\"]\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST auth/oauth - proveedor invalido (TC-06)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proveedor\": \"TWITTER\",\n  \"id_proveedor\": \"twitter-uid-999\",\n  \"nombre_completo\": \"Pedro Lopez\",\n  \"correo\": \"pedro@ejemplo.com\",\n  \"terminos_aceptados\": true,\n  \"version_terminos\": \"1.0\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/oauth",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "oauth"]
+            },
+            "description": "TC-06: Proveedor no permitido (solo GOOGLE y FACEBOOK).\nEspera 422 con error en el campo 'proveedor'."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. Autenticacion - Protegidas (requieren token)",
+      "item": [
+        {
+          "name": "GET auth/perfil",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/perfil",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "perfil"]
+            },
+            "description": "Retorna el perfil completo del usuario autenticado incluyendo terminos_aceptados y version_terminos."
+          },
+          "response": [
+            {
+              "name": "200 - Perfil del usuario",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Perfil obtenido\",\n  \"data\": {\n    \"id\": 1,\n    \"nombre_completo\": \"Juan Perez\",\n    \"correo\": \"juan@ejemplo.com\",\n    \"telefono\": \"+51987654321\",\n    \"rol\": \"CLIENTE\",\n    \"correo_verificado\": false,\n    \"activo\": true,\n    \"terminos_aceptados\": true,\n    \"version_terminos\": \"1.0\",\n    \"creado_en\": \"2026-09-22T20:30:00.000000Z\"\n  }\n}"
+            },
+            {
+              "name": "401 - Sin token",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"message\": \"Unauthenticated.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST auth/verificar-correo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/verificar-correo",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "verificar-correo"]
+            },
+            "description": "Verifica el correo del usuario con el codigo de 6 digitos enviado al registrarse.\nEl codigo real esta en la tabla verificaciones_correo de tu DB de desarrollo."
+          },
+          "response": [
+            {
+              "name": "200 - Correo verificado",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Correo verificado correctamente\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "400 - Codigo invalido o expirado",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"El codigo de verificacion es invalido o ha expirado\",\n  \"data\": {\n    \"codigo_error\": \"AUTH_CODIGO_INVALIDO\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST auth/reenviar-verificacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/reenviar-verificacion",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "reenviar-verificacion"]
+            },
+            "description": "Genera un nuevo codigo de verificacion de correo para el usuario autenticado.\nEn desarrollo el codigo aparece en la tabla verificaciones_correo."
+          },
+          "response": [
+            {
+              "name": "200 - Codigo reenviado",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Codigo de verificacion reenviado\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST auth/logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Revoca el token actual. Despues de esto el token queda invalido."
+          },
+          "response": [
+            {
+              "name": "200 - Logout exitoso",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Sesion cerrada\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST auth/logout - sin token (TC-05)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "TC-05: Intenta logout sin Bearer token.\nEspera 401 Unauthenticated."
+          },
+          "response": [
+            {
+              "name": "401 - Sin token",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"message\": \"Unauthenticated.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03. Usuarios - Perfil propio (requieren token)",
+      "item": [
+        {
+          "name": "PUT usuarios/perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_completo\": \"Juan Perez Actualizado\",\n  \"telefono\": \"+51999888777\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/usuarios/perfil",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "perfil"]
+            },
+            "description": "Actualiza nombre_completo y/o telefono del usuario autenticado.\nSolo estos dos campos; correo y rol no se pueden cambiar aqui."
+          },
+          "response": [
+            {
+              "name": "200 - Perfil actualizado",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Perfil actualizado\",\n  \"data\": {\n    \"id\": 1,\n    \"nombre_completo\": \"Juan Perez Actualizado\",\n    \"correo\": \"juan@ejemplo.com\",\n    \"telefono\": \"+51999888777\",\n    \"rol\": \"CLIENTE\",\n    \"correo_verificado\": false,\n    \"activo\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "PUT usuarios/cambiar-password - exitoso",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password_actual\": \"Password123*\",\n  \"password_nuevo\": \"NuevoPassword456!\",\n  \"password_nuevo_confirmation\": \"NuevoPassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/usuarios/cambiar-password",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "cambiar-password"]
+            },
+            "description": "Cambia la password del usuario autenticado.\nRN-USR-05: Falla con 400 si la cuenta es solo OAuth (no tiene password local)."
+          },
+          "response": [
+            {
+              "name": "200 - Password cambiada",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password actualizada correctamente\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "PUT usuarios/cambiar-password - actual incorrecta (TC-08)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password_actual\": \"PasswordIncorrecta\",\n  \"password_nuevo\": \"NuevoPassword456!\",\n  \"password_nuevo_confirmation\": \"NuevoPassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/usuarios/cambiar-password",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "cambiar-password"]
+            },
+            "description": "TC-08: Envia la password actual incorrecta.\nEspera 400 con codigo_error AUTH_PASSWORD_ACTUAL_INCORRECTO."
+          },
+          "response": [
+            {
+              "name": "400 - Password actual incorrecta",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"La password actual es incorrecta\",\n  \"data\": {\n    \"codigo_error\": \"AUTH_PASSWORD_ACTUAL_INCORRECTO\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "PUT usuarios/cambiar-password - cuenta OAuth sin password local",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password_actual\": \"cualquier-cosa\",\n  \"password_nuevo\": \"NuevoPassword456!\",\n  \"password_nuevo_confirmation\": \"NuevoPassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/usuarios/cambiar-password",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "cambiar-password"]
+            },
+            "description": "RN-USR-05: Usuario que se registro solo via OAuth (password_hash=NULL).\nEspera 400 con codigo_error AUTH_SIN_PASSWORD_LOCAL.\nPrimero haz login con un usuario OAuth para que el token sea de ese usuario."
+          },
+          "response": [
+            {
+              "name": "400 - Sin password local",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Esta cuenta no tiene password local configurada\",\n  \"data\": {\n    \"codigo_error\": \"AUTH_SIN_PASSWORD_LOCAL\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04. Admin - Usuarios (requieren token ADMIN)",
+      "item": [
+        {
+          "name": "GET admin/usuarios - listar todos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/usuarios",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "usuarios"]
+            },
+            "description": "Lista todos los usuarios con paginacion (15 por pagina).\nRequiere token de usuario ADMIN."
+          },
+          "response": [
+            {
+              "name": "200 - Lista paginada",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Usuarios listados\",\n  \"data\": {\n    \"items\": [\n      {\n        \"id\": 1,\n        \"nombre_completo\": \"Juan Perez\",\n        \"correo\": \"juan@ejemplo.com\",\n        \"rol\": \"CLIENTE\",\n        \"correo_verificado\": false,\n        \"activo\": true,\n        \"creado_en\": \"2026-09-22T20:30:00.000000Z\"\n      }\n    ],\n    \"total\": 1,\n    \"por_pagina\": 15,\n    \"pagina_actual\": 1,\n    \"total_paginas\": 1\n  }\n}"
+            },
+            {
+              "name": "403 - No es ADMIN (TC-07)",
+              "status": "Forbidden",
+              "code": 403,
+              "body": "{\n  \"success\": false,\n  \"message\": \"No tienes permiso para realizar esta accion\",\n  \"data\": {\n    \"codigo_error\": \"AUTH_FORBIDDEN\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET admin/usuarios - filtro por rol",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/usuarios?rol=CLIENTE",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "usuarios"],
+              "query": [
+                { "key": "rol", "value": "CLIENTE" }
+              ]
+            },
+            "description": "Filtra usuarios por rol: ADMIN o CLIENTE."
+          },
+          "response": []
+        },
+        {
+          "name": "GET admin/usuarios - buscar por nombre o correo",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/usuarios?buscar=juan",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "usuarios"],
+              "query": [
+                { "key": "buscar", "value": "juan" }
+              ]
+            },
+            "description": "Busca usuarios por nombre_completo o correo (case-insensitive via ILIKE en PostgreSQL)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET admin/usuarios - filtro por activo=false",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/usuarios?activo=false",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "usuarios"],
+              "query": [
+                { "key": "activo", "value": "false" }
+              ]
+            },
+            "description": "Lista solo usuarios inactivos."
+          },
+          "response": []
+        },
+        {
+          "name": "GET admin/usuarios - CLIENTE denegado (TC-07)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/usuarios",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "usuarios"]
+            },
+            "description": "TC-07: Ejecuta esta peticion con un token de usuario CLIENTE.\nEspera 403 AUTH_FORBIDDEN."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH admin/usuarios/{id} - cambiar rol a ADMIN",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rol\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/usuarios/{{usuario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "usuarios", "{{usuario_id}}"]
+            },
+            "description": "Cambia el rol del usuario al ID especificado en la variable usuario_id.\nRN-USR-04: No se puede degradar al ultimo ADMIN activo del sistema."
+          },
+          "response": [
+            {
+              "name": "200 - Rol actualizado",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Usuario actualizado\",\n  \"data\": {\n    \"id\": 1,\n    \"nombre_completo\": \"Juan Perez\",\n    \"correo\": \"juan@ejemplo.com\",\n    \"rol\": \"ADMIN\",\n    \"activo\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "PATCH admin/usuarios/{id} - desactivar usuario",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activo\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/usuarios/{{usuario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "usuarios", "{{usuario_id}}"]
+            },
+            "description": "Desactiva un usuario. Si es el ultimo ADMIN activo, retorna 400 USR_ULTIMO_ADMIN."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH admin/usuarios/{id} - ultimo ADMIN protegido (TC-09)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rol\": \"CLIENTE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/usuarios/{{usuario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "usuarios", "{{usuario_id}}"]
+            },
+            "description": "TC-09: Intenta degradar al unico ADMIN activo del sistema a CLIENTE.\nEspera 400 USR_ULTIMO_ADMIN.\nPrimero asegurate de que solo haya 1 ADMIN activo en el sistema."
+          },
+          "response": [
+            {
+              "name": "400 - Ultimo ADMIN protegido",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"No se puede degradar o desactivar al unico ADMIN activo del sistema\",\n  \"data\": {\n    \"codigo_error\": \"USR_ULTIMO_ADMIN\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Aplicacion\Autenticacion\CasosUso;
 
+use App\Aplicacion\Autenticacion\Contratos\NotificacionServiceInterface;
 use App\Aplicacion\Autenticacion\Contratos\TokenServiceInterface;
 use App\Aplicacion\Autenticacion\DTOs\RegistrarClienteDTO;
 use App\Aplicacion\Autenticacion\DTOs\SesionIniciadaDTO;
@@ -16,6 +17,7 @@ use DateTimeImmutable;
  * RN-AUTH-02: rol CLIENTE.
  * RN-AUTH-04: terminos_aceptados + version_terminos + terminos_aceptados_en.
  * RN-AUTH-05: insertar verificaciones_correo con codigo + expira_en 24h.
+ * RN-AUTH-05b: enviar el codigo al correo del usuario via NotificacionService.
  */
 final class RegistrarCliente
 {
@@ -23,6 +25,7 @@ final class RegistrarCliente
         private readonly UsuarioRepositorioInterface $usuarioRepo,
         private readonly VerificacionCorreoRepositorioInterface $verificacionRepo,
         private readonly TokenServiceInterface $tokenService,
+        private readonly NotificacionServiceInterface $notificacion,
     ) {}
 
     public function execute(RegistrarClienteDTO $dto): SesionIniciadaDTO
@@ -47,6 +50,12 @@ final class RegistrarCliente
         $expiraEn = new DateTimeImmutable('+24 hours');
 
         $this->verificacionRepo->crear($usuario->id, $codigo, $expiraEn);
+
+        $this->notificacion->enviarCodigoVerificacion(
+            correo: $usuario->correo,
+            nombre: $usuario->nombre_completo,
+            codigo: $codigo,
+        );
 
         $token = $this->tokenService->emitir($usuario->id, 'registro');
 

@@ -6,8 +6,10 @@ namespace Tests\Integracion\Autenticacion;
 
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\VerificacionCorreoModelo;
+use App\Mail\CodigoVerificacionMail;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 /**
@@ -24,6 +26,8 @@ class AuthTest extends TestCase
     {
         parent::setUp();
         $this->seed(RolesSeeder::class);
+        // Evita envios reales de correo en la suite de integracion.
+        Mail::fake();
     }
 
     // -------------------------------------------------------------------------
@@ -66,6 +70,11 @@ class AuthTest extends TestCase
         $this->assertNotNull($usuario);
         $this->assertDatabaseHas('verificaciones_correo', ['usuario_id' => $usuario->id]);
         $this->assertNotEmpty($response->json('data.token'));
+
+        // Verifica que se envio el correo de verificacion.
+        Mail::assertSent(CodigoVerificacionMail::class, function (CodigoVerificacionMail $mail) {
+            return $mail->hasTo('juan@example.com');
+        });
     }
 
     // -------------------------------------------------------------------------

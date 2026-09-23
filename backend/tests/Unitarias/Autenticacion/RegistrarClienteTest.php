@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unitarias\Autenticacion;
 
 use App\Aplicacion\Autenticacion\CasosUso\RegistrarCliente;
+use App\Aplicacion\Autenticacion\Contratos\NotificacionServiceInterface;
 use App\Aplicacion\Autenticacion\Contratos\TokenServiceInterface;
 use App\Aplicacion\Autenticacion\DTOs\RegistrarClienteDTO;
 use App\Aplicacion\Autenticacion\DTOs\SesionIniciadaDTO;
@@ -24,6 +25,8 @@ class RegistrarClienteTest extends TestCase
 
     private TokenServiceInterface&MockObject $tokenService;
 
+    private NotificacionServiceInterface&MockObject $notificacion;
+
     private RegistrarCliente $caso;
 
     protected function setUp(): void
@@ -33,11 +36,13 @@ class RegistrarClienteTest extends TestCase
         $this->usuarioRepo = $this->createMock(UsuarioRepositorioInterface::class);
         $this->verificacionRepo = $this->createMock(VerificacionCorreoRepositorioInterface::class);
         $this->tokenService = $this->createMock(TokenServiceInterface::class);
+        $this->notificacion = $this->createMock(NotificacionServiceInterface::class);
 
         $this->caso = new RegistrarCliente(
             $this->usuarioRepo,
             $this->verificacionRepo,
             $this->tokenService,
+            $this->notificacion,
         );
     }
 
@@ -72,6 +77,10 @@ class RegistrarClienteTest extends TestCase
         $this->tokenService->expects($this->once())
             ->method('emitir')
             ->willReturn('token_plano');
+
+        $this->notificacion->expects($this->once())
+            ->method('enviarCodigoVerificacion')
+            ->with($usuarioEsperado->correo, $usuarioEsperado->nombre_completo, $this->isType('string'));
 
         $resultado = $this->caso->execute($dto);
 

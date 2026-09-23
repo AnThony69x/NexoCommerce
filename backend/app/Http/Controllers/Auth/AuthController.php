@@ -15,6 +15,7 @@ use App\Aplicacion\Autenticacion\DTOs\OAuthDTO;
 use App\Aplicacion\Autenticacion\DTOs\RegistrarClienteDTO;
 use App\Aplicacion\Autenticacion\DTOs\VerificarCorreoDTO;
 use App\Dominio\Autenticacion\Entidades\Usuario;
+use App\Dominio\Autenticacion\Repositorios\UsuarioRepositorioInterface;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\OAuthRequest;
@@ -38,6 +39,7 @@ class AuthController extends Controller
         private readonly VerificarCorreo $verificarCorreo,
         private readonly ReenviarVerificacion $reenviarVerificacion,
         private readonly AutenticarOAuth $autenticarOAuth,
+        private readonly UsuarioRepositorioInterface $usuarioRepo,
     ) {}
 
     /** POST /api/v1/auth/registro */
@@ -134,7 +136,9 @@ class AuthController extends Controller
         /** @var UsuarioModelo $modelo */
         $modelo = $request->user();
 
-        $this->reenviarVerificacion->execute($modelo->id);
+        $usuario = $this->usuarioRepo->buscarPorId($modelo->id);
+
+        $this->reenviarVerificacion->execute($usuario);
 
         return response()->json([
             'success' => true,
