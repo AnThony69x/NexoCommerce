@@ -1,4 +1,5 @@
 # Especificación de Requisitos de Software
+Responsable de los RF y RNF lider del proyecto: Emilio Cardenas
 
 **Plataforma E-commerce — Repostería, Detalles y Sublimación**
 

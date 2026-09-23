@@ -100,7 +100,7 @@ Tablas: `roles`, `usuarios`, `cuentas_oauth`, `verificaciones_correo` + Sanctum 
 - [ ] Dominio: `Usuario`, `CuentaOAuth`, `VerificacionCorreo`, `UsuarioRepositorio`
 - [ ] Aplicacion: `RegistrarCliente`, `IniciarSesion`, `CerrarSesion`, `ObtenerPerfil`, `VerificarCorreo`, `ReenviarVerificacion`, `AutenticarOAuth`
 - [ ] Infraestructura: modelos Eloquent sobre `usuarios` (no `users`)
-- [ ] Reglas: 5 intentos → `bloqueado_hasta` 15 min (429); registro con rol `CLIENTE`; `terminos_aceptados`; OAuth `GOOGLE`/`FACEBOOK`
+- [ ] Reglas: 5 intentos → `bloqueado_hasta` 15 min (429); registro con rol `CLIENTE`; `terminos_aceptados`; OAuth `GOOGLE`
 - [ ] Http:
   - `POST /api/v1/auth/registro`
   - `POST /api/v1/auth/login` (campo `correo`, no `email`)
