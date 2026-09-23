@@ -1,6 +1,8 @@
 <?php
 
+use App\Dominio\Compartido\Excepciones\DominioException;
 use App\Http\Middleware\ForzarJson;
+use App\Http\Middleware\VerificarRol;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -33,11 +35,23 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(ForzarJson::class);
         $middleware->redirectGuestsTo(null);
+
+        // Alias para el middleware de autorizacion por rol.
+        $middleware->alias(['rol' => VerificarRol::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => true,
         );
+
+        // Errores de dominio / negocio — lanzados por casos de uso.
+        $exceptions->render(function (DominioException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'codigo_error' => $e->codigo_error,
+            ], $e->httpStatus);
+        });
 
         $exceptions->render(function (ValidationException $e) {
             return response()->json([

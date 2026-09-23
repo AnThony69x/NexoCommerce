@@ -88,7 +88,7 @@ Estado: En progreso
 
 ## FASE 1: Autenticacion y Usuarios
 
-Estado: Pendiente
+Estado: Completado (2026-09-22 21:10)
 Dependencias: Fase 0 (migraciones de `roles`, `usuarios`, `cuentas_oauth`, `verificaciones_correo`)
 Especificaciones:
 - [01-autenticacion.spec.md](../docs/04-api/specs/01-autenticacion.spec.md)
@@ -97,11 +97,11 @@ Especificaciones:
 Tablas: `roles`, `usuarios`, `cuentas_oauth`, `verificaciones_correo` + Sanctum `personal_access_tokens`.
 
 ### Autenticacion (`/api/v1/auth`)
-- [ ] Dominio: `Usuario`, `CuentaOAuth`, `VerificacionCorreo`, `UsuarioRepositorio`
-- [ ] Aplicacion: `RegistrarCliente`, `IniciarSesion`, `CerrarSesion`, `ObtenerPerfil`, `VerificarCorreo`, `ReenviarVerificacion`, `AutenticarOAuth`
-- [ ] Infraestructura: modelos Eloquent sobre `usuarios` (no `users`)
-- [ ] Reglas: 5 intentos → `bloqueado_hasta` 15 min (429); registro con rol `CLIENTE`; `terminos_aceptados`; OAuth `GOOGLE`
-- [ ] Http:
+- [x] Dominio: `Usuario`, `CuentaOAuth`, `VerificacionCorreo`, `UsuarioRepositorio` (Completado: 2026-09-22 20:30)
+- [x] Aplicacion: `RegistrarCliente`, `IniciarSesion`, `CerrarSesion`, `ObtenerPerfil`, `VerificarCorreo`, `ReenviarVerificacion`, `AutenticarOAuth` (Completado: 2026-09-22 20:30)
+- [x] Infraestructura: modelos Eloquent sobre `usuarios` (no `users`) (Completado: 2026-09-22 20:30)
+- [x] Reglas: 5 intentos → `bloqueado_hasta` 15 min (429); registro con rol `CLIENTE`; `terminos_aceptados`; OAuth `GOOGLE` (Completado: 2026-09-22 20:30)
+- [x] Http:
   - `POST /api/v1/auth/registro`
   - `POST /api/v1/auth/login` (campo `correo`, no `email`)
   - `POST /api/v1/auth/logout`
@@ -109,16 +109,18 @@ Tablas: `roles`, `usuarios`, `cuentas_oauth`, `verificaciones_correo` + Sanctum 
   - `POST /api/v1/auth/verificar-correo`
   - `POST /api/v1/auth/reenviar-verificacion`
   - `POST /api/v1/auth/oauth`
-- [ ] Pruebas: correo duplicado 422, login 401, bloqueo 429, OAuth proveedor invalido 422
+  (Completado: 2026-09-22 20:45)
+- [x] Pruebas: correo duplicado 422, login 401, bloqueo 429, OAuth proveedor invalido 422 (Completado: 2026-09-22 21:05 — 45/45 verde)
 
 ### Usuarios y roles (`/api/v1/usuarios`)
-- [ ] Middleware `VerificarRol` (`ADMIN` | `CLIENTE`)
-- [ ] Http:
+- [x] Middleware `VerificarRol` (`ADMIN` | `CLIENTE`) (Completado: 2026-09-22 20:45)
+- [x] Http:
   - `GET /api/v1/admin/usuarios` (filtros `rol`, `buscar`, `activo`)
   - `PATCH /api/v1/admin/usuarios/{id}` (rol/activo; no eliminar el ultimo ADMIN)
   - `PUT /api/v1/usuarios/perfil` (`nombre_completo`, `telefono`)
   - `PUT /api/v1/usuarios/cambiar-password`
-- [ ] Pruebas: CLIENTE en ruta admin → 403
+  (Completado: 2026-09-22 20:45)
+- [x] Pruebas: CLIENTE en ruta admin → 403 (Completado: 2026-09-22 21:05 — 45/45 verde)
 
 ---
 

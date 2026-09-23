@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Usuarios\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -7,75 +10,114 @@ use Illuminate\Support\Facades\Route;
 | Rutas de API REST - NexoCommerce v1
 |--------------------------------------------------------------------------
 |
-| Todas las rutas aqui definidas estan precedidas por /api y su version /v1.
-| Siguen la metodologia SDD y la arquitectura por capas.
+| API pura: sin sesiones, sin CSRF, sin Blade.
+| Autenticacion: Laravel Sanctum (Personal Access Tokens).
+| Autorizacion: middleware VerificarRol (alias 'rol').
 |
 */
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->group(function (): void {
 
-    // Modulo 01: Autenticacion
-    Route::prefix('auth')->group(function () {
-        // Endpoints publicos: registro, login
-        // Endpoints protegidos por Sanctum: logout, perfil
+    // -------------------------------------------------------------------------
+    // Modulo 01: Autenticacion — rutas publicas
+    // -------------------------------------------------------------------------
+    Route::prefix('auth')->group(function (): void {
+        Route::post('registro', [AuthController::class, 'registro']);
+        Route::post('login', [AuthController::class, 'login']);
+        Route::post('oauth', [AuthController::class, 'oauth']);
     });
 
-    // Modulo 02: Usuarios y Roles
-    Route::prefix('usuarios')->group(function () {
-        // Perfil propio, cambio de password
+    // -------------------------------------------------------------------------
+    // Rutas protegidas por Sanctum (token Bearer requerido)
+    // -------------------------------------------------------------------------
+    Route::middleware('auth:sanctum')->group(function (): void {
+
+        // Modulo 01: Autenticacion — rutas autenticadas
+        Route::prefix('auth')->group(function (): void {
+            Route::post('logout', [AuthController::class, 'logout']);
+            Route::get('perfil', [AuthController::class, 'perfil']);
+            Route::post('verificar-correo', [AuthController::class, 'verificarCorreo']);
+            Route::post('reenviar-verificacion', [AuthController::class, 'reenviarVerificacion']);
+        });
+
+        // Modulo 02: Usuarios — perfil propio (ADMIN y CLIENTE)
+        Route::prefix('usuarios')->group(function (): void {
+            Route::put('perfil', [UsuarioController::class, 'actualizarPerfil']);
+            Route::put('cambiar-password', [UsuarioController::class, 'cambiarPassword']);
+        });
+
+        // -------------------------------------------------------------------------
+        // Rutas de administracion — exclusivo ADMIN
+        // -------------------------------------------------------------------------
+        Route::middleware('rol:ADMIN')->prefix('admin')->group(function (): void {
+
+            // Modulo 02: Usuarios — gestion administrativa
+            Route::get('usuarios', [AdminUsuarioController::class, 'index']);
+            Route::patch('usuarios/{id}', [AdminUsuarioController::class, 'update']);
+
+        });
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 09: Tiendas y Parametrizacion
-    Route::prefix('tienda')->group(function () {
-        // Configuracion global de la tienda
+    // -------------------------------------------------------------------------
+    Route::prefix('tienda')->group(function (): void {
+        // Fase 3: GET configuracion publica; PUT admin
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 03: Categorias
-    Route::prefix('categorias')->group(function () {
-        // Catalogo de categorias publicas y administracion
+    // -------------------------------------------------------------------------
+    Route::prefix('categorias')->group(function (): void {
+        // Fase 4
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 04: Productos y Personalizacion
-    Route::prefix('productos')->group(function () {
-        // Listado con filtros, detalle y personalizaciones
+    // -------------------------------------------------------------------------
+    Route::prefix('productos')->group(function (): void {
+        // Fase 5
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 05: Carrito de Compras
-    Route::prefix('carrito')->group(function () {
-        // Gestion de items y subtotales
+    // -------------------------------------------------------------------------
+    Route::prefix('carrito')->group(function (): void {
+        // Fase 8
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 06: Pedidos
-    Route::prefix('pedidos')->group(function () {
-        // Checkout, consulta de pedidos y seguimiento de estados
+    // -------------------------------------------------------------------------
+    Route::prefix('pedidos')->group(function (): void {
+        // Fase 9
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 07: Pagos y Comprobantes
-    Route::prefix('pagos')->group(function () {
-        // Registro de comprobantes y verificacion administrativa
+    // -------------------------------------------------------------------------
+    Route::prefix('pagos')->group(function (): void {
+        // Fase 10
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 08: Multimedia
-    Route::prefix('multimedia')->group(function () {
-        // Subida de imagenes hacia el servidor Linux
+    // -------------------------------------------------------------------------
+    Route::prefix('multimedia')->group(function (): void {
+        // Fase 2
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 10: Notificaciones
-    Route::prefix('notificaciones')->group(function () {
-        // Alertas de pedidos y pagos
+    // -------------------------------------------------------------------------
+    Route::prefix('notificaciones')->group(function (): void {
+        // Fase 11
     });
 
-    // Rutas de Administracion protegidas
-    Route::prefix('admin')->group(function () {
-        // Rutas exclusivas para rol administrador
-    });
-
-    // Healthcheck de la version de la API
-    Route::get('/salud', function () {
-        return response()->json([
-            'success' => true,
-            'api' => 'NexoCommerce v1',
-            'estado' => 'activo',
-        ]);
-    });
+    // Healthcheck version API
+    Route::get('salud', static fn () => response()->json([
+        'success' => true,
+        'api' => 'NexoCommerce v1',
+        'estado' => 'activo',
+    ]));
 });
