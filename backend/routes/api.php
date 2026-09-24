@@ -6,6 +6,7 @@ use App\Http\Controllers\Categorias\CategoriaController;
 use App\Http\Controllers\Multimedia\MultimediaController;
 use App\Http\Controllers\Productos\DisenoPersonalizadoController;
 use App\Http\Controllers\Productos\ProductoController;
+use App\Http\Controllers\Publicaciones\PublicacionController;
 use App\Http\Controllers\Tienda\ConfiguracionTiendaController;
 use App\Http\Controllers\Usuarios\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +80,11 @@ Route::prefix('v1')->group(function (): void {
             Route::put('plantillas-diseno/{id}', [ProductoController::class, 'updatePlantilla']);
             Route::delete('plantillas-diseno/{id}', [ProductoController::class, 'destroyPlantilla']);
 
+            // Modulo 11: Publicaciones
+            Route::post('publicaciones', [PublicacionController::class, 'store']);
+            Route::put('publicaciones/{id}', [PublicacionController::class, 'update']);
+            Route::delete('publicaciones/{id}', [PublicacionController::class, 'destroy']);
+
         });
     });
 
@@ -110,6 +116,14 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/', [DisenoPersonalizadoController::class, 'index']);
             Route::post('/', [DisenoPersonalizadoController::class, 'store']);
         });
+
+    // -------------------------------------------------------------------------
+    // Modulo 11: Publicaciones
+    // -------------------------------------------------------------------------
+    Route::prefix('publicaciones')->group(function (): void {
+        Route::get('/', [PublicacionController::class, 'index']);
+        Route::get('{id}', [PublicacionController::class, 'show']);
+    });
 
     // -------------------------------------------------------------------------
     // Modulo 05: Carrito de Compras

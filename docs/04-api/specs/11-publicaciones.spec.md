@@ -1,6 +1,6 @@
 # Modulo 11: Publicaciones — Especificacion Tecnica (SDD)
 
-* **Version del contrato:** 1.1.0
+* **Version del contrato:** 1.1.1
 * **Fecha:** 2026-09-13
 * **Prefijo base:** `/api/v1/publicaciones`
 * **Estado:** Aprobado para implementacion
@@ -16,10 +16,10 @@ Contenido editorial del ADMIN (novedades, promociones). Relacion opcional con `c
 
 ## 2. Reglas de Negocio e Invariantes
 * **RN-PUB-01:** `usuario_id` es el ADMIN autor. FKs de categoria y producto opcionales.
-* **RN-PUB-02:** Lectura publica solo `activo = true`. ADMIN ve todas.
+* **RN-PUB-02:** Lectura publica solo `activo = true`. Un token ADMIN valido en las mismas rutas publicas permite ver todas.
 * **RN-PUB-03:** Escritura solo ADMIN.
 * **RN-PUB-04:** DELETE logico: `activo = false`.
-* **RN-PUB-05:** Maximo de imagenes por publicacion: validacion de aplicacion (sugerido 8).
+* **RN-PUB-05:** Maximo de 8 imagenes por publicacion, validado por la aplicacion.
 
 ---
 
@@ -54,6 +54,8 @@ Contenido editorial del ADMIN (novedades, promociones). Relacion opcional con `c
 * **Ruta:** `/api/v1/publicaciones`
 
 Query: `categoria_id`, `producto_id`, `page`.
+
+Sin token o con rol CLIENTE lista solo activas. Con token ADMIN valido incluye activas e inactivas.
 
 ```json
 {
@@ -92,7 +94,7 @@ Query: `categoria_id`, `producto_id`, `page`.
 * **Metodo:** `GET`
 * **Ruta:** `/api/v1/publicaciones/{id}`
 
-Inactiva para no-ADMIN: 404.
+Inactiva para no-ADMIN: 404 `PUB_NO_ENCONTRADA`. Un token ADMIN valido puede consultarla en esta misma ruta.
 
 ---
 
@@ -123,6 +125,7 @@ Inactiva para no-ADMIN: 404.
 * `activo`: `boolean`
 * `imagenes.*.multimedia_id`: `required|integer|exists:multimedia,id`
 * `imagenes.*.orden`: `integer|min:0`
+* `imagenes`: `array|max:8`; los `multimedia_id` no se repiten
 
 `usuario_id` = autenticado.
 

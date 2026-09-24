@@ -215,21 +215,22 @@ No existen `opciones_personalizacion`, `valores_personalizacion`, `slug` ni `sto
 
 ## FASE 6: Publicaciones
 
-Estado: Pendiente
+Estado: Completado (2026-09-23 23:24)
 Dependencias: Fase 2, Fase 4
 Especificacion: [11-publicaciones.spec.md](../docs/04-api/specs/11-publicaciones.spec.md)
 
 Tablas: `publicaciones`, `publicacion_multimedia`.
 
-- [ ] Dominio: `Publicacion`
-- [ ] Aplicacion: `ListarPublicaciones`, `CrearPublicacion`, `ActualizarPublicacion`, `DesactivarPublicacion`
-- [ ] Http:
-  - `GET /api/v1/publicaciones` (solo `activo = true`)
+- [x] Dominio: `Publicacion`, imagenes ordenadas y repositorio (Completado: 2026-09-23 23:24)
+- [x] Aplicacion: `ListarPublicaciones`, `ConsultarPublicacion`, `CrearPublicacion`, `ActualizarPublicacion`, `DesactivarPublicacion` (Completado: 2026-09-23 23:24)
+- [x] Http:
+  - `GET /api/v1/publicaciones` (publico solo activas; ADMIN incluye inactivas)
   - `GET /api/v1/publicaciones/{id}`
   - `POST /api/v1/admin/publicaciones`
   - `PUT /api/v1/admin/publicaciones/{id}`
   - `DELETE /api/v1/admin/publicaciones/{id}`
-- [ ] Pruebas: categoria y producto opcionales; CLIENTE en POST admin → 403
+  (Completado: 2026-09-23 23:24)
+- [x] Pruebas: filtros, paginacion, imagenes, autenticacion opcional ADMIN, transacciones, categoria y producto opcionales; CLIENTE en POST admin → 403; suite completa 113/113 (Completado: 2026-09-23 23:24)
 
 ---
 

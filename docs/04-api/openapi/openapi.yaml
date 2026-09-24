@@ -259,7 +259,7 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Detalle con torta, detalle o sublimacion }
+        '200': { description: 'Detalle con torta, detalle o sublimacion' }
 
   /admin/productos:
     post:
@@ -481,7 +481,7 @@ paths:
                 fecha_entrega: { type: string, format: date }
       responses:
         '201': { description: Pedido PENDIENTE }
-        '400': { description: Carrito vacio, stock o capacidad }
+        '400': { description: 'Carrito vacio, stock o capacidad' }
 
   /pedidos/{id}:
     get:
@@ -657,21 +657,56 @@ paths:
   /publicaciones:
     get:
       tags: [Publicaciones]
+      security:
+        - {}
+        - bearerAuth: []
+      description: Publico lista activas; un token ADMIN valido incluye inactivas.
+      parameters:
+        - { name: categoria_id, in: query, schema: { type: integer } }
+        - { name: producto_id, in: query, schema: { type: integer } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
       responses:
         '200': { description: Publicaciones activas }
 
   /publicaciones/{id}:
     get:
       tags: [Publicaciones]
+      security:
+        - {}
+        - bearerAuth: []
+      description: Publico consulta activas; un token ADMIN valido tambien consulta inactivas.
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
         '200': { description: Detalle }
+        '404': { description: No existe o esta inactiva para el solicitante }
 
   /admin/publicaciones:
     post:
       tags: [Publicaciones]
       security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titulo]
+              properties:
+                titulo: { type: string, maxLength: 150 }
+                descripcion: { type: string, nullable: true }
+                categoria_id: { type: integer, nullable: true }
+                producto_id: { type: integer, nullable: true }
+                activo: { type: boolean }
+                imagenes:
+                  type: array
+                  maxItems: 8
+                  items:
+                    type: object
+                    required: [multimedia_id]
+                    properties:
+                      multimedia_id: { type: integer }
+                      orden: { type: integer, minimum: 0 }
       responses:
         '201': { description: Publicacion creada }
 
@@ -681,6 +716,27 @@ paths:
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                titulo: { type: string, maxLength: 150 }
+                descripcion: { type: string, nullable: true }
+                categoria_id: { type: integer, nullable: true }
+                producto_id: { type: integer, nullable: true }
+                activo: { type: boolean }
+                imagenes:
+                  type: array
+                  maxItems: 8
+                  items:
+                    type: object
+                    required: [multimedia_id]
+                    properties:
+                      multimedia_id: { type: integer }
+                      orden: { type: integer, minimum: 0 }
       responses:
         '200': { description: Actualizada }
     delete:

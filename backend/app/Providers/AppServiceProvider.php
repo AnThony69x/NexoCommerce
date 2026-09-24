@@ -13,6 +13,7 @@ use App\Dominio\Autenticacion\Repositorios\VerificacionCorreoRepositorioInterfac
 use App\Dominio\Categorias\Repositorios\CategoriaRepositorioInterface;
 use App\Dominio\Multimedia\Repositorios\MultimediaRepositorioInterface;
 use App\Dominio\Productos\Repositorios\ProductoRepositorioInterface;
+use App\Dominio\Publicaciones\Repositorios\PublicacionRepositorioInterface;
 use App\Dominio\Tienda\Repositorios\ConfiguracionTiendaRepositorioInterface;
 use App\Infraestructura\Almacenamiento\LocalAlmacenamientoArchivos;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CategoriaRepositorioEloquent;
@@ -20,6 +21,7 @@ use App\Infraestructura\Persistencia\Eloquent\Repositorios\ConfiguracionTiendaRe
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CuentaOAuthRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\MultimediaRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\ProductoRepositorioEloquent;
+use App\Infraestructura\Persistencia\Eloquent\Repositorios\PublicacionRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\UsuarioRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\VerificacionCorreoRepositorioEloquent;
 use App\Infraestructura\Servicios\MailNotificacionService;
@@ -49,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Fase 5: Productos y personalizacion
         $this->app->bind(ProductoRepositorioInterface::class, ProductoRepositorioEloquent::class);
+
+        // Fase 6: Publicaciones
+        $this->app->bind(PublicacionRepositorioInterface::class, PublicacionRepositorioEloquent::class);
     }
 
     public function boot(): void
