@@ -290,14 +290,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"proveedor\": \"TWITTER\",\n  \"id_proveedor\": \"twitter-uid-999\",\n  \"nombre_completo\": \"Pedro Lopez\",\n  \"correo\": \"pedro@ejemplo.com\",\n  \"terminos_aceptados\": true,\n  \"version_terminos\": \"1.0\"\n}"
+              "raw": "{\n  \"proveedor\": \"FACEBOOK\",\n  \"id_proveedor\": \"fb-uid-999\",\n  \"nombre_completo\": \"Pedro Lopez\",\n  \"correo\": \"pedro@ejemplo.com\",\n  \"terminos_aceptados\": true,\n  \"version_terminos\": \"1.0\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/oauth",
               "host": ["{{base_url}}"],
               "path": ["auth", "oauth"]
             },
-            "description": "TC-06: Proveedor no permitido (solo GOOGLE y FACEBOOK).\nEspera 422 con error en el campo 'proveedor'."
+            "description": "TC-06: Proveedor no permitido (solo GOOGLE; FACEBOOK u otros → 422).\nEspera 422 con error en el campo 'proveedor'."
           },
           "response": []
         }

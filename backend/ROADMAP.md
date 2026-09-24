@@ -100,7 +100,8 @@ Tablas: `roles`, `usuarios`, `cuentas_oauth`, `verificaciones_correo` + Sanctum 
 - [x] Dominio: `Usuario`, `CuentaOAuth`, `VerificacionCorreo`, `UsuarioRepositorio` (Completado: 2026-09-22 20:30)
 - [x] Aplicacion: `RegistrarCliente`, `IniciarSesion`, `CerrarSesion`, `ObtenerPerfil`, `VerificarCorreo`, `ReenviarVerificacion`, `AutenticarOAuth` (Completado: 2026-09-22 20:30)
 - [x] Infraestructura: modelos Eloquent sobre `usuarios` (no `users`) (Completado: 2026-09-22 20:30)
-- [x] Reglas: 5 intentos → `bloqueado_hasta` 15 min (429); registro con rol `CLIENTE`; `terminos_aceptados`; OAuth `GOOGLE` (Completado: 2026-09-22 20:30)
+- [x] Reglas: 5 intentos → `bloqueado_hasta` 15 min (429); registro con rol `CLIENTE`; `terminos_aceptados`; OAuth solo `GOOGLE` (Completado: 2026-09-22 20:30; Facebook retirado 2026-09-23)
+- [x] Infraestructura correo: `NotificacionServiceInterface` + Mailtrap; codigo de verificacion enviado en registro y reenvio (Completado: 2026-09-22)
 - [x] Http:
   - `POST /api/v1/auth/registro`
   - `POST /api/v1/auth/login` (campo `correo`, no `email`)

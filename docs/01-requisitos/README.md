@@ -7,6 +7,8 @@ Requisitos Funcionales (RF) y Requisitos No Funcionales (RNF)
 
 Fuente: [Requisitos_Funcionales_y_No_Funcionales.pdf](./Requisitos_Funcionales_y_No_Funcionales.pdf)
 
+**Alineacion SDD (2026-09-23):** RF-01 y RF-02 quedan alineados al contrato aprobado en `docs/04-api/specs/01-autenticacion.spec.md` y `02-usuarios.spec.md` (implementados en Fase 1). Si el negocio cambia una regla, primero se actualiza la spec y luego el codigo.
+
 El presente documento describe los requisitos funcionales y no funcionales identificados para el desarrollo de una plataforma de comercio electrónico destinada a un negocio actualmente gestionado a través de redes sociales y pedidos coordinados manualmente por WhatsApp. La plataforma contempla tres categorías principales de producto (Repostería, Detalles y Sublimación), un módulo de publicaciones tipo feed, gestión de pedidos y agenda de entregas, y procesamiento/verificación de pagos.
 
 ## Contenido
@@ -45,53 +47,60 @@ El presente documento describe los requisitos funcionales y no funcionales ident
 
 ### RF-01: Autenticación de Usuarios
 
+> **Contrato SDD:** [`01-autenticacion.spec.md`](../04-api/specs/01-autenticacion.spec.md) · [`02-usuarios.spec.md`](../04-api/specs/02-usuarios.spec.md)
+
 | Campo | Detalle |
 | :--- | :--- |
 | Categoría / Módulo | Gestión de Seguridad |
-| Actor(es) Involucrado(s) | Cliente, Administrador |
-| Descripción Detallada | El sistema debe permitir el registro e inicio de sesión de clientes mediante correo electrónico y contraseña (Google) y un acceso diferenciado para el administrador del negocio con privilegios de gestión total. Google Cloud |
-| Datos de Entrada (Inputs) | Correo electrónico (texto, obligatorio); contraseña (texto, obligatorio, mínimo 8 caracteres); o token de red social (OAuth). |
-| Datos de Salida (Outputs) | Sesión activa, token de acceso y redirección al panel correspondiente (cliente o administrador). |
-| Criterio de Aceptación / Verificación | El sistema debe autenticar correctamente el 100% de las credenciales válidas y rechazar el 100% de las inválidas, en un tiempo de respuesta inferior a 2 segundos. |
+| Actor(es) Involucrado(s) | Cliente (`CLIENTE`), Administrador (`ADMIN`) |
+| Descripción Detallada | El sistema debe permitir inicio de sesión con correo y contraseña, y con OAuth de Google. El mismo endpoint autentica a todos los roles; la autorización (privilegios de gestión) se aplica según `roles.nombre`. Tokens: Laravel Sanctum (Bearer). |
+| Datos de Entrada (Inputs) | Correo (obligatorio); contraseña (obligatorio, mínimo 8 caracteres); o payload OAuth (`proveedor`, `id_proveedor`, datos de perfil). |
+| Datos de Salida (Outputs) | Token Bearer Sanctum y datos del usuario (`rol` incluido) para que el cliente (web/móvil) enrute al panel correspondiente. |
+| Criterio de Aceptación / Verificación | Credenciales válidas autenticadas al 100%; inválidas rechazadas al 100%; tiempo de respuesta acorde a RNF-01 (&lt; 2 s promedio). |
 
 **Reglas de Negocio**
 
-- RN-01: La contraseña debe tener mínimo 8 caracteres, incluir al menos una mayúscula y un número.
-- RN-02: Tras 5 intentos fallidos, la cuenta se bloquea temporalmente por 15 minutos.
-- RN-03: Solo un usuario puede tener el rol de «Administrador» o «Personal autorizado».
+- RN-01: La contraseña de entrada tiene mínimo 8 caracteres; se almacena hasheada. Cuentas solo OAuth pueden tener `password_hash` nulo. *(Alineado a RN-AUTH-03; no se exige mayúscula/número en el contrato API vigente.)*
+- RN-02: Tras 5 intentos fallidos, la cuenta se bloquea 15 minutos (`bloqueado_hasta`). Login en ese intervalo responde 429. *(RN-AUTH-06)*
+- RN-03: Roles del sistema: `ADMIN` y `CLIENTE`. Puede haber más de un `ADMIN`; no se permite dejar el sistema sin ningún `ADMIN` activo. *(RN-USR-01, RN-USR-04. No existe el rol «Personal autorizado».)*
+- RN-04: Usuario con `activo = false` no puede autenticarse (403). *(RN-AUTH-10)*
 
 **Flujo Principal (Paso a Paso)**
 
 1. El usuario ingresa a la pantalla de inicio de sesión.
-2. Ingresa credenciales o selecciona inicio de sesión con red social.
-3. El sistema valida las credenciales contra la base de datos.
-4. El sistema genera un token de sesión y redirige según el rol.
-5. En caso de error, el sistema muestra un mensaje descriptivo.
+2. Ingresa credenciales o selecciona inicio de sesión con Google (OAuth).
+3. El sistema valida las credenciales (o vincula/crea cuenta OAuth según RN-AUTH-09).
+4. El sistema emite un token Bearer y retorna el perfil con `rol`.
+5. En caso de error, el sistema responde con el envelope JSON y `codigo_error` correspondiente.
 
 ### RF-02: Registro de Nuevos Clientes
+
+> **Contrato SDD:** [`01-autenticacion.spec.md`](../04-api/specs/01-autenticacion.spec.md) §4.1 · verificación §4.5–4.6
 
 | Campo | Detalle |
 | :--- | :--- |
 | Categoría / Módulo | Gestión de Seguridad |
 | Actor(es) Involucrado(s) | Cliente (visitante) |
-| Descripción Detallada | El sistema debe permitir que un visitante cree una cuenta de cliente proporcionando sus datos personales y de contacto, necesarios para gestionar pedidos y notificaciones. |
-| Datos de Entrada (Inputs) | Nombre completo (texto, obligatorio); correo (texto, obligatorio, formato válido); teléfono/WhatsApp (numérico, obligatorio); contraseña (texto, obligatorio). |
-| Datos de Salida (Outputs) | Confirmación de registro, correo de verificación y cuenta creada. |
-| Criterio de Aceptación / Verificación | El 100% de los registros con datos válidos se completan correctamente y el sistema rechaza el 100% de los correos duplicados. |
+| Descripción Detallada | El sistema debe permitir que un visitante cree una cuenta con rol `CLIENTE`, proporcionando datos personales y de contacto, aceptación de términos, y recibiendo un código de verificación por correo. |
+| Datos de Entrada (Inputs) | Nombre completo (obligatorio); correo (obligatorio, formato válido, único); contraseña (obligatorio, mín. 8, con confirmación); teléfono/WhatsApp (opcional, máx. 20); `terminos_aceptados` (obligatorio, true); `version_terminos` (obligatorio). |
+| Datos de Salida (Outputs) | Cuenta creada (`correo_verificado = false`), registro en `verificaciones_correo`, correo con código de 6 dígitos, y token Bearer para uso inmediato de la API. |
+| Criterio de Aceptación / Verificación | El 100% de los registros con datos válidos se completan (201); el 100% de correos duplicados se rechazan (422 sobre `correo`). |
 
 **Reglas de Negocio**
 
-- RN-01: El correo electrónico debe ser único en el sistema.
-- RN-02: El número de teléfono debe tener un formato válido (Ecuador +593, configurable).
-- RN-03: El cliente debe aceptar los términos y condiciones antes de completar el registro.
+- RN-01: El correo electrónico debe ser único en el sistema. *(RN-AUTH-01)*
+- RN-02: El teléfono es opcional (`nullable`). Si se envía, máximo 20 caracteres. *(Formato país-específico Ecuador +593 queda como mejora futura; no forma parte del contrato API v1.1.)*
+- RN-03: El cliente debe aceptar términos y condiciones (`terminos_aceptados = true` + `version_terminos`) antes de completar el registro. *(RN-AUTH-04)*
+- RN-04: Todo registro público asigna rol `CLIENTE`. *(RN-AUTH-02)*
+- RN-05: Tras el registro se crea `verificaciones_correo` (código + `expira_en` 24 h) y se envía el código al correo del usuario. *(RN-AUTH-05)*
 
 **Flujo Principal (Paso a Paso)**
 
 1. El cliente accede a «Crear cuenta».
-2. Completa el formulario de registro.
-3. El sistema valida la unicidad del correo.
-4. El sistema envía un correo o código de verificación.
-5. El cliente confirma su cuenta y accede al sistema.
+2. Completa el formulario (incluye aceptación de términos).
+3. El sistema valida unicidad del correo y reglas de contraseña.
+4. El sistema crea el usuario, inserta el código de verificación y envía el correo.
+5. La API responde 201 con token; el cliente puede verificar el correo con `POST /auth/verificar-correo` cuando reciba el código.
 
 ### RF-03: Publicación y Gestión del Feed de Novedades
 

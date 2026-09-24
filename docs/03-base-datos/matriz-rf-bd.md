@@ -1100,7 +1100,7 @@ No se considera, por el momento, un módulo administrativo independiente para qu
 
 ### 7.3 OAuth
 
-Se mantiene el soporte para Google/Facebook debido a que forma parte del requisito original.
+Se mantiene el soporte para Google OAuth (unico proveedor permitido en RN-AUTH-09).
 
 La implementación definitiva queda pendiente de investigación y decisión del equipo.
 

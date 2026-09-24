@@ -40,7 +40,7 @@ Roles y estados se exponen **exactamente** como en los `CHECK` / seeds del SQL:
 | Concepto | Valores |
 | :--- | :--- |
 | Roles | `ADMIN`, `CLIENTE` |
-| OAuth | `GOOGLE`, `FACEBOOK` |
+| OAuth | Solo `GOOGLE` |
 | Pedido | `PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO` |
 | Pago método | `PASARELA`, `TRANSFERENCIA` |
 | Pago estado | `PENDIENTE`, `APROBADO`, `RECHAZADO` |

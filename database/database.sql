@@ -77,7 +77,7 @@ CREATE TABLE cuentas_oauth (
         UNIQUE (proveedor, id_proveedor),
 
     CONSTRAINT chk_oauth_proveedor
-        CHECK (proveedor IN ('GOOGLE', 'FACEBOOK'))
+        CHECK (proveedor IN ('GOOGLE'))
 );
 
 

@@ -16,7 +16,7 @@ class OAuthRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'proveedor' => ['required', 'in:GOOGLE,FACEBOOK'],
+            'proveedor' => ['required', 'in:GOOGLE'],
             'id_proveedor' => ['required', 'string', 'max:255'],
             'nombre_completo' => ['required', 'string', 'max:150'],
             'correo' => ['required', 'email', 'max:150'],
@@ -28,7 +28,7 @@ class OAuthRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'proveedor.in' => 'El proveedor OAuth debe ser GOOGLE o FACEBOOK.',
+            'proveedor.in' => 'El proveedor OAuth permitido es solo GOOGLE.',
         ];
     }
 }

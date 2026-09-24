@@ -7,7 +7,7 @@ namespace App\Aplicacion\Autenticacion\DTOs;
 final readonly class OAuthDTO
 {
     public function __construct(
-        /** GOOGLE | FACEBOOK */
+        /** Solo GOOGLE (RN-AUTH-09) */
         public string $proveedor,
         public string $id_proveedor,
         public string $nombre_completo,

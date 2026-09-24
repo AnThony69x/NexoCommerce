@@ -398,7 +398,7 @@ return new class extends Migration
     private function agregarChequeosPostgres(): void
     {
         DB::statement('ALTER TABLE usuarios ADD CONSTRAINT chk_usuarios_intentos_fallidos CHECK (intentos_fallidos >= 0)');
-        DB::statement("ALTER TABLE cuentas_oauth ADD CONSTRAINT chk_oauth_proveedor CHECK (proveedor IN ('GOOGLE', 'FACEBOOK'))");
+        DB::statement("ALTER TABLE cuentas_oauth ADD CONSTRAINT chk_oauth_proveedor CHECK (proveedor IN ('GOOGLE'))");
         DB::statement('ALTER TABLE multimedia ADD CONSTRAINT chk_multimedia_tamano CHECK (tamano_bytes >= 0)');
         DB::statement('ALTER TABLE multimedia ADD CONSTRAINT chk_multimedia_ancho CHECK (ancho IS NULL OR ancho > 0)');
         DB::statement('ALTER TABLE multimedia ADD CONSTRAINT chk_multimedia_alto CHECK (alto IS NULL OR alto > 0)');

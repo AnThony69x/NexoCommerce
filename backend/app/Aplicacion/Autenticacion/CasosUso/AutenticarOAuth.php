@@ -12,7 +12,7 @@ use App\Dominio\Autenticacion\Repositorios\CuentaOAuthRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\UsuarioRepositorioInterface;
 
 /**
- * RN-AUTH-09: OAuth solo GOOGLE o FACEBOOK; par (proveedor, id_proveedor) unico.
+ * RN-AUTH-09: OAuth solo GOOGLE; par (proveedor, id_proveedor) unico.
  *
  * Tres ramas:
  *   1. Par (proveedor, id_proveedor) existe → login directo.

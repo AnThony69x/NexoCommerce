@@ -110,7 +110,7 @@ paths:
   /auth/oauth:
     post:
       tags: [Autenticacion]
-      summary: Login o alta via GOOGLE o FACEBOOK
+      summary: Login o alta via Google OAuth
       requestBody:
         required: true
         content:
@@ -119,7 +119,7 @@ paths:
               type: object
               required: [proveedor, id_proveedor, nombre_completo, correo, terminos_aceptados, version_terminos]
               properties:
-                proveedor: { type: string, enum: [GOOGLE, FACEBOOK] }
+                proveedor: { type: string, enum: [GOOGLE] }
                 id_proveedor: { type: string }
                 nombre_completo: { type: string }
                 correo: { type: string, format: email }

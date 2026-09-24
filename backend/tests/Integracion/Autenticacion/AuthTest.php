@@ -183,11 +183,11 @@ class AuthTest extends TestCase
     // TC-06: OAuth proveedor invalido
     // -------------------------------------------------------------------------
 
-    /** TC-06: OAuth con proveedor invalido → 422. */
+    /** TC-06: OAuth con proveedor distinto de GOOGLE → 422. */
     public function test_oauth_proveedor_invalido_retorna_422(): void
     {
         $response = $this->postJson('/api/v1/auth/oauth', [
-            'proveedor' => 'TWITTER',
+            'proveedor' => 'FACEBOOK',
             'id_proveedor' => '12345',
             'nombre_completo' => 'Juan',
             'correo' => 'juan@example.com',
