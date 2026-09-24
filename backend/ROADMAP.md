@@ -166,20 +166,21 @@ Tablas: `configuracion_tienda` (seed Dulces Aesca y colores). No hay `lema`, `ti
 
 ## FASE 4: Categorias
 
-Estado: Pendiente
+Estado: Completado (2026-09-23 22:14)
 Dependencias: Fase 1, Fase 2 (si se asocia `imagen_id`)
 Especificacion: [03-categorias.spec.md](../docs/04-api/specs/03-categorias.spec.md)
 
 Tablas: `categorias` (`categoria_padre_id`, UNIQUE por padre, indice parcial de raiz). Sin `slug` ni `parent_id`.
 
-- [ ] Dominio: `Categoria`, `CategoriaRepositorio`
-- [ ] Aplicacion: `ListarArbolCategorias`, `CrearCategoria`, `ActualizarCategoria`, `DesactivarCategoria`
-- [ ] Http:
+- [x] Dominio: `Categoria`, `CategoriaRepositorio` (Completado: 2026-09-23 22:14)
+- [x] Aplicacion: `ListarArbolCategorias`, `CrearCategoria`, `ActualizarCategoria`, `DesactivarCategoria` (Completado: 2026-09-23 22:14)
+- [x] Http:
   - `GET /api/v1/categorias`
   - `POST /api/v1/admin/categorias`
   - `PUT /api/v1/admin/categorias/{id}`
   - `DELETE /api/v1/admin/categorias/{id}` (`activo = false`; 400 si tiene productos activos)
-- [ ] Pruebas: arbol con `categoria_padre_id`; nombre de raiz duplicado 422
+  (Completado: 2026-09-23 22:14)
+- [x] Pruebas: arbol con `categoria_padre_id`; nombre de raiz duplicado 422 (Completado: 2026-09-23 22:14 — 89/89 suite completa)
 
 ---
 

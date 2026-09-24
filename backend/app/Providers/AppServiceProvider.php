@@ -10,9 +10,11 @@ use App\Aplicacion\Multimedia\Contratos\AlmacenamientoArchivosInterface;
 use App\Dominio\Autenticacion\Repositorios\CuentaOAuthRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\UsuarioRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\VerificacionCorreoRepositorioInterface;
+use App\Dominio\Categorias\Repositorios\CategoriaRepositorioInterface;
 use App\Dominio\Multimedia\Repositorios\MultimediaRepositorioInterface;
 use App\Dominio\Tienda\Repositorios\ConfiguracionTiendaRepositorioInterface;
 use App\Infraestructura\Almacenamiento\LocalAlmacenamientoArchivos;
+use App\Infraestructura\Persistencia\Eloquent\Repositorios\CategoriaRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\ConfiguracionTiendaRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CuentaOAuthRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\MultimediaRepositorioEloquent;
@@ -39,6 +41,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Fase 3: Configuracion de tienda
         $this->app->bind(ConfiguracionTiendaRepositorioInterface::class, ConfiguracionTiendaRepositorioEloquent::class);
+
+        // Fase 4: Categorias
+        $this->app->bind(CategoriaRepositorioInterface::class, CategoriaRepositorioEloquent::class);
     }
 
     public function boot(): void

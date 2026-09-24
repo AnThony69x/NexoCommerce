@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Categorias\CategoriaController;
 use App\Http\Controllers\Multimedia\MultimediaController;
 use App\Http\Controllers\Tienda\ConfiguracionTiendaController;
 use App\Http\Controllers\Usuarios\UsuarioController;
@@ -60,6 +61,11 @@ Route::prefix('v1')->group(function (): void {
             // Modulo 09: Tienda — configuracion
             Route::put('tienda/configuracion', [ConfiguracionTiendaController::class, 'actualizar']);
 
+            // Modulo 03: Categorias
+            Route::post('categorias', [CategoriaController::class, 'store']);
+            Route::put('categorias/{id}', [CategoriaController::class, 'update']);
+            Route::delete('categorias/{id}', [CategoriaController::class, 'destroy']);
+
         });
     });
 
@@ -74,7 +80,7 @@ Route::prefix('v1')->group(function (): void {
     // Modulo 03: Categorias
     // -------------------------------------------------------------------------
     Route::prefix('categorias')->group(function (): void {
-        // Fase 4
+        Route::get('/', [CategoriaController::class, 'index']);
     });
 
     // -------------------------------------------------------------------------
