@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Multimedia\MultimediaController;
 use App\Http\Controllers\Usuarios\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
@@ -101,10 +102,12 @@ Route::prefix('v1')->group(function (): void {
     });
 
     // -------------------------------------------------------------------------
-    // Modulo 08: Multimedia
+    // Modulo 08: Multimedia — Fase 2
     // -------------------------------------------------------------------------
-    Route::prefix('multimedia')->group(function (): void {
-        // Fase 2
+    Route::middleware('auth:sanctum')->prefix('multimedia')->group(function (): void {
+        Route::post('/', [MultimediaController::class, 'subir']);
+        Route::get('{id}', [MultimediaController::class, 'mostrar']);
+        Route::delete('{id}', [MultimediaController::class, 'desactivar']);
     });
 
     // -------------------------------------------------------------------------

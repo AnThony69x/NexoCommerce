@@ -6,10 +6,14 @@ namespace App\Providers;
 
 use App\Aplicacion\Autenticacion\Contratos\NotificacionServiceInterface;
 use App\Aplicacion\Autenticacion\Contratos\TokenServiceInterface;
+use App\Aplicacion\Multimedia\Contratos\AlmacenamientoArchivosInterface;
 use App\Dominio\Autenticacion\Repositorios\CuentaOAuthRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\UsuarioRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\VerificacionCorreoRepositorioInterface;
+use App\Dominio\Multimedia\Repositorios\MultimediaRepositorioInterface;
+use App\Infraestructura\Almacenamiento\LocalAlmacenamientoArchivos;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CuentaOAuthRepositorioEloquent;
+use App\Infraestructura\Persistencia\Eloquent\Repositorios\MultimediaRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\UsuarioRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\VerificacionCorreoRepositorioEloquent;
 use App\Infraestructura\Servicios\MailNotificacionService;
@@ -26,6 +30,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CuentaOAuthRepositorioInterface::class, CuentaOAuthRepositorioEloquent::class);
         $this->app->bind(TokenServiceInterface::class, SanctumTokenService::class);
         $this->app->bind(NotificacionServiceInterface::class, MailNotificacionService::class);
+
+        // Fase 2: Multimedia
+        $this->app->bind(MultimediaRepositorioInterface::class, MultimediaRepositorioEloquent::class);
+        $this->app->bind(AlmacenamientoArchivosInterface::class, LocalAlmacenamientoArchivos::class);
     }
 
     public function boot(): void

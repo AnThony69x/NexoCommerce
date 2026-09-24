@@ -127,21 +127,22 @@ Tablas: `roles`, `usuarios`, `cuentas_oauth`, `verificaciones_correo` + Sanctum 
 
 ## FASE 2: Multimedia
 
-Estado: Pendiente
+Estado: Completado (2026-09-23 21:35)
 Dependencias: Fase 1
 Especificacion: [08-multimedia.spec.md](../docs/04-api/specs/08-multimedia.spec.md)
 
 Tablas: `multimedia`.
 Nota: se implementa antes del catalogo porque categorias, productos, diseños y comprobantes usan `multimedia.id`.
 
-- [ ] Cliente de almacenamiento en `Infraestructura/Almacenamiento/` (Laptop 5)
-- [ ] Aplicacion: `SubirArchivoMultimedia`, `DesactivarMultimedia`
-- [ ] Http:
+- [x] Cliente de almacenamiento local en `Infraestructura/Almacenamiento/` mediante puerto intercambiable con SFTP futuro (Completado: 2026-09-23 21:35)
+- [x] Aplicacion: `SubirArchivoMultimedia`, `ObtenerMultimedia`, `DesactivarMultimedia` (Completado: 2026-09-23 21:35)
+- [x] Http:
   - `POST /api/v1/multimedia` (multipart; respuesta **con `id`**)
   - `GET /api/v1/multimedia/{id}`
   - `DELETE /api/v1/multimedia/{id}` (`activo = false`)
-- [ ] Validaciones: mimes jpeg/png/jpg/webp/pdf, max 5120 KB, `destino` in productos, comprobantes, personalizaciones, tienda, categorias, publicaciones, disenos
-- [ ] Pruebas: rechazo >5MB, persistencia de `subido_por_id`, JSON con `tamano_bytes` y `tipo_mime`
+  (Completado: 2026-09-23 21:35)
+- [x] Validaciones: mimes jpeg/png/jpg/webp/pdf, max 5120 KB, `destino` in productos, comprobantes, personalizaciones, tienda, categorias, publicaciones, disenos (Completado: 2026-09-23 21:35)
+- [x] Pruebas: rechazo >5MB, persistencia de `subido_por_id`, JSON con `tamano_bytes` y `tipo_mime`; 12/12 Multimedia y 57/57 suite completa (Completado: 2026-09-23 21:35)
 
 ---
 
