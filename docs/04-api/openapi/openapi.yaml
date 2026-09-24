@@ -404,12 +404,21 @@ paths:
       tags: [Carrito]
       security: [{ bearerAuth: [] }]
       responses:
-        '200': { description: Carrito activo y detalles_carrito }
+        '200':
+          description: Carrito activo, precios vigentes y avisos de disponibilidad
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarritoRespuesta'
     delete:
       tags: [Carrito]
       security: [{ bearerAuth: [] }]
       responses:
-        '200': { description: Items eliminados }
+        '200':
+          description: Items eliminados; devuelve carrito activo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CarritoRespuesta' }
 
   /carrito/items:
     post:
@@ -430,7 +439,11 @@ paths:
                 plantilla_diseno_id: { type: integer, nullable: true }
                 diseno_personalizado_id: { type: integer, nullable: true }
       responses:
-        '201': { description: Item agregado }
+        '201':
+          description: Item agregado; devuelve carrito activo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CarritoRespuesta' }
         '400': { description: Stock o configuracion invalida }
 
   /carrito/items/{id}:
@@ -448,14 +461,22 @@ paths:
               properties:
                 cantidad: { type: integer, minimum: 1 }
       responses:
-        '200': { description: Cantidad actualizada }
+        '200':
+          description: Cantidad actualizada; devuelve carrito activo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CarritoRespuesta' }
     delete:
       tags: [Carrito]
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Item eliminado }
+        '200':
+          description: Item eliminado; devuelve carrito activo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CarritoRespuesta' }
 
   /pedidos:
     get:
@@ -814,6 +835,57 @@ paths:
         '200': { description: Desactivada }
 
 components:
+  schemas:
+    CarritoRespuesta:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          required: [id, usuario_id, activo, items, subtotal, total, precios_actualizados]
+          properties:
+            id: { type: integer }
+            usuario_id: { type: integer }
+            activo: { type: boolean }
+            subtotal: { type: number, multipleOf: 0.01 }
+            total: { type: number, multipleOf: 0.01 }
+            precios_actualizados:
+              type: array
+              items: { type: integer }
+              description: IDs con precio recalculado y persistido en esta solicitud.
+            items:
+              type: array
+              items:
+                type: object
+                required: [id, producto_id, nombre, tipo, cantidad, precio_unitario, subtotal, precio_actualizado, disponible, avisos]
+                properties:
+                  id: { type: integer }
+                  producto_id: { type: integer }
+                  nombre: { type: string }
+                  tipo: { type: string, enum: [TORTA, SUBLIMACION, DETALLE] }
+                  imagen_principal_url: { type: string, nullable: true }
+                  cantidad: { type: integer, minimum: 1 }
+                  precio_unitario: { type: number, multipleOf: 0.01 }
+                  comentario: { type: string, nullable: true }
+                  diseno_torta_id: { type: integer, nullable: true }
+                  plantilla_diseno_id: { type: integer, nullable: true }
+                  diseno_personalizado_id: { type: integer, nullable: true }
+                  configuracion:
+                    type: object
+                    nullable: true
+                    properties:
+                      tipo: { type: string, enum: [DISENO_TORTA, PLANTILLA, PERSONALIZADO] }
+                      id: { type: integer }
+                      nombre: { type: string, nullable: true }
+                      costo_adicional: { type: number, multipleOf: 0.01 }
+                  subtotal: { type: number, multipleOf: 0.01 }
+                  precio_actualizado: { type: boolean }
+                  disponible: { type: boolean }
+                  avisos:
+                    type: array
+                    items: { type: string, enum: [PRODUCTO_INACTIVO, CONFIGURACION_INVALIDA, DISENO_NO_DISPONIBLE, PLANTILLA_NO_DISPONIBLE, STOCK_INSUFICIENTE] }
   securitySchemes:
     bearerAuth:
       type: http

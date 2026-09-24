@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Carrito\CarritoController;
 use App\Http\Controllers\Categorias\CategoriaController;
 use App\Http\Controllers\Multimedia\MultimediaController;
 use App\Http\Controllers\Produccion\ProduccionController;
@@ -140,8 +141,12 @@ Route::prefix('v1')->group(function (): void {
     // -------------------------------------------------------------------------
     // Modulo 05: Carrito de Compras
     // -------------------------------------------------------------------------
-    Route::prefix('carrito')->group(function (): void {
-        // Fase 8
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->prefix('carrito')->group(function (): void {
+        Route::get('/', [CarritoController::class, 'index']);
+        Route::post('items', [CarritoController::class, 'store']);
+        Route::put('items/{id}', [CarritoController::class, 'update']);
+        Route::delete('items/{id}', [CarritoController::class, 'destroy']);
+        Route::delete('/', [CarritoController::class, 'clear']);
     });
 
     // -------------------------------------------------------------------------

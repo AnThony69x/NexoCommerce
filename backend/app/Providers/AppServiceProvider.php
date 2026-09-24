@@ -10,6 +10,7 @@ use App\Aplicacion\Multimedia\Contratos\AlmacenamientoArchivosInterface;
 use App\Dominio\Autenticacion\Repositorios\CuentaOAuthRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\UsuarioRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\VerificacionCorreoRepositorioInterface;
+use App\Dominio\Carrito\Repositorios\CarritoRepositorioInterface;
 use App\Dominio\Categorias\Repositorios\CategoriaRepositorioInterface;
 use App\Dominio\Multimedia\Repositorios\MultimediaRepositorioInterface;
 use App\Dominio\Produccion\Repositorios\ConfiguracionProduccionRepositorioInterface;
@@ -17,6 +18,7 @@ use App\Dominio\Productos\Repositorios\ProductoRepositorioInterface;
 use App\Dominio\Publicaciones\Repositorios\PublicacionRepositorioInterface;
 use App\Dominio\Tienda\Repositorios\ConfiguracionTiendaRepositorioInterface;
 use App\Infraestructura\Almacenamiento\LocalAlmacenamientoArchivos;
+use App\Infraestructura\Persistencia\Eloquent\Repositorios\CarritoRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CategoriaRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\ConfiguracionProduccionRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\ConfiguracionTiendaRepositorioEloquent;
@@ -56,6 +58,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Fase 6: Publicaciones
         $this->app->bind(PublicacionRepositorioInterface::class, PublicacionRepositorioEloquent::class);
+
+        // Fase 8: Carrito
+        $this->app->bind(CarritoRepositorioInterface::class, CarritoRepositorioEloquent::class);
 
         // Fase 7: Produccion
         $this->app->bind(ConfiguracionProduccionRepositorioInterface::class, ConfiguracionProduccionRepositorioEloquent::class);

@@ -255,22 +255,22 @@ Tablas: `configuracion_produccion`. Se usa al crear pedidos (Fase 9).
 
 ## FASE 8: Carrito
 
-Estado: Pendiente
+Estado: Completado (2026-09-24 10:55)
 Dependencias: Fase 5
 Especificacion: [05-carrito.spec.md](../docs/04-api/specs/05-carrito.spec.md)
 
 Tablas: `carritos`, `detalles_carrito`. Un carrito activo por usuario (indice parcial). A lo sumo una FK: `diseno_torta_id` XOR `plantilla_diseno_id` XOR `diseno_personalizado_id`.
 
-- [ ] Dominio: `Carrito`, `DetalleCarrito`; precio calculado (`precio_base` + `costo_adicional`); el cliente no envia precio
-- [ ] Aplicacion: `ObtenerCarrito`, `AgregarItem`, `ActualizarCantidad`, `EliminarItem`, `VaciarCarrito`
-- [ ] Compatibilidad: TORTA → diseño de torta opcional; SUBLIMACION → plantilla o diseño personalizado (exactamente uno); DETALLE → sin diseño + stock
-- [ ] Http:
+- [x] Dominio: `Carrito`, `DetalleCarrito`; precio calculado (`precio_base` + `costo_adicional`); el cliente no envia precio
+- [x] Aplicacion: `ObtenerCarrito`, `AgregarItem`, `ActualizarCantidad`, `EliminarItem`, `VaciarCarrito`
+- [x] Compatibilidad: TORTA → diseño de torta opcional; SUBLIMACION → plantilla o diseño personalizado (exactamente uno); DETALLE → sin diseño + stock
+- [x] Http:
   - `GET /api/v1/carrito`
   - `POST /api/v1/carrito/items`
   - `PUT /api/v1/carrito/items/{id}`
   - `DELETE /api/v1/carrito/items/{id}`
   - `DELETE /api/v1/carrito`
-- [ ] Pruebas: cantidad > stock DETALLE → 400; dos FKs de diseño → 422; SUBLIMACION sin configuracion → 400
+- [x] Pruebas: cantidad > stock DETALLE → 400; dos FKs de diseño → 422; SUBLIMACION sin configuracion → 400; precio vigente, avisos, fusion, aislamiento y rollback. Pint y suite completa: 133/133 pruebas, 716 aserciones (Completado: 2026-09-24 10:55)
 
 ---
 

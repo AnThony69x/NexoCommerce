@@ -1,7 +1,7 @@
 # Modulo 05: Carrito de Compras — Especificacion Tecnica (SDD)
 
-* **Version del contrato:** 1.1.0
-* **Fecha:** 2026-09-13
+* **Version del contrato:** 1.1.1
+* **Fecha:** 2026-09-24
 * **Prefijo base:** `/api/v1/carrito`
 * **Estado:** Aprobado para implementacion
 * **Fuente de datos:** `carritos`, `detalles_carrito`
@@ -28,6 +28,9 @@ No existen `opcion_id`, `valor_id`, textos de personalizacion libre ni campo `im
 * **RN-CAR-06:** Mismo `producto_id` + mismas FKs de diseño + mismo `comentario` incrementa `cantidad`; si cambia el diseño, nuevo renglón.
 * **RN-CAR-07:** `diseno_personalizado_id` debe ser del usuario autenticado.
 * **RN-CAR-08:** Solo el dueño opera su carrito activo.
+* **RN-CAR-09:** GET y toda mutacion recalculan y persisten el precio vigente de los renglones, incluso si el producto o diseño deja de estar disponible. Cada item informa `precio_actualizado` y el carrito enumera los IDs cambiados en `precios_actualizados`.
+* **RN-CAR-10:** Items no disponibles o con stock insuficiente permanecen visibles con `disponible = false` y `avisos`; no se eliminan automaticamente. El stock de DETALLE se comprueba contra la suma de todos los renglones del mismo producto.
+* **RN-CAR-11:** Fase 9 vuelve a validar precio, disponibilidad y stock al crear el pedido; el carrito no reserva stock ni cobra.
 
 ---
 
@@ -98,11 +101,15 @@ Si no hay carrito activo, se crea vacio.
           "nombre": "Floral rosa",
           "costo_adicional": 1.50
         },
-        "subtotal": 28.00
+        "subtotal": 28.00,
+        "precio_actualizado": false,
+        "disponible": true,
+        "avisos": []
       }
     ],
     "subtotal": 28.00,
-    "total": 28.00
+    "total": 28.00,
+    "precios_actualizados": []
   }
 }
 ```
@@ -162,18 +169,7 @@ Si no hay carrito activo, se crea vacio.
 Producto inactivo: 400. Mas de una FK de diseño: 422. Combinacion incompatible con el tipo: 400 `CAR_CONFIGURACION_INVALIDA`.
 
 #### 201 Created
-```json
-{
-  "success": true,
-  "message": "Producto agregado al carrito.",
-  "data": {
-    "id": 14,
-    "producto_id": 15,
-    "cantidad": 2,
-    "precio_unitario": 14.00
-  }
-}
-```
+Devuelve el envelope habitual con `data` igual al carrito completo de GET y mensaje `Producto agregado al carrito.`. El precio enviado por el cliente se ignora.
 
 ---
 
@@ -185,7 +181,7 @@ Producto inactivo: 400. Mas de una FK de diseño: 422. Combinacion incompatible 
 { "cantidad": 3 }
 ```
 
-`cantidad`: `required|integer|min:1`. Item de otro usuario: 403. Stock insuficiente: 400.
+`cantidad`: `required|integer|min:1`. Item de otro usuario: 403. Stock insuficiente: 400. Devuelve el carrito completo actualizado.
 
 ---
 
@@ -193,7 +189,7 @@ Producto inactivo: 400. Mas de una FK de diseño: 422. Combinacion incompatible 
 * **Metodo:** `DELETE`
 * **Ruta:** `/api/v1/carrito/items/{id}`
 
-204 o 200 con mensaje. Borra el renglón (`ON DELETE CASCADE` desde carrito no aplica aqui; se borra el detalle).
+200 con mensaje y carrito completo. Borra el renglón (`ON DELETE CASCADE` desde carrito no aplica aqui; se borra el detalle).
 
 ---
 
@@ -201,7 +197,7 @@ Producto inactivo: 400. Mas de una FK de diseño: 422. Combinacion incompatible 
 * **Metodo:** `DELETE`
 * **Ruta:** `/api/v1/carrito`
 
-Elimina los `detalles_carrito` del carrito activo. El carrito permanece `activo = true`.
+Elimina los `detalles_carrito` del carrito activo. El carrito permanece `activo = true`. Responde 200 con mensaje y carrito completo.
 
 ---
 
@@ -211,3 +207,7 @@ Elimina los `detalles_carrito` del carrito activo. El carrito permanece `activo 
 * [ ] **TC-03:** SUBLIMACION sin plantilla ni diseño personalizado: 400.
 * [ ] **TC-04:** Enviar `diseno_torta_id` y `plantilla_diseno_id` juntos: 422.
 * [ ] **TC-05:** `precio_unitario` ignorado si el cliente lo manda; se recalcula.
+
+## 6. Avisos y precio vigente
+
+`avisos` puede contener `PRODUCTO_INACTIVO`, `CONFIGURACION_INVALIDA`, `DISENO_NO_DISPONIBLE`, `PLANTILLA_NO_DISPONIBLE` o `STOCK_INSUFICIENTE`. `disponible` es verdadero solo si la lista esta vacia. `precio_actualizado` indica cambio persistido durante la solicitud; `precios_actualizados` contiene los IDs afectados. Los importes siguen el precio vigente aun cuando un item no pueda pedirse. POST y PUT rechazan producto/configuracion no disponible; GET y DELETE conservan visibilidad de items afectados. Todas las operaciones se serializan por usuario.
