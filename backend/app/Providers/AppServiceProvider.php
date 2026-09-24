@@ -12,12 +12,14 @@ use App\Dominio\Autenticacion\Repositorios\UsuarioRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\VerificacionCorreoRepositorioInterface;
 use App\Dominio\Categorias\Repositorios\CategoriaRepositorioInterface;
 use App\Dominio\Multimedia\Repositorios\MultimediaRepositorioInterface;
+use App\Dominio\Productos\Repositorios\ProductoRepositorioInterface;
 use App\Dominio\Tienda\Repositorios\ConfiguracionTiendaRepositorioInterface;
 use App\Infraestructura\Almacenamiento\LocalAlmacenamientoArchivos;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CategoriaRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\ConfiguracionTiendaRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CuentaOAuthRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\MultimediaRepositorioEloquent;
+use App\Infraestructura\Persistencia\Eloquent\Repositorios\ProductoRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\UsuarioRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\VerificacionCorreoRepositorioEloquent;
 use App\Infraestructura\Servicios\MailNotificacionService;
@@ -44,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Fase 4: Categorias
         $this->app->bind(CategoriaRepositorioInterface::class, CategoriaRepositorioEloquent::class);
+
+        // Fase 5: Productos y personalizacion
+        $this->app->bind(ProductoRepositorioInterface::class, ProductoRepositorioEloquent::class);
     }
 
     public function boot(): void

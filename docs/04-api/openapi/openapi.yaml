@@ -333,6 +333,22 @@ paths:
       responses:
         '201': { description: disenos_torta creado }
 
+  /admin/disenos-torta/{id}:
+    put:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: disenos_torta actualizado }
+    delete:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: disenos_torta desactivado }
+
   /admin/sublimaciones/{producto_id}/plantillas:
     post:
       tags: [Productos]
@@ -341,6 +357,24 @@ paths:
         - { name: producto_id, in: path, required: true, schema: { type: integer } }
       responses:
         '201': { description: plantillas_diseno creada }
+
+  /admin/plantillas-diseno/{id}:
+    put:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: plantillas_diseno actualizada }
+        '400': { description: No se puede desactivar la ultima plantilla de una sublimacion activa }
+    delete:
+      tags: [Productos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: plantillas_diseno desactivada }
+        '400': { description: No se puede desactivar la ultima plantilla de una sublimacion activa }
 
   /disenos-personalizados:
     get:

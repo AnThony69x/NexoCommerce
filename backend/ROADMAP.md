@@ -186,7 +186,7 @@ Tablas: `categorias` (`categoria_padre_id`, UNIQUE por padre, indice parcial de 
 
 ## FASE 5: Productos y personalizacion
 
-Estado: Pendiente
+Estado: Completado (2026-09-23 22:50)
 Dependencias: Fase 4
 Especificacion: [04-productos.spec.md](../docs/04-api/specs/04-productos.spec.md)
 
@@ -194,19 +194,22 @@ Tablas: `productos`, `tortas`, `detalles`, `sublimaciones`, `disenos_torta`, `pl
 
 No existen `opciones_personalizacion`, `valores_personalizacion`, `slug` ni `stock` en `productos`. Stock solo en `detalles`.
 
-- [ ] Dominio: `Producto` (tipo derivado), `Torta`, `Detalle`, `Sublimacion`, `DisenoTorta`, `PlantillaDiseno`, `DisenoPersonalizado`
-- [ ] Aplicacion: `ListarProductos`, `ConsultarProducto`, `CrearProducto`, `ActualizarProducto`, `DesactivarProducto`, `CrearDisenoTorta`, `CrearPlantillaDiseno`, `CrearDisenoPersonalizado`
-- [ ] Transaccion de alta: `productos` + exactamente una tabla 1:1 + `producto_multimedia` (una sola `es_principal`)
-- [ ] Http:
+- [x] Dominio: `Producto` (tipo derivado), `Torta`, `Detalle`, `Sublimacion`, `DisenoTorta`, `PlantillaDiseno`, `DisenoPersonalizado` (Completado: 2026-09-23 22:50)
+- [x] Aplicacion: catalogo, CRUD de productos, diseños y plantillas, y diseños personalizados por cliente (Completado: 2026-09-23 22:50)
+- [x] Transaccion de alta: `productos` + exactamente una tabla 1:1 + `producto_multimedia` (una sola `es_principal`) (Completado: 2026-09-23 22:50)
+- [x] Http:
   - `GET /api/v1/productos` (filtros `categoria_id`, `tipo`, `buscar`, precios, `porciones_*`, `sabor`)
   - `GET /api/v1/productos/{id}`
   - `POST /api/v1/admin/productos`
   - `PUT /api/v1/admin/productos/{id}` (tipo inmutable)
   - `DELETE /api/v1/admin/productos/{id}`
   - `POST /api/v1/admin/tortas/{producto_id}/disenos`
+  - `PUT|DELETE /api/v1/admin/disenos-torta/{id}`
   - `POST /api/v1/admin/sublimaciones/{producto_id}/plantillas`
+  - `PUT|DELETE /api/v1/admin/plantillas-diseno/{id}`
   - `GET|POST /api/v1/disenos-personalizados` (CLIENTE)
-- [ ] Pruebas: TORTA sin `sabor` 422; dos imagenes principales 422; JSON sin `slug` ni personalizaciones genericas
+  (Completado: 2026-09-23 22:50)
+- [x] Pruebas: filtros, paginacion, transacciones, roles, ciclo de sublimacion, aislamiento por cliente, TORTA sin `sabor` 422, dos imagenes principales 422 y JSON sin campos inexistentes; suite completa 103/103 (Completado: 2026-09-23 22:50)
 
 ---
 

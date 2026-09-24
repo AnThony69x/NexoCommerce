@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Categorias\CategoriaController;
 use App\Http\Controllers\Multimedia\MultimediaController;
+use App\Http\Controllers\Productos\DisenoPersonalizadoController;
+use App\Http\Controllers\Productos\ProductoController;
 use App\Http\Controllers\Tienda\ConfiguracionTiendaController;
 use App\Http\Controllers\Usuarios\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -66,6 +68,17 @@ Route::prefix('v1')->group(function (): void {
             Route::put('categorias/{id}', [CategoriaController::class, 'update']);
             Route::delete('categorias/{id}', [CategoriaController::class, 'destroy']);
 
+            // Modulo 04: Productos y personalizacion
+            Route::post('productos', [ProductoController::class, 'store']);
+            Route::put('productos/{id}', [ProductoController::class, 'update']);
+            Route::delete('productos/{id}', [ProductoController::class, 'destroy']);
+            Route::post('tortas/{producto_id}/disenos', [ProductoController::class, 'storeDisenoTorta']);
+            Route::put('disenos-torta/{id}', [ProductoController::class, 'updateDisenoTorta']);
+            Route::delete('disenos-torta/{id}', [ProductoController::class, 'destroyDisenoTorta']);
+            Route::post('sublimaciones/{producto_id}/plantillas', [ProductoController::class, 'storePlantilla']);
+            Route::put('plantillas-diseno/{id}', [ProductoController::class, 'updatePlantilla']);
+            Route::delete('plantillas-diseno/{id}', [ProductoController::class, 'destroyPlantilla']);
+
         });
     });
 
@@ -87,8 +100,16 @@ Route::prefix('v1')->group(function (): void {
     // Modulo 04: Productos y Personalizacion
     // -------------------------------------------------------------------------
     Route::prefix('productos')->group(function (): void {
-        // Fase 5
+        Route::get('/', [ProductoController::class, 'index']);
+        Route::get('{id}', [ProductoController::class, 'show']);
     });
+
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE'])
+        ->prefix('disenos-personalizados')
+        ->group(function (): void {
+            Route::get('/', [DisenoPersonalizadoController::class, 'index']);
+            Route::post('/', [DisenoPersonalizadoController::class, 'store']);
+        });
 
     // -------------------------------------------------------------------------
     // Modulo 05: Carrito de Compras
