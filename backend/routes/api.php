@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Multimedia\MultimediaController;
+use App\Http\Controllers\Tienda\ConfiguracionTiendaController;
 use App\Http\Controllers\Usuarios\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,9 @@ Route::prefix('v1')->group(function (): void {
             Route::get('usuarios', [AdminUsuarioController::class, 'index']);
             Route::patch('usuarios/{id}', [AdminUsuarioController::class, 'update']);
 
+            // Modulo 09: Tienda — configuracion
+            Route::put('tienda/configuracion', [ConfiguracionTiendaController::class, 'actualizar']);
+
         });
     });
 
@@ -63,7 +67,7 @@ Route::prefix('v1')->group(function (): void {
     // Modulo 09: Tiendas y Parametrizacion
     // -------------------------------------------------------------------------
     Route::prefix('tienda')->group(function (): void {
-        // Fase 3: GET configuracion publica; PUT admin
+        Route::get('configuracion', [ConfiguracionTiendaController::class, 'mostrar']);
     });
 
     // -------------------------------------------------------------------------

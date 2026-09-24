@@ -148,18 +148,19 @@ Nota: se implementa antes del catalogo porque categorias, productos, diseños y 
 
 ## FASE 3: Tienda (configuracion_tienda)
 
-Estado: Pendiente
+Estado: Completado (2026-09-23 21:48)
 Dependencias: Fase 1
 Especificacion: [09-tiendas.spec.md](../docs/04-api/specs/09-tiendas.spec.md)
 
 Tablas: `configuracion_tienda` (seed Dulces Aesca y colores). No hay `lema`, `tipo_negocio` ni moneda.
 
-- [ ] Dominio: `ConfiguracionTienda`, `ConfiguracionTiendaRepositorio`
-- [ ] Aplicacion: `ObtenerConfiguracionTienda`, `ActualizarConfiguracionTienda`
-- [ ] Http:
+- [x] Dominio: `ConfiguracionTienda`, `ConfiguracionTiendaRepositorio` (Completado: 2026-09-23 21:48)
+- [x] Aplicacion: `ObtenerConfiguracionTienda`, `ActualizarConfiguracionTienda` (Completado: 2026-09-23 21:48)
+- [x] Http:
   - `GET /api/v1/tienda/configuracion` (publico)
   - `PUT /api/v1/admin/tienda/configuracion` (ADMIN; `nombre_tienda`, colores, `logo_url`, `favicon_url`, contacto)
-- [ ] Pruebas: GET publico; CLIENTE en PUT → 403; PUT sin `color_primario` → 422
+  (Completado: 2026-09-23 21:48)
+- [x] Pruebas: GET publico; CLIENTE en PUT → 403; PUT sin `color_primario` → 422 (Completado: 2026-09-23 21:48)
 
 ---
 
