@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Categorias\CategoriaController;
 use App\Http\Controllers\Multimedia\MultimediaController;
+use App\Http\Controllers\Produccion\ProduccionController;
 use App\Http\Controllers\Productos\DisenoPersonalizadoController;
 use App\Http\Controllers\Productos\ProductoController;
 use App\Http\Controllers\Publicaciones\PublicacionController;
@@ -85,6 +86,12 @@ Route::prefix('v1')->group(function (): void {
             Route::put('publicaciones/{id}', [PublicacionController::class, 'update']);
             Route::delete('publicaciones/{id}', [PublicacionController::class, 'destroy']);
 
+            // Modulo 12: Produccion
+            Route::get('produccion', [ProduccionController::class, 'index']);
+            Route::post('produccion', [ProduccionController::class, 'store']);
+            Route::put('produccion/{id}', [ProduccionController::class, 'update']);
+            Route::delete('produccion/{id}', [ProduccionController::class, 'destroy']);
+
         });
     });
 
@@ -124,6 +131,11 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/', [PublicacionController::class, 'index']);
         Route::get('{id}', [PublicacionController::class, 'show']);
     });
+
+    // -------------------------------------------------------------------------
+    // Modulo 12: Produccion
+    // -------------------------------------------------------------------------
+    Route::get('produccion/disponibilidad', [ProduccionController::class, 'disponibilidad']);
 
     // -------------------------------------------------------------------------
     // Modulo 05: Carrito de Compras

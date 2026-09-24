@@ -236,19 +236,20 @@ Tablas: `publicaciones`, `publicacion_multimedia`.
 
 ## FASE 7: Produccion
 
-Estado: Pendiente
+Estado: Completado (2026-09-24 00:12)
 Dependencias: Fase 4
 Especificacion: [12-produccion.spec.md](../docs/04-api/specs/12-produccion.spec.md)
 
 Tablas: `configuracion_produccion`. Se usa al crear pedidos (Fase 9).
 
-- [ ] Dominio: `ConfiguracionProduccion`, calculo de `ocupado` / `disponible`
-- [ ] Aplicacion: `ListarCupos`, `ConsultarDisponibilidad`, `CrearCupo`, `ActualizarCupo`
-- [ ] Http:
+- [x] Dominio: `ConfiguracionProduccion`, calculo de `ocupado` / `disponible` y reglas global/especifica (Completado: 2026-09-24 00:12)
+- [x] Aplicacion: `ListarCupos`, `ConsultarDisponibilidad`, `CrearCupo`, `ActualizarCupo`, `DesactivarCupo`, `VerificarCapacidadProduccion` (Completado: 2026-09-24 00:12)
+- [x] Http:
   - `GET /api/v1/produccion/disponibilidad?fecha=`
   - `GET|POST /api/v1/admin/produccion`
   - `PUT|DELETE /api/v1/admin/produccion/{id}`
-- [ ] Pruebas: `capacidad_maxima < 1` → 422; CLIENTE no crea cupos
+  (Completado: 2026-09-24 00:12)
+- [x] Pruebas: calculo desde pedidos no entregados, cupos global/especifico, ausencia de cupo para TORTA, duplicados activos, `capacidad_maxima < 1` → 422 y CLIENTE no crea cupos; suite completa 125/125 (Completado: 2026-09-24 00:12)
 
 ---
 

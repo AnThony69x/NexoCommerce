@@ -755,11 +755,16 @@ paths:
         - { name: categoria_id, in: query, schema: { type: integer } }
       responses:
         '200': { description: Cupo calculado }
+        '404': { description: Capacidad no configurada para la fecha y categoria }
 
   /admin/produccion:
     get:
       tags: [Produccion]
       security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: fecha, in: query, schema: { type: string, format: date } }
+        - { name: categoria_id, in: query, schema: { type: integer } }
+        - { name: activo, in: query, schema: { type: boolean } }
       responses:
         '200': { description: Configuraciones }
     post:
@@ -778,6 +783,7 @@ paths:
                 activo: { type: boolean }
       responses:
         '201': { description: Cupo creado }
+        '422': { description: Datos invalidos o configuracion activa duplicada }
 
   /admin/produccion/{id}:
     put:
@@ -785,8 +791,20 @@ paths:
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fecha: { type: string, format: date }
+                categoria_id: { type: integer, nullable: true }
+                capacidad_maxima: { type: integer, minimum: 1 }
+                activo: { type: boolean }
       responses:
         '200': { description: Actualizada }
+        '422': { description: Datos invalidos o configuracion activa duplicada }
     delete:
       tags: [Produccion]
       security: [{ bearerAuth: [] }]
