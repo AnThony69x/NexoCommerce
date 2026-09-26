@@ -486,7 +486,7 @@ paths:
         - { name: estado, in: query, schema: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO] } }
         - { name: page, in: query, schema: { type: integer } }
       responses:
-        '200': { description: Pedidos del usuario }
+        '200': { description: Pedidos del CLIENTE, paginados de 15 en 15 }
     post:
       tags: [Pedidos]
       security: [{ bearerAuth: [] }]
@@ -497,12 +497,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [fecha_entrega]
+              required: [fecha_entrega, total_esperado]
               properties:
                 fecha_entrega: { type: string, format: date }
+                total_esperado: { type: string, pattern: '^(?:0|[1-9][0-9]{0,7})\.[0-9]{2}$', example: '35.00' }
       responses:
         '201': { description: Pedido PENDIENTE }
-        '400': { description: 'Carrito vacio, stock o capacidad' }
+        '400': { description: 'Carrito vacio, item no disponible, stock, precio cambiado o capacidad; el carrito conserva los precios vigentes' }
+        '422': { description: fecha_entrega o total_esperado invalido }
 
   /pedidos/{id}:
     get:
@@ -511,14 +513,20 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Pedido y detalles_pedido }
+        '200': { description: Pedido con snapshot de detalles y pago mas reciente o null; CLIENTE propio o ADMIN cualquiera }
+        '403': { description: Pedido de otro CLIENTE }
 
   /admin/pedidos:
     get:
       tags: [Pedidos]
       security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: estado, in: query, schema: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO] } }
+        - { name: fecha_entrega, in: query, schema: { type: string, format: date } }
+        - { name: usuario_id, in: query, schema: { type: integer } }
+        - { name: page, in: query, schema: { type: integer } }
       responses:
-        '200': { description: Todos los pedidos }
+        '200': { description: Todos los pedidos paginados de 15 en 15 }
 
   /admin/pedidos/{id}/estado:
     patch:
@@ -536,7 +544,7 @@ paths:
                 estado: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO] }
       responses:
         '200': { description: Estado actualizado }
-        '400': { description: Salto de estado o pago no aprobado }
+        '400': { description: Salto, retroceso, repeticion de estado o pago no aprobado }
 
   /pagos:
     post:

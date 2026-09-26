@@ -276,7 +276,7 @@ Tablas: `carritos`, `detalles_carrito`. Un carrito activo por usuario (indice pa
 
 ## FASE 9: Pedidos
 
-Estado: Pendiente
+Estado: Completado (2026-09-24 11:50)
 Dependencias: Fase 7, Fase 8
 Especificacion: [06-pedidos.spec.md](../docs/04-api/specs/06-pedidos.spec.md)
 
@@ -284,21 +284,21 @@ Tablas: `pedidos`, `detalles_pedido`. Sin `direccion_envio`, `codigo`, `notas` n
 
 Maquina de estados: `PENDIENTE` → `EN_PREPARACION` → `LISTO` → `ENTREGADO` (sin saltos). No existen `pagado`, `enviado` ni `cancelado`.
 
-- [ ] Dominio: `Pedido`, invariantes de secuencia y snapshot (`nombre_producto`, `costo_diseno`, `tipo_configuracion`)
-- [ ] Aplicacion: `CrearPedidoDesdeCarrito`, `ListarPedidosUsuario`, `ConsultarPedido`, `ListarPedidosAdmin`, `CambiarEstadoPedido`
-- [ ] Transaccion:
-  1. Revalidar stock de DETALLE.
+- [x] Dominio: `Pedido`, invariantes de secuencia y snapshot (`nombre_producto`, `costo_diseno`, `tipo_configuracion`)
+- [x] Aplicacion: `CrearPedidoDesdeCarrito`, `ListarPedidosUsuario`, `ConsultarPedido`, `ListarPedidosAdmin`, `CambiarEstadoPedido`
+- [x] Transaccion:
+  1. Revalidar precio, disponibilidad, configuracion y stock agregado de DETALLE.
   2. Revalidar capacidad (Fase 7) para `fecha_entrega`.
   3. Insertar `pedidos` estado `PENDIENTE` y `detalles_pedido`.
-  4. Vaciar `detalles_carrito`.
-- [ ] No avanzar a `EN_PREPARACION` sin pago `APROBADO` (Fase 10).
-- [ ] Http:
-  - `POST /api/v1/pedidos` body `{ "fecha_entrega": "YYYY-MM-DD" }`
+  4. Descontar stock de DETALLE y vaciar `detalles_carrito`.
+- [x] No avanzar a `EN_PREPARACION` sin pago `APROBADO` (Fase 10).
+- [x] Http:
+  - `POST /api/v1/pedidos` body `{ "fecha_entrega": "YYYY-MM-DD", "total_esperado": "35.00" }`
   - `GET /api/v1/pedidos`
   - `GET /api/v1/pedidos/{id}`
   - `GET /api/v1/admin/pedidos`
   - `PATCH /api/v1/admin/pedidos/{id}/estado`
-- [ ] Pruebas: sin `fecha_entrega` 422; salto de estado 400; CLIENTE no ve pedido ajeno 403
+- [x] Pruebas: validaciones 422, precio reconfirmado, snapshot, stock y capacidad bajo concurrencia, aislamiento, paginacion y secuencia de estados; Pint y suite PostgreSQL 17 local: 147/147 pruebas, 837 aserciones (Completado: 2026-09-24 11:50)
 
 ---
 

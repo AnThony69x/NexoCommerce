@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Carrito\CarritoController;
 use App\Http\Controllers\Categorias\CategoriaController;
 use App\Http\Controllers\Multimedia\MultimediaController;
+use App\Http\Controllers\Pedidos\PedidoController;
 use App\Http\Controllers\Produccion\ProduccionController;
 use App\Http\Controllers\Productos\DisenoPersonalizadoController;
 use App\Http\Controllers\Productos\ProductoController;
@@ -152,8 +153,14 @@ Route::prefix('v1')->group(function (): void {
     // -------------------------------------------------------------------------
     // Modulo 06: Pedidos
     // -------------------------------------------------------------------------
-    Route::prefix('pedidos')->group(function (): void {
-        // Fase 9
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE'])->prefix('pedidos')->group(function (): void {
+        Route::get('/', [PedidoController::class, 'index']);
+        Route::post('/', [PedidoController::class, 'store']);
+    });
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->get('pedidos/{id}', [PedidoController::class, 'show']);
+    Route::middleware(['auth:sanctum', 'rol:ADMIN'])->prefix('admin/pedidos')->group(function (): void {
+        Route::get('/', [PedidoController::class, 'adminIndex']);
+        Route::patch('{id}/estado', [PedidoController::class, 'updateEstado']);
     });
 
     // -------------------------------------------------------------------------
