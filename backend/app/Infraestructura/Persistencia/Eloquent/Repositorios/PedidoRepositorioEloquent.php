@@ -8,6 +8,8 @@ use App\Aplicacion\Produccion\CasosUso\VerificarCapacidadProduccion;
 use App\Aplicacion\Produccion\DTOs\SolicitudCapacidadProduccionDTO;
 use App\Dominio\Carrito\Servicios\ReglasCarrito;
 use App\Dominio\Compartido\Excepciones\DominioException;
+use App\Dominio\Notificaciones\Eventos\EstadoPedidoCambiado;
+use App\Dominio\Notificaciones\Eventos\PedidoCreado;
 use App\Dominio\Pedidos\Entidades\DetallePedido;
 use App\Dominio\Pedidos\Entidades\Pedido;
 use App\Dominio\Pedidos\Repositorios\PedidoRepositorioInterface;
@@ -24,6 +26,7 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\ProductoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInterface
 {
@@ -133,6 +136,8 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
             }
             $carrito->items()->delete();
 
+            Event::dispatch(new PedidoCreado((int) $pedido->id, $usuarioId));
+
             return $this->mapear($pedido->load('items'));
         }, 3);
     }
@@ -178,6 +183,8 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
                 throw $this->error('El pago no esta aprobado.', 'PED_PAGO_NO_APROBADO');
             }
             $modelo->update(['estado' => $estado]);
+
+            Event::dispatch(new EstadoPedidoCambiado((int) $modelo->id, (int) $modelo->usuario_id, $estado));
 
             return $this->mapear($modelo->load('items'), true);
         }, 3);

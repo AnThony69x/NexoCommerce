@@ -324,7 +324,7 @@ Tablas: `pagos`, `comprobantes_pago`. No hay `comprobante_url` ni metodos `efect
 
 ## FASE 11: Notificaciones
 
-Estado: Pendiente
+Estado: Completada (2026-09-26 10:49)
 Dependencias: Fase 9, Fase 10
 Especificacion: [10-notificaciones.spec.md](../docs/04-api/specs/10-notificaciones.spec.md)
 
@@ -332,13 +332,13 @@ Tablas: `notificaciones` (`pedido_id`, `pago_id`; no `referencia_id`).
 
 Tipos: `PEDIDO_CREADO`, `PEDIDO_EN_PREPARACION`, `PEDIDO_LISTO`, `PEDIDO_ENTREGADO`, `PAGO_REGISTRADO`, `PAGO_APROBADO`, `PAGO_RECHAZADO`.
 
-- [ ] Dominio: eventos `PedidoCreado`, `PagoRegistrado`, `PagoVerificado`, `EstadoPedidoCambiado`
-- [ ] Listeners que insertan filas para CLIENTE y ADMIN segun spec
-- [ ] Http:
+- [x] Dominio: eventos `PedidoCreado`, `PagoRegistrado`, `PagoVerificado`, `EstadoPedidoCambiado`
+- [x] Listeners sincronos y transaccionales que insertan filas para CLIENTE y ADMIN segun spec
+- [x] Http:
   - `GET /api/v1/notificaciones` (`meta.total_no_leidas`)
   - `PATCH /api/v1/notificaciones/{id}/leida`
   - `PATCH /api/v1/notificaciones/leer-todas`
-- [ ] Pruebas: aprobar pago emite `PAGO_APROBADO` al dueño; marcar leida ajena → 403
+- [x] Pruebas: siete tipos, destinatarios, autorizacion, filtros, paginacion, lectura idempotente y rollback; Pint y suite PostgreSQL 17 local: 163/163 pruebas, 993 aserciones (Completado: 2026-09-26 10:49)
 
 ---
 

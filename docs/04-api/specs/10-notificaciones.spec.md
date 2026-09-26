@@ -27,6 +27,9 @@ Buzon persistente. FKs opcionales `pedido_id` y `pago_id` (no hay `referencia_id
   * `PAGO_RECHAZADO`
 * **RN-NOT-04:** Un usuario solo lista y marca las suyas (`usuario_id`).
 * **RN-NOT-05:** Marcar leida setea `leida = true` y `fecha_lectura = now()`. Idempotente.
+* **RN-NOT-06:** Pedido, pago o cambio de estado y sus avisos se insertan en la misma transaccion. Si falla un aviso, se revierte toda la operacion. No se encolan estos listeners.
+* **RN-NOT-07:** `PAGO_REGISTRADO` se envia a cada ADMIN activo para pagos `PENDIENTE` de `TRANSFERENCIA` y `PASARELA`. No se envia al CLIENTE.
+* **RN-NOT-08:** La lectura repetida conserva la primera `fecha_lectura`. `leer-todas` cambia solo las no leidas del usuario y devuelve cuantas actualizo.
 
 No se notifica un estado `enviado` porque no existe en `pedidos`.
 
@@ -58,6 +61,8 @@ No se notifica un estado `enviado` porque no existe en `pedidos`.
 * **Autenticacion:** Sanctum
 
 Query: `leida` (boolean), `page`.
+
+Orden: `creado_en` descendente, con `id` descendente para desempatar. `page` comienza en 1. `meta.total_no_leidas` cuenta todas las no leidas del usuario, sin aplicar `leida` ni `page`.
 
 #### 200 OK
 ```json
@@ -118,10 +123,19 @@ Ajena: 403. Inexistente: 404.
 
 Actualiza todas las no leidas del usuario.
 
+#### 200 OK
+```json
+{
+  "success": true,
+  "message": "Notificaciones marcadas como leidas.",
+  "data": { "actualizadas": 3 }
+}
+```
+
 ---
 
 ## 5. Criterios de Aceptacion
-* [ ] **TC-01:** El JSON usa `pedido_id` y `pago_id`, no `referencia_id`.
-* [ ] **TC-02:** Crear pedido inserta notificacion `PEDIDO_CREADO` al cliente y a ADMIN.
-* [ ] **TC-03:** PATCH leida de otra persona: 403.
-* [ ] **TC-04:** `tipo` de pago aprobado es `PAGO_APROBADO`, no `pago_aprobado`.
+* [x] **TC-01:** El JSON usa `pedido_id` y `pago_id`, no `referencia_id`.
+* [x] **TC-02:** Crear pedido inserta notificacion `PEDIDO_CREADO` al cliente y a ADMIN.
+* [x] **TC-03:** PATCH leida de otra persona: 403.
+* [x] **TC-04:** `tipo` de pago aprobado es `PAGO_APROBADO`, no `pago_aprobado`.

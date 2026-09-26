@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Carrito\CarritoController;
 use App\Http\Controllers\Categorias\CategoriaController;
 use App\Http\Controllers\Multimedia\MultimediaController;
+use App\Http\Controllers\Notificaciones\NotificacionController;
 use App\Http\Controllers\Pagos\PagoController;
 use App\Http\Controllers\Pedidos\PedidoController;
 use App\Http\Controllers\Produccion\ProduccionController;
@@ -183,8 +184,10 @@ Route::prefix('v1')->group(function (): void {
     // -------------------------------------------------------------------------
     // Modulo 10: Notificaciones
     // -------------------------------------------------------------------------
-    Route::prefix('notificaciones')->group(function (): void {
-        // Fase 11
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->prefix('notificaciones')->group(function (): void {
+        Route::get('/', [NotificacionController::class, 'index']);
+        Route::patch('leer-todas', [NotificacionController::class, 'marcarTodas']);
+        Route::patch('{id}/leida', [NotificacionController::class, 'marcarLeida'])->whereNumber('id');
     });
 
     // Healthcheck version API

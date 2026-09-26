@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Infraestructura\Persistencia\Eloquent\Repositorios;
 
 use App\Dominio\Compartido\Excepciones\DominioException;
+use App\Dominio\Notificaciones\Eventos\PagoRegistrado;
+use App\Dominio\Notificaciones\Eventos\PagoVerificado;
 use App\Dominio\Pagos\Entidades\ComprobantePago;
 use App\Dominio\Pagos\Entidades\Pago;
 use App\Dominio\Pagos\Repositorios\PagoRepositorioInterface;
@@ -15,6 +17,7 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\PagoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\PedidoModelo;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 final class PagoRepositorioEloquent implements PagoRepositorioInterface
 {
@@ -69,6 +72,8 @@ final class PagoRepositorioEloquent implements PagoRepositorioInterface
                 $pago->comprobante()->create(['multimedia_id' => $multimediaId]);
             }
 
+            Event::dispatch(new PagoRegistrado((int) $pago->id, $pedidoId));
+
             return $this->mapear($pago->load('comprobante'), $pedido->estado);
         }, 3);
     }
@@ -112,6 +117,8 @@ final class PagoRepositorioEloquent implements PagoRepositorioInterface
                     'revisado_por_id' => $adminId, 'fecha_revision' => now(), 'comentario_revision' => $comentario,
                 ]);
             }
+
+            Event::dispatch(new PagoVerificado((int) $pago->id, (int) $pedido->id, (int) $pedido->usuario_id, $estado));
 
             return $this->mapear($pago->load('comprobante'), $pedido->estado);
         }, 3);

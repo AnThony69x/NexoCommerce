@@ -671,24 +671,86 @@ paths:
     get:
       tags: [Notificaciones]
       security: [{ bearerAuth: [] }]
+      summary: Listar el buzon propio de CLIENTE o ADMIN
+      description: Orden descendente por creado_en e id. total_no_leidas es global para el usuario y no depende del filtro ni de la pagina.
+      parameters:
+        - { name: leida, in: query, schema: { type: boolean } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
       responses:
-        '200': { description: Buzon del usuario }
+        '200':
+          description: Buzon del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data, meta]
+                properties:
+                  success: { type: boolean, const: true }
+                  data: { type: array, items: { $ref: '#/components/schemas/Notificacion' } }
+                  meta:
+                    type: object
+                    required: [pagina_actual, por_pagina, total, total_paginas, total_no_leidas]
+                    properties:
+                      pagina_actual: { type: integer }
+                      por_pagina: { type: integer, const: 20 }
+                      total: { type: integer }
+                      total_paginas: { type: integer }
+                      total_no_leidas: { type: integer }
+        '401': { description: No autenticado }
+        '422': { description: Filtro o pagina invalidos }
 
   /notificaciones/leer-todas:
     patch:
       tags: [Notificaciones]
       security: [{ bearerAuth: [] }]
+      summary: Marcar todas las notificaciones propias no leidas
       responses:
-        '200': { description: Todas leidas }
+        '200':
+          description: Cantidad marcada como leida; una segunda llamada devuelve cero
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  message: { type: string }
+                  data:
+                    type: object
+                    required: [actualizadas]
+                    properties:
+                      actualizadas: { type: integer }
+        '401': { description: No autenticado }
 
   /notificaciones/{id}/leida:
     patch:
       tags: [Notificaciones]
       security: [{ bearerAuth: [] }]
+      summary: Marcar una notificacion propia como leida
+      description: Idempotente; conserva la primera fecha_lectura.
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: leida y fecha_lectura }
+        '200':
+          description: leida y fecha_lectura
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  message: { type: string }
+                  data:
+                    type: object
+                    required: [id, leida, fecha_lectura]
+                    properties:
+                      id: { type: integer }
+                      leida: { type: boolean, const: true }
+                      fecha_lectura: { type: string, format: date-time }
+        '401': { description: No autenticado }
+        '403': { description: Notificacion ajena }
+        '404': { description: Notificacion inexistente }
 
   /publicaciones:
     get:
@@ -851,6 +913,22 @@ paths:
 
 components:
   schemas:
+    Notificacion:
+      type: object
+      required: [id, usuario_id, pedido_id, pago_id, tipo, titulo, mensaje, leida, fecha_lectura, creado_en]
+      properties:
+        id: { type: integer }
+        usuario_id: { type: integer }
+        pedido_id: { type: [integer, 'null'] }
+        pago_id: { type: [integer, 'null'] }
+        tipo:
+          type: string
+          enum: [PEDIDO_CREADO, PEDIDO_EN_PREPARACION, PEDIDO_LISTO, PEDIDO_ENTREGADO, PAGO_REGISTRADO, PAGO_APROBADO, PAGO_RECHAZADO]
+        titulo: { type: string, maxLength: 150 }
+        mensaje: { type: string }
+        leida: { type: boolean }
+        fecha_lectura: { type: [string, 'null'], format: date-time }
+        creado_en: { type: string, format: date-time }
     CarritoRespuesta:
       type: object
       required: [success, data]
