@@ -33,7 +33,7 @@ El Backend administra las operaciones y permisos de los archivos.
 
 La propuesta es utilizar **OpenSSH/SFTP para transferir archivos** y **NGINX para servir recursos públicos** desde la VM Linux. PostgreSQL guarda los metadatos; los archivos físicos permanecen en la Laptop 5.
 
-Para consultar imágenes públicas, el NGINX de Laptop 1 puede reenviar `/storage/` al NGINX de la VM, manteniendo una entrada común para los clientes. Los archivos privados deben descargarse mediante el backend después de verificar permisos. Esta separación requiere ajustar el contrato actual.
+Los clientes consultan las imágenes públicas mediante `/api/v1/multimedia/publico/{ruta}` y descargan archivos privados mediante `/api/v1/multimedia/{id}/archivo` con autorización del backend. Al conectar la VM, estas rutas deben conservarse; NGINX puede reenviar la ruta pública a la VM si se configura para respetar la validación y disponibilidad del contrato.
 
 ## Reglas
 
@@ -121,25 +121,17 @@ Estos comandos solo instalan y comprueban los servicios base. Para completar el 
 
 Laravel soporta SFTP mediante un adaptador de Flysystem. No es necesario crear otra API en la VM para recibir las subidas.
 
-Tareas pendientes:
+La API de subida `POST /api/v1/multimedia`, su validación, las rutas de descarga y los permisos ya funcionan con un volumen local compartido entre ambas instancias. Para sustituir ese volumen por la VM quedan estas tareas:
 
 1. Instalar el adaptador SFTP compatible y configurar el disco remoto en `backend/config/filesystems.php`.
 2. Configurar IP, puerto, usuario, clave, directorio remoto y tiempos de espera mediante variables de entorno y secretos externos al repositorio.
-3. Implementar `POST /api/v1/multimedia/subir`, protegido con Sanctum, validando contenido, formato, tamaño, destino y permisos.
-4. Generar nombres únicos y limitar las carpetas a destinos conocidos, sin aceptar rutas arbitrarias del cliente.
-5. Guardar el archivo por SFTP y registrar sus metadatos en PostgreSQL después de confirmar la transferencia. Si falla el registro, gestionar la limpieza del archivo y registrar cualquier fallo de limpieza.
-6. Construir las URLs públicas mediante la entrada de Laptop 1 y gestionar descargas privadas con autorización del backend.
-7. Configurar ambas instancias del backend para utilizar el mismo almacenamiento remoto.
-8. Manejar la caída del servidor con tiempos de espera limitados, errores controlados y logs de diagnóstico.
-9. Ajustar los límites de PHP y del proxy para aceptar el archivo de 5 MB más el contenido adicional de la petición multipart.
+3. Adaptar la escritura, lectura y eliminación de archivos al almacenamiento SFTP, conservando los nombres únicos, destinos permitidos y metadatos actuales.
+4. Si falla el registro en PostgreSQL tras una transferencia, limpiar el archivo y registrar cualquier fallo de limpieza.
+5. Configurar ambas instancias del backend para utilizar el mismo almacenamiento remoto y mantener las rutas públicas y privadas existentes.
+6. Manejar la caída del servidor con tiempos de espera limitados, errores controlados y logs de diagnóstico.
+7. Ajustar los límites de PHP y del proxy para aceptar el archivo de 5 MB más el contenido adicional de la petición multipart.
 
-### Ajustes pendientes del contrato multimedia
-
-* El contrato actual describe lectura pública incluso para comprobantes. Se propone mantener comprobantes y personalizaciones de clientes privados, con descarga autorizada a través del backend.
-* La regla de negocio limita PDF a comprobantes, pero la validación de ejemplo permite PDF sin distinguir carpeta. La implementación debe reflejar la restricción por destino.
-* `tienda` aparece en la validación de carpetas, pero no en la tabla de campos. Unificar los destinos permitidos.
-
-Estos ajustes deben coordinarse antes de implementar el módulo.
+El contrato vigente está en la [especificación multimedia](../docs/04-api/specs/08-multimedia.spec.md) y la [guía de integración](../docs/04-api/guia-integracion-web-movil.md). Comprobantes y personalizaciones son privados; PDF solo se admite para comprobantes.
 
 ## Pruebas y evidencias de entrega
 
@@ -169,4 +161,4 @@ Documentar IPs, puertos, versiones, configuración de servicios, respaldos y res
 
 En desarrollo. La configuración descrita es una propuesta pendiente de implementar y probar; no representa un servidor desplegado.
 
-Al revisar el repositorio, el backend utiliza Laravel 13 y Sanctum, pero el endpoint multimedia aún no está implementado y no existe un disco SFTP configurado. Esta carpeta contiene documentación, sin configuraciones ejecutables del servidor, y el `docker-compose.yml` raíz está vacío.
+El backend utiliza Laravel 13 y Sanctum. El endpoint multimedia ya esta implementado con un disco local compartido provisionalmente por las dos instancias Docker y rutas publicas o protegidas para leer archivos. Todavia no existe un disco SFTP configurado ni un servidor de archivos desplegado. Esta carpeta contiene documentacion; el `docker-compose.yml` raiz sigue vacio.

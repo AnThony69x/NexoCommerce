@@ -34,4 +34,11 @@ final class LocalAlmacenamientoArchivos implements AlmacenamientoArchivosInterfa
             Storage::disk('multimedia')->delete($rutaRelativa);
         }
     }
+
+    public function leer(string $rutaRelativa): ?string
+    {
+        $disco = Storage::disk('multimedia');
+
+        return $disco->exists($rutaRelativa) ? $disco->get($rutaRelativa) : null;
+    }
 }

@@ -149,7 +149,7 @@ Igual estructura que `disenos_torta`, con `sublimacion_id` FK `sublimaciones.pro
       "imagen_principal": {
         "id": 10,
         "ruta_archivo": "productos/taza.webp",
-        "url": "http://192.168.1.50/storage/productos/taza.webp",
+        "url": "http://192.168.1.50:8001/api/v1/multimedia/publico/productos/taza.webp",
         "es_principal": true
       },
       "torta": null,
@@ -190,7 +190,7 @@ En DETALLE incluir `"detalle": { "stock": 25 }`. En TORTA incluir `"torta": { "t
       {
         "id": 21,
         "ruta_archivo": "productos/torta.webp",
-        "url": "http://192.168.1.50/storage/productos/torta.webp",
+        "url": "http://192.168.1.50:8001/api/v1/multimedia/publico/productos/torta.webp",
         "orden": 0,
         "es_principal": true
       }

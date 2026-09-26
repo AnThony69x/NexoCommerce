@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Dominio\Multimedia\Entidades\Multimedia;
+use App\Dominio\Multimedia\Servicios\VisibilidadMultimedia;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -27,7 +28,8 @@ class MultimediaResource extends JsonResource
         /** @var Multimedia $multimedia */
         $multimedia = $this->resource;
         $baseUrl = rtrim((string) config('app.multimedia_public_base_url', ''), '/');
-        $urlPublica = $baseUrl !== '' ? $baseUrl.'/'.$multimedia->ruta_archivo : null;
+        $urlPublica = $baseUrl !== '' && VisibilidadMultimedia::esPublica($multimedia->ruta_archivo)
+            ? $baseUrl.'/'.$multimedia->ruta_archivo : null;
 
         return [
             'id' => $multimedia->id,

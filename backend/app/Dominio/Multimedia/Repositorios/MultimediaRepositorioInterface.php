@@ -20,6 +20,8 @@ interface MultimediaRepositorioInterface
      */
     public function buscarPorId(int $id): ?Multimedia;
 
+    public function buscarPorRuta(string $ruta): ?Multimedia;
+
     /**
      * Marca `activo = false` en la fila indicada.
      */

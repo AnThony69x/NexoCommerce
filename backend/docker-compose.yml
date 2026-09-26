@@ -12,8 +12,11 @@ services:
     env_file:
       - .env
     environment:
-      APP_URL: http://localhost:8001
+      APP_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}
+      MULTIMEDIA_PUBLIC_BASE_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}/api/v1/multimedia/publico
       PORT: "8000"
+    volumes:
+      - multimedia-data:/app/storage/app/multimedia
     restart: unless-stopped
     healthcheck:
       test:
@@ -37,8 +40,11 @@ services:
     env_file:
       - .env
     environment:
-      APP_URL: http://localhost:8002
+      APP_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}
+      MULTIMEDIA_PUBLIC_BASE_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}/api/v1/multimedia/publico
       PORT: "8000"
+    volumes:
+      - multimedia-data:/app/storage/app/multimedia
     restart: unless-stopped
     healthcheck:
       test:
@@ -50,3 +56,6 @@ services:
       timeout: 5s
       retries: 8
       start_period: 25s
+
+volumes:
+  multimedia-data:

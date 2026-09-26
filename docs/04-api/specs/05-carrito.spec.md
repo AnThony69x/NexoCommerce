@@ -88,7 +88,7 @@ Si no hay carrito activo, se crea vacio.
         "producto_id": 15,
         "nombre": "Taza Magica",
         "tipo": "SUBLIMACION",
-        "imagen_principal_url": "http://192.168.1.50/storage/productos/taza.webp",
+        "imagen_principal_url": "http://192.168.1.50:8001/api/v1/multimedia/publico/productos/taza.webp",
         "cantidad": 2,
         "precio_unitario": 14.00,
         "comentario": null,

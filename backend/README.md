@@ -35,6 +35,7 @@ Ningun endpoint se codifica sin especificacion aprobada.
 - **Contratos:** [../docs/04-api/](../docs/04-api/)
 - **Specs:** [../docs/04-api/specs/](../docs/04-api/specs/)
 - **OpenAPI:** [../docs/04-api/openapi/openapi.yaml](../docs/04-api/openapi/openapi.yaml)
+- **Entrega a Web y Movil:** [../docs/04-api/guia-integracion-web-movil.md](../docs/04-api/guia-integracion-web-movil.md)
 - **Bitacora:** [../docs/09-bitacora/bitacora-backend.md](../docs/09-bitacora/bitacora-backend.md)
 - **SQL:** [../database/database.sql](../database/database.sql)
 
@@ -258,6 +259,8 @@ El backend se ejecuta en **dos instancias independientes** detras del balanceado
 ```
 
 Ambas instancias comparten el mismo codigo en `backend/` y leen `.env` en tiempo de ejecucion (no se copia a la imagen). El proceso escucha `0.0.0.0:$PORT` (`PORT=8000` dentro del contenedor). Runtime de la imagen: PHP 8.4 CLI (`php:8.4-cli-bookworm`); el host local sigue en PHP 8.5.
+
+Durante la integracion inicial, `API_PUBLIC_ORIGIN` fija el origen LAN que devuelven ambas instancias y el volumen `multimedia-data` comparte los archivos. Para levantar una base `nexo_demo` aislada y entregar credenciales de prueba a Web y Movil, seguir la [guia de integracion](../docs/04-api/guia-integracion-web-movil.md). NGINX y el servidor de archivos externo siguen pendientes.
 
 ```bash
 cd backend

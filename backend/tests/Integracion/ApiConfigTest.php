@@ -76,4 +76,25 @@ class ApiConfigTest extends TestCase
                 'codigo_error' => 'NOT_FOUND',
             ]);
     }
+
+    public function test_cors_acepta_origen_web_configurado(): void
+    {
+        config(['cors.allowed_origins' => ['http://localhost:5173']]);
+        $this->withHeaders([
+            'Origin' => 'http://localhost:5173',
+            'Access-Control-Request-Method' => 'GET',
+            'Access-Control-Request-Headers' => 'Authorization',
+        ])->options('/api/v1/productos')->assertNoContent()->assertHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+
+    }
+
+    public function test_cors_no_habilita_origen_web_ajeno(): void
+    {
+        config(['cors.allowed_origins' => ['http://localhost:5173']]);
+        $this->withHeaders([
+            'Origin' => 'http://sitio-ajeno.test',
+            'Access-Control-Request-Method' => 'GET',
+            'Access-Control-Request-Headers' => 'Authorization',
+        ])->options('/api/v1/productos')->assertHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+    }
 }

@@ -9,6 +9,7 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -62,10 +63,7 @@ class MultimediaTest extends TestCase
 
         $this->assertIsString($ruta);
         $this->assertStringStartsWith('personalizaciones/', $ruta);
-        $this->assertSame(
-            'https://files.example.test/multimedia/'.$ruta,
-            $response->json('data.url'),
-        );
+        $this->assertNull($response->json('data.url'));
         $this->assertDatabaseHas('multimedia', [
             'id' => $response->json('data.id'),
             'subido_por_id' => $usuario->id,
@@ -86,7 +84,7 @@ class MultimediaTest extends TestCase
         $this->withToken($token)
             ->post('/api/v1/multimedia', [
                 'archivo' => $archivo,
-                'destino' => 'productos',
+                'destino' => 'comprobantes',
             ])
             ->assertUnprocessable()
             ->assertJsonPath('success', false)
@@ -96,11 +94,77 @@ class MultimediaTest extends TestCase
         Storage::disk('multimedia')->assertEmpty();
     }
 
+    public function test_imagen_publica_se_sirve_sin_token_y_rechaza_rutas_privadas_o_inactivas(): void
+    {
+        Storage::fake('multimedia');
+        $imagen = MultimediaModelo::factory()->create(['ruta_archivo' => 'productos/demo.png']);
+        Storage::disk('multimedia')->put($imagen->ruta_archivo, 'imagen-demo');
+        $inactiva = MultimediaModelo::factory()->inactivo()->create(['ruta_archivo' => 'categorias/inactiva.png']);
+        Storage::disk('multimedia')->put($inactiva->ruta_archivo, 'inactiva');
+        $falso = MultimediaModelo::factory()->create(['ruta_archivo' => 'productos/falso.png', 'tipo_mime' => 'application/pdf']);
+        Storage::disk('multimedia')->put($falso->ruta_archivo, '%PDF-falso');
+        $this->get('/api/v1/multimedia/publico/productos/demo.png')->assertOk()
+            ->assertHeader('Content-Type', 'image/png')->assertSee('imagen-demo');
+        $this->get('/api/v1/multimedia/publico/categorias/inactiva.png')->assertNotFound();
+        $this->get('/api/v1/multimedia/publico/productos/falso.png')->assertNotFound();
+        $this->get('/api/v1/multimedia/publico/comprobantes/demo.png')->assertNotFound();
+        $this->get('/api/v1/multimedia/publico/productos/../demo.png')->assertNotFound();
+        Storage::disk('multimedia')->delete($imagen->ruta_archivo);
+        $this->get('/api/v1/multimedia/publico/productos/demo.png')->assertNotFound();
+    }
+
+    public function test_cliente_no_puede_subir_a_destinos_publicos_y_admin_si(): void
+    {
+        Storage::fake('multimedia');
+        $cliente = UsuarioModelo::factory()->verificado()->create();
+        $this->withToken($cliente->createToken('test')->plainTextToken)
+            ->post('/api/v1/multimedia', [
+                'archivo' => UploadedFile::fake()->create('publica.png', 100, 'image/png'), 'destino' => 'productos',
+            ])->assertForbidden();
+        $this->assertDatabaseCount('multimedia', 0);
+
+        Auth::forgetGuards();
+        $admin = UsuarioModelo::factory()->admin()->create();
+        $respuesta = $this->withToken($admin->createToken('test')->plainTextToken)
+            ->post('/api/v1/multimedia', [
+                'archivo' => UploadedFile::fake()->create('publica.png', 100, 'image/png'), 'destino' => 'productos',
+            ])->assertCreated();
+        $this->assertStringContainsString('/productos/', (string) $respuesta->json('data.url'));
+    }
+
+    public function test_archivo_privado_exige_dueno_o_admin_y_no_expone_url_publica(): void
+    {
+        Storage::fake('multimedia');
+        $dueno = UsuarioModelo::factory()->verificado()->create();
+        $otro = UsuarioModelo::factory()->verificado()->create();
+        $admin = UsuarioModelo::factory()->admin()->create();
+        $archivo = MultimediaModelo::factory()->pdf()->create(['subido_por_id' => $dueno->id]);
+        Storage::disk('multimedia')->put($archivo->ruta_archivo, '%PDF-demo');
+        $ruta = '/api/v1/multimedia/'.$archivo->id.'/archivo';
+        $this->get($ruta)->assertUnauthorized();
+        $this->withToken($otro->createToken('test')->plainTextToken);
+        $this->get($ruta)->assertForbidden();
+        $this->getJson('/api/v1/multimedia/'.$archivo->id)->assertForbidden();
+        Auth::forgetGuards();
+        $this->withToken($dueno->createToken('test')->plainTextToken);
+        $respuesta = $this->get($ruta)->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertSee('%PDF-demo');
+        $this->assertStringContainsString('no-store', (string) $respuesta->headers->get('Cache-Control'));
+        $this->getJson('/api/v1/multimedia/'.$archivo->id)->assertOk()->assertJsonPath('data.url', null);
+        Auth::forgetGuards();
+        $this->withToken($admin->createToken('test')->plainTextToken);
+        $this->get($ruta)->assertOk();
+        Storage::disk('multimedia')->delete($archivo->ruta_archivo);
+        $this->get($ruta)->assertNotFound();
+        Storage::disk('multimedia')->put($archivo->ruta_archivo, '%PDF-demo');
+        $archivo->update(['activo' => false]);
+        $this->get($ruta)->assertNotFound();
+    }
+
     public function test_pdf_fuera_de_comprobantes_retorna_422(): void
     {
         Storage::fake('multimedia');
 
-        $usuario = UsuarioModelo::factory()->verificado()->create();
+        $usuario = UsuarioModelo::factory()->admin()->create();
         $token = $usuario->createToken('test')->plainTextToken;
         $archivo = UploadedFile::fake()->create('diseno.pdf', 100, 'application/pdf');
 

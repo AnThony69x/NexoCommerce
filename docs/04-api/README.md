@@ -150,4 +150,6 @@ Los tokens Sanctum viven en tablas de Laravel (`personal_access_tokens`), no en 
 
 Contrato unificado: [openapi/openapi.yaml](openapi/openapi.yaml)
 
+Entrega para Nathalia y Emilio: [guia-integracion-web-movil.md](guia-integracion-web-movil.md)
+
 Guia de implementacion del backend: [backend/ROADMAP.md](../../backend/ROADMAP.md)

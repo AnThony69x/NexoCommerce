@@ -347,8 +347,10 @@ Tipos: `PEDIDO_CREADO`, `PEDIDO_EN_PREPARACION`, `PEDIDO_LISTO`, `PEDIDO_ENTREGA
 Estado: Pendiente
 Dependencias: Todas las anteriores
 
-- [ ] Empaquetar backend en contenedor `Dockerfile` con extensiones PHP (`pdo_pgsql`, etc.)
-- [ ] `docker-compose.yml`: `backend-1:8001` y `backend-2:8002`
+- [x] Empaquetar backend en contenedor `Dockerfile` con extensiones PHP (`pdo_pgsql`, etc.); imagen actual construida y probada localmente (2026-09-26 11:07)
+- [x] `docker-compose.yml`: `backend-1:8001` y `backend-2:8002`; configuracion validada y volumen multimedia compartido probado con dos instancias aisladas (2026-09-26 11:07)
+- [x] Preparar integracion directa por LAN: URL publica y CORS configurables, rutas publicas/privadas de archivos, seeder opcional en BD aislada y guia para Nathalia/Emilio. Pint y suite PostgreSQL 17 local: 170/170 pruebas, 1038 aserciones (2026-09-26 11:07)
+- [ ] Comprobar acceso real desde las computadoras de Nathalia y Emilio a la API y la configuracion de origen web
 - [ ] Coordinar con Michael (Laptop 1 - NGINX) upstream Round-Robin
 - [ ] Coordinar con Melanie (Laptop 4 - PostgreSQL) conexion remota de ambas instancias
 - [ ] Coordinar con Emilio (Laptop 5) rutas publicas de `multimedia.ruta_archivo`

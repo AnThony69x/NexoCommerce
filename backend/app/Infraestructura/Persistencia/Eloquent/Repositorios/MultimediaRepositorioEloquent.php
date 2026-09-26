@@ -26,6 +26,13 @@ class MultimediaRepositorioEloquent implements MultimediaRepositorioInterface
         return $modelo !== null ? $this->mapearAEntidad($modelo) : null;
     }
 
+    public function buscarPorRuta(string $ruta): ?Multimedia
+    {
+        $modelo = MultimediaModelo::query()->where('ruta_archivo', $ruta)->where('activo', true)->first();
+
+        return $modelo !== null ? $this->mapearAEntidad($modelo) : null;
+    }
+
     public function desactivar(int $id): void
     {
         MultimediaModelo::where('id', $id)->update(['activo' => false]);

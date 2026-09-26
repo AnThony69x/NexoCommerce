@@ -175,8 +175,10 @@ Route::prefix('v1')->group(function (): void {
     // -------------------------------------------------------------------------
     // Modulo 08: Multimedia — Fase 2
     // -------------------------------------------------------------------------
-    Route::middleware('auth:sanctum')->prefix('multimedia')->group(function (): void {
+    Route::get('multimedia/publico/{ruta}', [MultimediaController::class, 'archivoPublico'])->where('ruta', '.*');
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->prefix('multimedia')->group(function (): void {
         Route::post('/', [MultimediaController::class, 'subir']);
+        Route::get('{id}/archivo', [MultimediaController::class, 'archivoPrivado'])->whereNumber('id');
         Route::get('{id}', [MultimediaController::class, 'mostrar']);
         Route::delete('{id}', [MultimediaController::class, 'desactivar']);
     });

@@ -6,10 +6,12 @@ info:
     Los nombres JSON coinciden con las columnas SQL. Roles: ADMIN, CLIENTE.
   version: 1.1.0
 servers:
-  - url: http://localhost:8000/api/v1
+  - url: http://localhost:8001/api/v1
     description: Desarrollo local
-  - url: http://192.168.1.30/api/v1
-    description: NGINX / LAN
+  - url: http://{host}:8001/api/v1
+    description: Integracion LAN directa antes de NGINX
+    variables:
+      host: { default: localhost, description: IP LAN de la computadora de Anthony }
 
 tags:
   - name: Autenticacion
@@ -604,6 +606,7 @@ paths:
     post:
       tags: [Multimedia]
       security: [{ bearerAuth: [] }]
+      description: ADMIN puede subir a todos los destinos; CLIENTE solo a comprobantes y personalizaciones. Los destinos publicos requieren ADMIN.
       requestBody:
         required: true
         content:
@@ -617,7 +620,37 @@ paths:
                   type: string
                   enum: [productos, comprobantes, personalizaciones, tienda, categorias, publicaciones, disenos]
       responses:
-        '201': { description: Fila multimedia con id }
+        '201': { description: Fila multimedia con id; url es null para comprobantes y personalizaciones }
+        '403': { description: CLIENTE intenta subir a destino publico }
+
+  /multimedia/publico/{ruta}:
+    get:
+      tags: [Multimedia]
+      summary: Leer una imagen publica activa
+      description: Solo productos, categorias, tienda, publicaciones y disenos; ruta relativa con prefijo y nombre de archivo.
+      parameters:
+        - { name: ruta, in: path, required: true, schema: { type: string }, example: productos/20260926_abcd.png }
+      responses:
+        '200':
+          description: Bytes de la imagen con Content-Type registrado
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png: { schema: { type: string, format: binary } }
+            image/webp: { schema: { type: string, format: binary } }
+        '404': { description: Ruta no publica, registro inactivo o binario ausente }
+
+  /multimedia/{id}/archivo:
+    get:
+      tags: [Multimedia]
+      security: [{ bearerAuth: [] }]
+      summary: Descargar comprobante o personalizacion propia, o como ADMIN
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Bytes del archivo con Content-Type registrado y Cache-Control no-store }
+        '401': { description: No autenticado }
+        '403': { description: Archivo privado ajeno }
+        '404': { description: Registro inactivo, publico, inexistente o binario ausente }
 
   /multimedia/{id}:
     get:
@@ -626,7 +659,8 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Metadatos }
+        '200': { description: Metadatos; url es null para archivos privados }
+        '403': { description: Metadatos privados ajenos }
     delete:
       tags: [Multimedia]
       security: [{ bearerAuth: [] }]

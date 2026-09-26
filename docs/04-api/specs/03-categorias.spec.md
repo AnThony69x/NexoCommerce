@@ -63,7 +63,7 @@ Query opcional: `solo_activas=true` (default true para publico).
       "imagen": {
         "id": 3,
         "ruta_archivo": "categorias/sublimacion.webp",
-        "url": "http://192.168.1.50/storage/categorias/sublimacion.webp"
+        "url": "http://192.168.1.50:8001/api/v1/multimedia/publico/categorias/sublimacion.webp"
       },
       "activo": true,
       "subcategorias": [

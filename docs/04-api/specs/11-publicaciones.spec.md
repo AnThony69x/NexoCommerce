@@ -72,7 +72,7 @@ Sin token o con rol CLIENTE lista solo activas. Con token ADMIN valido incluye a
         {
           "id": 30,
           "ruta_archivo": "publicaciones/promo.webp",
-          "url": "http://192.168.1.50/storage/publicaciones/promo.webp",
+          "url": "http://192.168.1.50:8001/api/v1/multimedia/publico/publicaciones/promo.webp",
           "orden": 0
         }
       ],

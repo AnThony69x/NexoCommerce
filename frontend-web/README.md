@@ -42,6 +42,8 @@ Aplicación web de NexoCommerce para clientes y administradores.
 
 ## Comunicación
 
+Guia de integracion, URL inicial, autenticacion y flujos: [Entrega de la API a Web y Movil](../docs/04-api/guia-integracion-web-movil.md).
+
 El frontend consume exclusivamente la API REST:
 
 ```text

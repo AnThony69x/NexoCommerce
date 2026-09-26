@@ -24,4 +24,7 @@ interface AlmacenamientoArchivosInterface
      * No lanza excepcion si el archivo no existe.
      */
     public function eliminar(string $rutaRelativa): void;
+
+    /** Devuelve los bytes o null cuando no existe el archivo. */
+    public function leer(string $rutaRelativa): ?string;
 }

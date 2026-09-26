@@ -16,7 +16,12 @@ class SubirMultimediaRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Sanctum verifica identidad; roles si aplica
+        $rol = $this->user()?->rol?->nombre;
+        if ($rol === 'ADMIN') {
+            return true;
+        }
+
+        return $rol === 'CLIENTE' && ! in_array($this->input('destino'), ['productos', 'categorias', 'tienda', 'publicaciones', 'disenos'], true);
     }
 
     public function rules(): array

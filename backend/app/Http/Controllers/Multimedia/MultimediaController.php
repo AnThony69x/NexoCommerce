@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Multimedia;
 
 use App\Aplicacion\Multimedia\CasosUso\DesactivarMultimedia;
+use App\Aplicacion\Multimedia\CasosUso\DescargarMultimedia;
 use App\Aplicacion\Multimedia\CasosUso\ObtenerMultimedia;
 use App\Aplicacion\Multimedia\CasosUso\SubirArchivoMultimedia;
 use App\Aplicacion\Multimedia\DTOs\SubirMultimediaDTO;
@@ -14,6 +15,7 @@ use App\Http\Resources\MultimediaResource;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /**
  * Controlador delgado para /api/v1/multimedia.
@@ -25,6 +27,7 @@ class MultimediaController extends Controller
         private readonly SubirArchivoMultimedia $subirArchivo,
         private readonly ObtenerMultimedia $obtener,
         private readonly DesactivarMultimedia $desactivar,
+        private readonly DescargarMultimedia $descargar,
     ) {}
 
     /**
@@ -62,13 +65,39 @@ class MultimediaController extends Controller
      * GET /api/v1/multimedia/{id}
      * Devuelve los metadatos de un archivo activo.
      */
-    public function mostrar(int $id): JsonResponse
+    public function mostrar(int $id, Request $request): JsonResponse
     {
-        $multimedia = $this->obtener->execute($id);
+        $usuario = $request->user();
+        $multimedia = $this->obtener->execute($id, (int) $usuario->id, $usuario->rol?->nombre === 'ADMIN');
 
         return response()->json([
             'success' => true,
             'data' => new MultimediaResource($multimedia),
+        ]);
+    }
+
+    public function archivoPublico(string $ruta): Response
+    {
+        $archivo = $this->descargar->publica($ruta);
+
+        return response($archivo->contenido, 200, [
+            'Content-Type' => $archivo->tipoMime,
+            'Content-Disposition' => 'inline; filename="'.$archivo->nombre.'"',
+            'Cache-Control' => 'public, max-age=60',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    public function archivoPrivado(int $id, Request $request): Response
+    {
+        $usuario = $request->user();
+        $archivo = $this->descargar->privada($id, (int) $usuario->id, $usuario->rol?->nombre === 'ADMIN');
+
+        return response($archivo->contenido, 200, [
+            'Content-Type' => $archivo->tipoMime,
+            'Content-Disposition' => 'inline; filename="'.$archivo->nombre.'"',
+            'Cache-Control' => 'no-store',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 
