@@ -304,21 +304,21 @@ Maquina de estados: `PENDIENTE` → `EN_PREPARACION` → `LISTO` → `ENTREGADO`
 
 ## FASE 10: Pagos y comprobantes
 
-Estado: Pendiente
+Estado: Completado (2026-09-26 10:38)
 Dependencias: Fase 2, Fase 9
 Especificacion: [07-pagos.spec.md](../docs/04-api/specs/07-pagos.spec.md)
 
 Tablas: `pagos`, `comprobantes_pago`. No hay `comprobante_url` ni metodos `efectivo`/`tarjeta`.
 
-- [ ] Dominio: `Pago`, `ComprobantePago`; `monto` = `pedidos.total`
-- [ ] Aplicacion: `RegistrarPago`, `ConsultarPagoPedido`, `VerificarPagoAdmin`
-- [ ] TRANSFERENCIA: exige `multimedia_id` e inserta `comprobantes_pago`. PASARELA: `referencia_pasarela`.
-- [ ] Aprobar pago **no** cambia `pedidos.estado` a un valor inexistente; deja `PENDIENTE` y habilita Fase 9.
-- [ ] Http:
+- [x] Dominio: `Pago`, `ComprobantePago`; `monto` = `pedidos.total`
+- [x] Aplicacion: `RegistrarPago`, `ConsultarPagoPedido`, `VerificarPagoAdmin`
+- [x] TRANSFERENCIA: exige `multimedia_id` e inserta `comprobantes_pago`. PASARELA: `referencia_pasarela`.
+- [x] Aprobar pago **no** cambia `pedidos.estado` a un valor inexistente; deja `PENDIENTE` y habilita Fase 9.
+- [x] Http:
   - `POST /api/v1/pagos`
   - `GET /api/v1/pedidos/{pedido_id}/pago`
   - `PATCH /api/v1/admin/pagos/{id}/verificar` (`APROBADO` | `RECHAZADO`)
-- [ ] Pruebas: metodo `tarjeta` 422; transferencia sin multimedia 422; monto distinto 400; pedido sigue `PENDIENTE` tras aprobar
+- [x] Pruebas: metodos invalidos 422, comprobante propio y activo, monto exacto, reintento tras rechazo, verificacion terminal y registros concurrentes; Pint y suite PostgreSQL 17 local: 157/157 pruebas, 923 aserciones (Completado: 2026-09-26 10:38)
 
 ---
 

@@ -13,6 +13,7 @@ use App\Dominio\Autenticacion\Repositorios\VerificacionCorreoRepositorioInterfac
 use App\Dominio\Carrito\Repositorios\CarritoRepositorioInterface;
 use App\Dominio\Categorias\Repositorios\CategoriaRepositorioInterface;
 use App\Dominio\Multimedia\Repositorios\MultimediaRepositorioInterface;
+use App\Dominio\Pagos\Repositorios\PagoRepositorioInterface;
 use App\Dominio\Pedidos\Repositorios\PedidoRepositorioInterface;
 use App\Dominio\Produccion\Repositorios\ConfiguracionProduccionRepositorioInterface;
 use App\Dominio\Productos\Repositorios\ProductoRepositorioInterface;
@@ -25,6 +26,7 @@ use App\Infraestructura\Persistencia\Eloquent\Repositorios\ConfiguracionProducci
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\ConfiguracionTiendaRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CuentaOAuthRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\MultimediaRepositorioEloquent;
+use App\Infraestructura\Persistencia\Eloquent\Repositorios\PagoRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\PedidoRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\ProductoRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\PublicacionRepositorioEloquent;
@@ -66,6 +68,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Fase 9: Pedidos
         $this->app->bind(PedidoRepositorioInterface::class, PedidoRepositorioEloquent::class);
+
+        // Fase 10: Pagos
+        $this->app->bind(PagoRepositorioInterface::class, PagoRepositorioEloquent::class);
 
         // Fase 7: Produccion
         $this->app->bind(ConfiguracionProduccionRepositorioInterface::class, ConfiguracionProduccionRepositorioEloquent::class);

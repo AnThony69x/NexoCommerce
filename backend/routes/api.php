@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Carrito\CarritoController;
 use App\Http\Controllers\Categorias\CategoriaController;
 use App\Http\Controllers\Multimedia\MultimediaController;
+use App\Http\Controllers\Pagos\PagoController;
 use App\Http\Controllers\Pedidos\PedidoController;
 use App\Http\Controllers\Produccion\ProduccionController;
 use App\Http\Controllers\Productos\DisenoPersonalizadoController;
@@ -166,9 +167,9 @@ Route::prefix('v1')->group(function (): void {
     // -------------------------------------------------------------------------
     // Modulo 07: Pagos y Comprobantes
     // -------------------------------------------------------------------------
-    Route::prefix('pagos')->group(function (): void {
-        // Fase 10
-    });
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE'])->post('pagos', [PagoController::class, 'store']);
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->get('pedidos/{pedidoId}/pago', [PagoController::class, 'show']);
+    Route::middleware(['auth:sanctum', 'rol:ADMIN'])->patch('admin/pagos/{id}/verificar', [PagoController::class, 'verify']);
 
     // -------------------------------------------------------------------------
     // Modulo 08: Multimedia — Fase 2

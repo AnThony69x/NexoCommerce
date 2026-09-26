@@ -560,11 +560,14 @@ paths:
               properties:
                 pedido_id: { type: integer }
                 metodo: { type: string, enum: [PASARELA, TRANSFERENCIA] }
-                monto: { type: number, minimum: 0 }
+                monto: { type: string, pattern: '^(?:0|[1-9][0-9]{0,7})\.[0-9]{2}$', example: '35.00' }
                 referencia_pasarela: { type: string, nullable: true }
                 multimedia_id: { type: integer, nullable: true }
       responses:
-        '201': { description: Pago PENDIENTE }
+        '201': { description: Pago PENDIENTE; PASARELA requiere revision manual }
+        '400': { description: Monto, pedido, referencia o comprobante invalido; pago activo }
+        '403': { description: Pedido o comprobante de otro usuario }
+        '422': { description: Body invalido }
 
   /pedidos/{pedido_id}/pago:
     get:
@@ -573,7 +576,9 @@ paths:
       parameters:
         - { name: pedido_id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Pago y comprobante si existe }
+        '200': { description: Pago mas reciente con comprobante o data null si no existe pago }
+        '403': { description: Pedido de otro usuario }
+        '404': { description: Pedido no encontrado }
 
   /admin/pagos/{id}/verificar:
     patch:
@@ -592,6 +597,8 @@ paths:
                 comentario_revision: { type: string, nullable: true }
       responses:
         '200': { description: Pago verificado; pedido sigue PENDIENTE }
+        '400': { description: Pago ya verificado o pedido no pendiente }
+        '422': { description: Estado invalido }
 
   /multimedia:
     post:
