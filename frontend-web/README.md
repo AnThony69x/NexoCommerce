@@ -76,6 +76,10 @@ Ejemplo:
 VITE_API_URL=http://<IP_NGINX>/api/v1
 ```
 
+## Configuración de Vite y ESLint
+
+Este proyecto fue inicializado con Vite (React + TypeScript). Para más detalles sobre plugins (SWC, React Compiler) o configuración avanzada de ESLint, consultar la documentación oficial de [Vite](https://vite.dev).
+
 ## Estado
 
 En desarrollo.
