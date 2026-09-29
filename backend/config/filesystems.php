@@ -60,6 +60,28 @@ return [
             'report' => false,
         ],
 
+        // --- Fase 2: Multimedia ---
+        // Disco local. Para migrar a Laptop 5 (SFTP/Emilio):
+        //   1. Instalar league/flysystem-sftp-v3
+        //   2. Descomentar multimedia_sftp y cambiar el binding en AppServiceProvider.
+        'multimedia' => [
+            'driver' => 'local',
+            'root' => storage_path('app/multimedia'),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // Stub SFTP — descomentar cuando Laptop 5 este disponible:
+        // 'multimedia_sftp' => [
+        //     'driver' => 'sftp',
+        //     'host' => env('MULTIMEDIA_SFTP_HOST'),
+        //     'port' => env('MULTIMEDIA_SFTP_PORT', 22),
+        //     'username' => env('MULTIMEDIA_SFTP_USER'),
+        //     'privateKey' => env('MULTIMEDIA_SFTP_KEY'),
+        //     'root' => env('MULTIMEDIA_SFTP_ROOT', '/srv/nexocommerce'),
+        // ],
+
     ],
 
     /*

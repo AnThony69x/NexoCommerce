@@ -30,6 +30,8 @@ Aplicación móvil Android para clientes de NexoCommerce.
 
 ## Comunicación
 
+Guia de integracion, URL inicial, autenticacion y flujos: [Entrega de la API a Web y Movil](../docs/04-api/guia-integracion-web-movil.md).
+
 La aplicación utiliza la misma API que el frontend web:
 
 ```text

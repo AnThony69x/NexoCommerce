@@ -1,6 +1,6 @@
 # Modulo 12: Produccion — Especificacion Tecnica (SDD)
 
-* **Version del contrato:** 1.1.0
+* **Version del contrato:** 1.1.1
 * **Fecha:** 2026-09-13
 * **Prefijo base:** `/api/v1/produccion`
 * **Estado:** Aprobado para implementacion
@@ -19,8 +19,10 @@ Capacidad maxima de produccion por `fecha` y `categoria_id` opcional. Al crear u
 * **RN-PRD-02:** `categoria_id` NULL = cupo para toda la fecha.
 * **RN-PRD-03:** Solo filas `activo = true` participan en la validacion.
 * **RN-PRD-04:** Escritura solo ADMIN. Lectura: ADMIN (gestion) y, en checkout, el backend consulta internamente.
-* **RN-PRD-05:** Si no hay configuracion para esa fecha, la aplicacion puede aceptar el pedido o rechazar (politica: **rechazar** con 400 `PED_SIN_CAPACIDAD` para fechas de tortas/reposteria; documentar en implementacion). Recomendacion: exigir cupo para categorias de Reposteria.
+* **RN-PRD-05:** Sin configuracion aplicable, disponibilidad responde 404 `PRD_CAPACIDAD_NO_CONFIGURADA`. En pedidos, una TORTA sin cupo global ni especifico se rechaza con 400 `PED_SIN_CAPACIDAD`; otros tipos pueden continuar.
 * **RN-PRD-06:** El conteo usa pedidos no `ENTREGADO` con la misma `fecha_entrega`.
+* **RN-PRD-07:** Cupo global y cupo especifico se aplican simultaneamente; se muestra el mas restrictivo. La categoria coincide exactamente, sin incluir descendientes.
+* **RN-PRD-08:** Solo puede existir una configuracion activa por fecha y categoria, considerando `categoria_id = NULL` como cupo global.
 
 ---
 
@@ -66,7 +68,7 @@ Query: `fecha`, `categoria_id`, `activo`.
 }
 ```
 
-`ocupado` y `disponible` son calculados, no columnas SQL.
+`ocupado` y `disponible` son calculados, no columnas SQL. `disponible = max(0, capacidad_maxima - ocupado)`.
 
 ---
 
@@ -92,7 +94,7 @@ Sirve al calendario de Web/Movil antes del checkout.
 }
 ```
 
-Sin configuracion: 404 o `disponible: 0` segun RN-PRD-05.
+Sin configuracion aplicable: 404 `PRD_CAPACIDAD_NO_CONFIGURADA`. Con categoria se evaluan el cupo global y el especifico y se devuelve el mas restrictivo; sin categoria se consulta el global.
 
 ---
 
@@ -115,11 +117,15 @@ Sin configuracion: 404 o `disponible: 0` segun RN-PRD-05.
 * `capacidad_maxima`: `required|integer|min:1`
 * `activo`: `boolean`
 
+Crear o reactivar una configuracion activa duplicada para la misma fecha y categoria responde 422 `PRD_CONFIG_DUPLICADA`.
+
 ---
 
 ### 4.4 Actualizar / desactivar (ADMIN)
 * **Metodo:** `PUT` `/api/v1/admin/produccion/{id}`
 * **Metodo:** `DELETE` `/api/v1/admin/produccion/{id}` (`activo = false`)
+
+PUT conserva campos omitidos.
 
 ---
 

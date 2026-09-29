@@ -21,9 +21,12 @@ Columnas reales: `nombre_archivo`, `ruta_archivo`, `tipo_mime`, `tamano_bytes`, 
 * **RN-MED-01:** Imagenes: `jpg`, `jpeg`, `png`, `webp`. Comprobantes: esos mas `pdf`.
 * **RN-MED-02:** Tamano maximo 5 MB (`tamano_bytes >= 0` en SQL; tope en aplicacion).
 * **RN-MED-03:** `ancho`/`alto` si existen deben ser `> 0`.
-* **RN-MED-04:** `subido_por_id` = usuario autenticado. Lectura de metadatos autenticada; el archivo se sirve por NGINX/file server.
+* **RN-MED-04:** `subido_por_id` = usuario autenticado. Los metadatos exigen Sanctum; los de `comprobantes/` y `personalizaciones/` solo son visibles para su dueño o ADMIN.
 * **RN-MED-05:** No borrar fisicamente si hay FK RESTRICT (comprobantes, diseños personalizados). Desactivar `activo = false`.
 * **RN-MED-06:** Prefijos de `ruta_archivo` segun destino: `productos/`, `comprobantes/`, `personalizaciones/`, `tienda/`, `categorias/`, `publicaciones/`, `disenos/`.
+* **RN-MED-07:** En la integracion temporal por LAN, los binarios se guardan en un directorio persistente compartido por ambos contenedores. `productos/`, `categorias/`, `tienda/`, `publicaciones/` y `disenos/` son imagenes publicas; `comprobantes/` y `personalizaciones/` requieren Sanctum y autorizacion de dueño o ADMIN. La ruta solicitada se compara con una fila activa antes de leer el binario.
+* **RN-MED-08:** `url` es publica solo para los cinco destinos publicos. En un archivo privado devuelve `null`; web y movil usan `GET /api/v1/multimedia/{id}/archivo` con token. `MULTIMEDIA_PUBLIC_BASE_URL` apunta al origen LAN mas `/api/v1/multimedia/publico` y luego se concatena `ruta_archivo`.
+* **RN-MED-09:** Solo ADMIN sube archivos a destinos publicos. CLIENTE solo sube a `comprobantes` o `personalizaciones`; intentar un destino publico responde 403.
 
 ---
 
@@ -55,6 +58,8 @@ Columnas reales: `nombre_archivo`, `ruta_archivo`, `tipo_mime`, `tamano_bytes`, 
 * **Autenticacion:** Sanctum
 * **Roles autorizados:** CLIENTE, ADMIN
 
+ADMIN puede usar todos los destinos; CLIENTE solo `comprobantes` y `personalizaciones`.
+
 #### Form Data
 | Campo | Tipo | Requerido | Descripcion |
 | :--- | :--- | :--- | :--- |
@@ -82,7 +87,7 @@ PDF solo si `destino=comprobantes`.
     "alto": 1200,
     "activo": true,
     "subido_por_id": 2,
-    "url": "http://192.168.1.50/storage/personalizaciones/20260913_64f8a12bc9.webp"
+    "url": null
   }
 }
 ```
@@ -96,11 +101,25 @@ PDF solo si `destino=comprobantes`.
 * **Ruta:** `/api/v1/multimedia/{id}`
 * **Autenticacion:** Sanctum
 
-404 si no existe o `activo = false`.
+404 si no existe o `activo = false`. Metadatos privados ajenos: 403.
+
+### 4.3 Leer imagen publica
+* **Metodo:** `GET`
+* **Ruta:** `/api/v1/multimedia/publico/{ruta}` (por ejemplo `productos/20260926_abcd.png`)
+* **Autenticacion:** Publica
+
+Devuelve bytes con el MIME registrado solo si la ruta pertenece a un destino publico, tiene formato de nombre seguro, existe en `multimedia` con `activo = true` y el archivo esta en el disco. En los demas casos: 404. No se sirven comprobantes ni personalizaciones por esta ruta.
+
+### 4.4 Descargar archivo privado
+* **Metodo:** `GET`
+* **Ruta:** `/api/v1/multimedia/{id}/archivo`
+* **Autenticacion:** Sanctum
+
+Sirve unicamente `comprobantes/` o `personalizaciones/` al usuario `subido_por_id` o a ADMIN. Ajeno: 403; inexistente, inactivo o binario ausente: 404. Se devuelve el MIME registrado y `Cache-Control: no-store`.
 
 ---
 
-### 4.3 Desactivar (ADMIN o dueño)
+### 4.5 Desactivar (ADMIN o dueño)
 * **Metodo:** `DELETE`
 * **Ruta:** `/api/v1/multimedia/{id}`
 
@@ -109,7 +128,11 @@ PDF solo si `destino=comprobantes`.
 ---
 
 ## 5. Criterios de Aceptacion
-* [ ] **TC-01:** 201 incluye `id` numerico usable como `multimedia_id`.
-* [ ] **TC-02:** Archivo > 5 MB: 422.
-* [ ] **TC-03:** Inserta fila en `multimedia` con `subido_por_id` del token.
-* [ ] **TC-04:** Respuesta usa `tamano_bytes` y `tipo_mime`, no `tamanio_bytes` / `mime_type`.
+* [x] **TC-01:** 201 incluye `id` numerico usable como `multimedia_id`.
+* [x] **TC-02:** Archivo > 5 MB: 422.
+* [x] **TC-03:** Inserta fila en `multimedia` con `subido_por_id` del token.
+* [x] **TC-04:** Respuesta usa `tamano_bytes` y `tipo_mime`, no `tamanio_bytes` / `mime_type`.
+* [x] **TC-05:** Imagen publica activa devuelve bytes sin token; ruta privada, inactiva, ausente o con MIME no permitido devuelve 404.
+* [x] **TC-06:** Archivo privado exige token y devuelve 403 a usuario ajeno; dueño y ADMIN pueden descargarlo.
+* [x] **TC-07:** CLIENTE no puede subir a destinos publicos; ADMIN si puede.
+* [x] **TC-08:** Archivo subido por backend-1 se lee identico desde backend-2 mediante el volumen compartido.

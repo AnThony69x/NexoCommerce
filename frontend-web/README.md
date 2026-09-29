@@ -1,75 +1,85 @@
-# React + TypeScript + Vite
+# Frontend Web — NexoCommerce
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web de NexoCommerce para clientes y administradores.
 
-Currently, two official plugins are available:
+## Responsable
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Nathalia**
 
-## React Compiler
+## Tecnologías
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
 
-## Expanding the ESLint configuration
+## Responsabilidades
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Cliente
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* Registro.
+* Inicio de sesión.
+* Catálogo.
+* Categorías.
+* Productos.
+* Personalización.
+* Carrito.
+* Checkout.
+* Pagos.
+* Comprobantes.
+* Pedidos.
+* Notificaciones.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Administrador
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+* Productos.
+* Categorías.
+* Publicaciones.
+* Multimedia.
+* Pedidos.
+* Pagos.
+* Configuración de la tienda.
 
+## Comunicación
+
+Guia de integracion, URL inicial, autenticacion y flujos: [Entrega de la API a Web y Movil](../docs/04-api/guia-integracion-web-movil.md).
+
+El frontend consume exclusivamente la API REST:
+
+```text
+Frontend
+   ↓
+NGINX
+   ↓
+Backend
+   ↓
+PostgreSQL
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+No existe conexión directa entre el frontend y PostgreSQL.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Ejecución
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+cd frontend-web
+npm install
+npm run dev
 ```
+
+## Variables de entorno
+
+La URL de la API debe configurarse mediante variables de entorno.
+
+Ejemplo:
+
+```text
+VITE_API_URL=http://<IP_NGINX>/api/v1
+```
+
+## Configuración de Vite y ESLint
+
+Este proyecto fue inicializado con Vite (React + TypeScript). Para más detalles sobre plugins (SWC, React Compiler) o configuración avanzada de ESLint, consultar la documentación oficial de [Vite](https://vite.dev).
+
+## Estado
+
+En desarrollo.

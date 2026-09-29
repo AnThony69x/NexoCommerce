@@ -35,6 +35,7 @@ Ningun endpoint se codifica sin especificacion aprobada.
 - **Contratos:** [../docs/04-api/](../docs/04-api/)
 - **Specs:** [../docs/04-api/specs/](../docs/04-api/specs/)
 - **OpenAPI:** [../docs/04-api/openapi/openapi.yaml](../docs/04-api/openapi/openapi.yaml)
+- **Entrega a Web y Movil:** [../docs/04-api/guia-integracion-web-movil.md](../docs/04-api/guia-integracion-web-movil.md)
 - **Bitacora:** [../docs/09-bitacora/bitacora-backend.md](../docs/09-bitacora/bitacora-backend.md)
 - **SQL:** [../database/database.sql](../database/database.sql)
 
@@ -86,17 +87,34 @@ Formatos de mensaje:
 
 ## Arquitectura por Capas (`app/`)
 
-Objetivo SDD (Fases 1+). Hoy el esqueleto sigue siendo el default de Laravel 13 (`app/Models/User.php`, `app/Http/Controllers`, `app/Providers`). Las carpetas de dominio se crean al implementar cada modulo.
+Capas SDD listas para Fases 1+. Laravel 13 conserva `app/Models/` y `app/Http/Controllers/Controller.php` hasta migrar cada modulo. Hoy solo existen carpetas y `.gitkeep`. Los `.php` del arbol son la convencion de nombres; se crean al implementar cada spec.
+
+**Idioma de carpetas**
+
+| Capa | Carpetas | Archivos |
+| :--- | :--- | :--- |
+| `Dominio/` | Espanol (modulo + `Entidades/`, `Repositorios/`, `Servicios/`) | Espanol (`Usuario.php`, `UsuarioRepositorio.php`) |
+| `Aplicacion/` | Espanol (modulo + `CasosUso/`, `DTOs/`) | Espanol (`IniciarSesion.php`, `IniciarSesionDatos.php`) |
+| `Infraestructura/` | Espanol (`Persistencia/`, `Modelos/`, `Repositorios/`, ...) | Espanol (`EloquentUsuarioRepositorio.php`) |
+| `Http/` | Ingles (convencion Laravel: `Controllers/`, `Requests/`, `Resources/`, `Middleware/`) | Espanol + sufijo Laravel (`UsuarioController.php`, `IniciarSesionRequest.php`) |
 
 ```text
 backend/
 ├── app/
-│   ├── Dominio/                 # Logica de negocio pura (Sin dependencias de Laravel)
-│   │   ├── Autenticacion/       # Entidades, Repositorios (Interfaces), Servicios de Dominio
+│   ├── Dominio/                          # Logica de negocio pura. Cero Laravel.
+│   │   ├── Autenticacion/
+│   │   │   ├── Entidades/
+│   │   │   ├── Repositorios/            # Interfaces (contratos)
+│   │   │   └── Servicios/
 │   │   ├── Usuarios/
+│   │   │   ├── Entidades/
+│   │   │   │   └── Usuario.php
+│   │   │   ├── Repositorios/
+│   │   │   │   └── UsuarioRepositorio.php
+│   │   │   └── Servicios/
 │   │   ├── Tiendas/
 │   │   ├── Categorias/
-│   │   ├── Productos/           # Incluye TORTA, DETALLE, SUBLIMACION y disenos
+│   │   ├── Productos/                   # TORTA, DETALLE, SUBLIMACION y disenos
 │   │   ├── Publicaciones/
 │   │   ├── Produccion/
 │   │   ├── Carrito/
@@ -105,8 +123,15 @@ backend/
 │   │   ├── Notificaciones/
 │   │   └── Multimedia/
 │   │
-│   ├── Aplicacion/              # Casos de uso y DTOs
-│   │   ├── Autenticacion/       # CasosUso/ y DTOs/
+│   ├── Aplicacion/                       # Casos de uso y DTOs
+│   │   ├── Autenticacion/
+│   │   │   ├── CasosUso/
+│   │   │   │   ├── RegistrarCliente.php
+│   │   │   │   ├── IniciarSesion.php
+│   │   │   │   └── CerrarSesion.php
+│   │   │   └── DTOs/
+│   │   │       ├── RegistrarClienteDatos.php
+│   │   │       └── IniciarSesionDatos.php
 │   │   ├── Usuarios/
 │   │   ├── Tiendas/
 │   │   ├── Catalogo/
@@ -117,28 +142,35 @@ backend/
 │   │   ├── Pagos/
 │   │   └── Multimedia/
 │   │
-│   ├── Infraestructura/         # Implementaciones tecnologicas
+│   ├── Infraestructura/                  # Adaptadores (Eloquent, storage, pagos)
 │   │   ├── Persistencia/
 │   │   │   └── Eloquent/
-│   │   │       ├── Modelos/     # Modelos Eloquent de base de datos
-│   │   │       └── Repositorios/# Implementacion de interfaces de Dominio
-│   │   ├── Almacenamiento/      # Conexion con Servidor de Archivos Linux (Laptop 5)
+│   │   │       ├── Modelos/
+│   │   │       │   └── Usuario.php
+│   │   │       └── Repositorios/
+│   │   │           └── EloquentUsuarioRepositorio.php
+│   │   ├── Almacenamiento/              # Servidor de archivos (Laptop 5)
 │   │   ├── Pagos/
 │   │   └── Notificaciones/
 │   │
-│   └── Http/                    # Entrada y salida HTTP
-│       ├── Controladores/       # Controladores delgados (delegan a Casos de Uso)
-│       ├── Solicitudes/         # FormRequests (validacion segun especificaciones)
-│       ├── Recursos/            # API Resources (envelope JSON estandarizado)
-│       └── Middleware/          # Autenticacion Sanctum y autorizacion por roles
+│   └── Http/                             # Entrada y salida HTTP. Carpetas en ingles.
+│       ├── Controllers/
+│       │   └── AutenticacionController.php
+│       ├── Requests/
+│       │   ├── RegistrarClienteRequest.php
+│       │   └── IniciarSesionRequest.php
+│       ├── Resources/
+│       │   └── UsuarioResource.php
+│       └── Middleware/
+│           └── VerificarRol.php
 │
-├── .agents/                     # Rules y Skills de Antigravity / Laravel Boost
+├── .agents/                              # Rules y Skills de Laravel Boost
 │   ├── rules/backend-rules.md
 │   └── skills/sdd-module-implementation/
 │
-├── database/                    # Migraciones, Seeders y Factories de PostgreSQL
-├── routes/                      # Rutas de API versionadas (/api/v1/...)
-└── tests/                       # Pruebas automatizadas (Unitarias, Integracion)
+├── database/                             # Migraciones, Seeders y Factories de PostgreSQL
+├── routes/                               # Rutas de API versionadas (/api/v1/...)
+└── tests/                                # Pruebas automatizadas (Unitarias, Integracion)
 ```
 
 ---
@@ -209,7 +241,7 @@ composer show laravel/framework laravel/sanctum phpunit/phpunit
 
 ## Docker y Despliegue Distribuido
 
-El backend se ejecuta en **dos instancias independientes** detras del balanceador de carga NGINX (Laptop 1 - Michael):
+El backend se ejecuta en **dos instancias independientes** detras del balanceador de carga NGINX (Laptop 1 - Michael). No son microservicios: misma imagen, mismo codigo, misma base de datos.
 
 ```text
                        NGINX
@@ -223,10 +255,28 @@ El backend se ejecuta en **dos instancias independientes** detras del balanceado
              └───────────┬───────────┘
                          ▼
                     PostgreSQL
-                    (Laptop 4)
+              (hoy Supabase; destino Laptop 4)
 ```
 
-Ambas instancias comparten el mismo codigo fuente en `backend/`.
+Ambas instancias comparten el mismo codigo en `backend/` y leen `.env` en tiempo de ejecucion (no se copia a la imagen). El proceso escucha `0.0.0.0:$PORT` (`PORT=8000` dentro del contenedor). Runtime de la imagen: PHP 8.4 CLI (`php:8.4-cli-bookworm`); el host local sigue en PHP 8.5.
+
+Durante la integracion inicial, `API_PUBLIC_ORIGIN` fija el origen LAN que devuelven ambas instancias y el volumen `multimedia-data` comparte los archivos. Para levantar una base `nexo_demo` aislada y entregar credenciales de prueba a Web y Movil, seguir la [guia de integracion](../docs/04-api/guia-integracion-web-movil.md). NGINX y el servidor de archivos externo siguen pendientes.
+
+```bash
+cd backend
+docker compose up --build -d
+
+curl -s http://127.0.0.1:8001/up
+curl -s http://127.0.0.1:8002/up
+curl -s http://127.0.0.1:8001/api/v1/salud
+
+docker compose exec backend-1 php artisan db:show
+docker compose down
+```
+
+- `backend-1` publica `8001 -> 8000`
+- `backend-2` publica `8002 -> 8000`
+- Healthcheck interno: `GET http://127.0.0.1:8000/up`
 
 ---
 

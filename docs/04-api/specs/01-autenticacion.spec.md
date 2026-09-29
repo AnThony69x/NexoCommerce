@@ -1,17 +1,18 @@
 # Modulo 01: Autenticacion — Especificacion Tecnica (SDD)
 
-* **Version del contrato:** 1.1.0
-* **Fecha:** 2026-09-13
+* **Version del contrato:** 1.1.2
+* **Fecha:** 2026-09-23
 * **Prefijo base:** `/api/v1/auth`
 * **Mecanismo:** Laravel Sanctum (Personal Access Tokens)
-* **Estado:** Aprobado para implementacion
+* **Estado:** Aprobado para implementacion (Fase 1 implementada)
+* **Trazabilidad RF:** RF-01, RF-02 (`docs/01-requisitos/README.md`)
 * **Fuente de datos:** `database/database.sql` tablas `usuarios`, `roles`, `cuentas_oauth`, `verificaciones_correo`
 * **Responsables:** Backend Anthony / Web Nathalia / Movil Emilio / BD Melanie
 
 ---
 
 ## 1. Proposito y Alcance
-Registro de clientes, inicio y cierre de sesion, perfil autenticado, verificacion de correo, bloqueo por intentos fallidos y vinculacion OAuth (`GOOGLE`, `FACEBOOK`). El hash de contraseña se persiste en `usuarios.password_hash`. Los tokens Sanctum no forman parte de las 25 tablas de negocio.
+Registro de clientes, inicio y cierre de sesion, perfil autenticado, verificacion de correo (codigo por email), bloqueo por intentos fallidos y vinculacion OAuth **solo `GOOGLE`**. El hash de contraseña se persiste en `usuarios.password_hash`. Los tokens Sanctum no forman parte de las 25 tablas de negocio.
 
 ---
 
@@ -20,11 +21,11 @@ Registro de clientes, inicio y cierre de sesion, perfil autenticado, verificacio
 * **RN-AUTH-02:** Todo registro publico crea un usuario con `rol_id` del rol `CLIENTE`.
 * **RN-AUTH-03:** La contraseña de entrada tiene minimo 8 caracteres; se almacena hasheada. `password_hash` puede ser NULL solo en cuentas creadas por OAuth.
 * **RN-AUTH-04:** El cliente debe enviar `terminos_aceptados = true` y `version_terminos`. Se guardan `terminos_aceptados_en`.
-* **RN-AUTH-05:** Tras el registro se inserta un registro en `verificaciones_correo` (`codigo`, `expira_en`).
+* **RN-AUTH-05:** Tras el registro se inserta un registro en `verificaciones_correo` (`codigo`, `expira_en` 24h) y se envia el codigo al correo del usuario via el puerto de notificaciones.
 * **RN-AUTH-06:** Tras 5 `intentos_fallidos` la cuenta se bloquea 15 minutos (`bloqueado_hasta`). Login en ese intervalo responde 429.
 * **RN-AUTH-07:** Login exitoso reinicia `intentos_fallidos` a 0 y emite un token Bearer.
 * **RN-AUTH-08:** Logout revoca el token Sanctum actual.
-* **RN-AUTH-09:** OAuth: `proveedor` solo `GOOGLE` o `FACEBOOK`; par (`proveedor`, `id_proveedor`) unico.
+* **RN-AUTH-09:** OAuth: `proveedor` solo `GOOGLE`; par (`proveedor`, `id_proveedor`) unico. Facebook u otros proveedores responden 422.
 * **RN-AUTH-10:** Usuario con `activo = false` no puede autenticarse (403).
 
 ---
@@ -61,7 +62,7 @@ Registro de clientes, inicio y cierre de sesion, perfil autenticado, verificacio
 | :--- | :--- | :--- | :--- |
 | `id` | SERIAL | NO | PK |
 | `usuario_id` | INT | NO | FK `usuarios.id` CASCADE |
-| `proveedor` | VARCHAR(50) | NO | `GOOGLE` o `FACEBOOK` |
+| `proveedor` | VARCHAR(50) | NO | Solo `GOOGLE` |
 | `id_proveedor` | VARCHAR(255) | NO | |
 | `creado_en` | TIMESTAMP | NO | |
 | `actualizado_en` | TIMESTAMP | NO | |
@@ -277,7 +278,7 @@ Inserta un nuevo registro en `verificaciones_correo`.
 ```
 
 #### Validaciones
-* `proveedor`: `required|in:GOOGLE,FACEBOOK`
+* `proveedor`: `required|in:GOOGLE`
 * `id_proveedor`: `required|string|max:255`
 * `nombre_completo`: `required|string|max:150`
 * `correo`: `required|email|max:150`
@@ -289,9 +290,10 @@ Si el par proveedor/id existe, inicia sesion. Si el correo existe sin OAuth, vin
 ---
 
 ## 5. Criterios de Aceptacion
-* [ ] **TC-01:** Registro valido inserta `usuarios` con rol CLIENTE y `verificaciones_correo`; responde 201.
-* [ ] **TC-02:** Correo duplicado responde 422 sobre `correo`.
-* [ ] **TC-03:** Login con password incorrecto incrementa `intentos_fallidos` y responde 401.
-* [ ] **TC-04:** Quinto fallo setea `bloqueado_hasta`; el siguiente login responde 429.
-* [ ] **TC-05:** Logout sin token responde 401.
-* [ ] **TC-06:** OAuth con proveedor distinto de GOOGLE/FACEBOOK responde 422.
+* [x] **TC-01:** Registro valido inserta `usuarios` con rol CLIENTE y `verificaciones_correo`; responde 201. (Fase 1)
+* [x] **TC-02:** Correo duplicado responde 422 sobre `correo`. (Fase 1)
+* [x] **TC-03:** Login con password incorrecto incrementa `intentos_fallidos` y responde 401. (Fase 1)
+* [x] **TC-04:** Quinto fallo setea `bloqueado_hasta`; el siguiente login responde 429. (Fase 1)
+* [x] **TC-05:** Logout sin token responde 401. (Fase 1)
+* [x] **TC-06:** OAuth con proveedor distinto de GOOGLE (ej. FACEBOOK, TWITTER) responde 422. (Fase 1)
+* [x] **TC-07:** Registro dispara envio de correo de verificacion (Mailtrap / `NotificacionServiceInterface`). (Fase 1)
