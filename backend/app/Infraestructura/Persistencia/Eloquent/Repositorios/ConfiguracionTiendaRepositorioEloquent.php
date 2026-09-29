@@ -15,8 +15,8 @@ class ConfiguracionTiendaRepositorioEloquent implements ConfiguracionTiendaRepos
     public function buscarActiva(): ?ConfiguracionTienda
     {
         $modelo = ConfiguracionTiendaModelo::query()
+            ->where('clave', 'principal')
             ->where('activo', true)
-            ->orderBy('id')
             ->first();
 
         return $modelo !== null ? $this->mapearAEntidad($modelo) : null;

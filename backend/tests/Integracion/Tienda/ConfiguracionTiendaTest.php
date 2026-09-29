@@ -115,10 +115,26 @@ class ConfiguracionTiendaTest extends TestCase
     public function test_seed_inicial_permanece_correcto(): void
     {
         $this->assertDatabaseHas('configuracion_tienda', [
+            'clave' => 'principal',
             'nombre_tienda' => 'Dulces Aesca',
             'color_primario' => '#8B5CF6',
             'color_secundario' => '#EC4899',
             'activo' => true,
+        ]);
+    }
+
+    public function test_seeder_reutiliza_la_configuracion_aunque_cambie_el_nombre(): void
+    {
+        ConfiguracionTiendaModelo::query()->update([
+            'nombre_tienda' => 'Tienda Renombrada',
+        ]);
+
+        $this->seed(ConfiguracionTiendaSeeder::class);
+
+        $this->assertDatabaseCount('configuracion_tienda', 1);
+        $this->assertDatabaseHas('configuracion_tienda', [
+            'clave' => 'principal',
+            'nombre_tienda' => 'Dulces Aesca',
         ]);
     }
 
