@@ -30,6 +30,7 @@ class ConfiguracionTiendaModelo extends Model
     const UPDATED_AT = 'actualizado_en';
 
     protected $fillable = [
+        'clave',
         'nombre_tienda',
         'logo_url',
         'favicon_url',
