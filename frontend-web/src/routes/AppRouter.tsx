@@ -1,10 +1,11 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import HomePage from '../pages/home/HomePage'
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<p>Inicio</p>} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<p>Login</p>} />
         <Route path="/registro" element={<p>Registro</p>} />
         <Route path="/catalogo" element={<p>Catalogo</p>} />
