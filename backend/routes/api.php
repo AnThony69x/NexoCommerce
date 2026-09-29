@@ -1,5 +1,19 @@
 <?php
 
+use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Carrito\CarritoController;
+use App\Http\Controllers\Categorias\CategoriaController;
+use App\Http\Controllers\Multimedia\MultimediaController;
+use App\Http\Controllers\Notificaciones\NotificacionController;
+use App\Http\Controllers\Pagos\PagoController;
+use App\Http\Controllers\Pedidos\PedidoController;
+use App\Http\Controllers\Produccion\ProduccionController;
+use App\Http\Controllers\Productos\DisenoPersonalizadoController;
+use App\Http\Controllers\Productos\ProductoController;
+use App\Http\Controllers\Publicaciones\PublicacionController;
+use App\Http\Controllers\Tienda\ConfiguracionTiendaController;
+use App\Http\Controllers\Usuarios\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -7,75 +21,181 @@ use Illuminate\Support\Facades\Route;
 | Rutas de API REST - NexoCommerce v1
 |--------------------------------------------------------------------------
 |
-| Todas las rutas aqui definidas estan precedidas por /api y su version /v1.
-| Siguen la metodologia SDD y la arquitectura por capas.
+| API pura: sin sesiones, sin CSRF, sin Blade.
+| Autenticacion: Laravel Sanctum (Personal Access Tokens).
+| Autorizacion: middleware VerificarRol (alias 'rol').
 |
 */
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->group(function (): void {
 
-    // Modulo 01: Autenticacion
-    Route::prefix('auth')->group(function () {
-        // Endpoints publicos: registro, login
-        // Endpoints protegidos por Sanctum: logout, perfil
+    // -------------------------------------------------------------------------
+    // Modulo 01: Autenticacion — rutas publicas
+    // -------------------------------------------------------------------------
+    Route::prefix('auth')->group(function (): void {
+        Route::post('registro', [AuthController::class, 'registro']);
+        Route::post('login', [AuthController::class, 'login']);
+        Route::post('oauth', [AuthController::class, 'oauth']);
     });
 
-    // Modulo 02: Usuarios y Roles
-    Route::prefix('usuarios')->group(function () {
-        // Perfil propio, cambio de password
+    // -------------------------------------------------------------------------
+    // Rutas protegidas por Sanctum (token Bearer requerido)
+    // -------------------------------------------------------------------------
+    Route::middleware('auth:sanctum')->group(function (): void {
+
+        // Modulo 01: Autenticacion — rutas autenticadas
+        Route::prefix('auth')->group(function (): void {
+            Route::post('logout', [AuthController::class, 'logout']);
+            Route::get('perfil', [AuthController::class, 'perfil']);
+            Route::post('verificar-correo', [AuthController::class, 'verificarCorreo']);
+            Route::post('reenviar-verificacion', [AuthController::class, 'reenviarVerificacion']);
+        });
+
+        // Modulo 02: Usuarios — perfil propio (ADMIN y CLIENTE)
+        Route::prefix('usuarios')->group(function (): void {
+            Route::put('perfil', [UsuarioController::class, 'actualizarPerfil']);
+            Route::put('cambiar-password', [UsuarioController::class, 'cambiarPassword']);
+        });
+
+        // -------------------------------------------------------------------------
+        // Rutas de administracion — exclusivo ADMIN
+        // -------------------------------------------------------------------------
+        Route::middleware('rol:ADMIN')->prefix('admin')->group(function (): void {
+
+            // Modulo 02: Usuarios — gestion administrativa
+            Route::get('usuarios', [AdminUsuarioController::class, 'index']);
+            Route::patch('usuarios/{id}', [AdminUsuarioController::class, 'update']);
+
+            // Modulo 09: Tienda — configuracion
+            Route::put('tienda/configuracion', [ConfiguracionTiendaController::class, 'actualizar']);
+
+            // Modulo 03: Categorias
+            Route::post('categorias', [CategoriaController::class, 'store']);
+            Route::put('categorias/{id}', [CategoriaController::class, 'update']);
+            Route::delete('categorias/{id}', [CategoriaController::class, 'destroy']);
+
+            // Modulo 04: Productos y personalizacion
+            Route::post('productos', [ProductoController::class, 'store']);
+            Route::put('productos/{id}', [ProductoController::class, 'update']);
+            Route::delete('productos/{id}', [ProductoController::class, 'destroy']);
+            Route::post('tortas/{producto_id}/disenos', [ProductoController::class, 'storeDisenoTorta']);
+            Route::put('disenos-torta/{id}', [ProductoController::class, 'updateDisenoTorta']);
+            Route::delete('disenos-torta/{id}', [ProductoController::class, 'destroyDisenoTorta']);
+            Route::post('sublimaciones/{producto_id}/plantillas', [ProductoController::class, 'storePlantilla']);
+            Route::put('plantillas-diseno/{id}', [ProductoController::class, 'updatePlantilla']);
+            Route::delete('plantillas-diseno/{id}', [ProductoController::class, 'destroyPlantilla']);
+
+            // Modulo 11: Publicaciones
+            Route::post('publicaciones', [PublicacionController::class, 'store']);
+            Route::put('publicaciones/{id}', [PublicacionController::class, 'update']);
+            Route::delete('publicaciones/{id}', [PublicacionController::class, 'destroy']);
+
+            // Modulo 12: Produccion
+            Route::get('produccion', [ProduccionController::class, 'index']);
+            Route::post('produccion', [ProduccionController::class, 'store']);
+            Route::put('produccion/{id}', [ProduccionController::class, 'update']);
+            Route::delete('produccion/{id}', [ProduccionController::class, 'destroy']);
+
+        });
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 09: Tiendas y Parametrizacion
-    Route::prefix('tienda')->group(function () {
-        // Configuracion global de la tienda
+    // -------------------------------------------------------------------------
+    Route::prefix('tienda')->group(function (): void {
+        Route::get('configuracion', [ConfiguracionTiendaController::class, 'mostrar']);
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 03: Categorias
-    Route::prefix('categorias')->group(function () {
-        // Catalogo de categorias publicas y administracion
+    // -------------------------------------------------------------------------
+    Route::prefix('categorias')->group(function (): void {
+        Route::get('/', [CategoriaController::class, 'index']);
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 04: Productos y Personalizacion
-    Route::prefix('productos')->group(function () {
-        // Listado con filtros, detalle y personalizaciones
+    // -------------------------------------------------------------------------
+    Route::prefix('productos')->group(function (): void {
+        Route::get('/', [ProductoController::class, 'index']);
+        Route::get('{id}', [ProductoController::class, 'show']);
     });
 
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE'])
+        ->prefix('disenos-personalizados')
+        ->group(function (): void {
+            Route::get('/', [DisenoPersonalizadoController::class, 'index']);
+            Route::post('/', [DisenoPersonalizadoController::class, 'store']);
+        });
+
+    // -------------------------------------------------------------------------
+    // Modulo 11: Publicaciones
+    // -------------------------------------------------------------------------
+    Route::prefix('publicaciones')->group(function (): void {
+        Route::get('/', [PublicacionController::class, 'index']);
+        Route::get('{id}', [PublicacionController::class, 'show']);
+    });
+
+    // -------------------------------------------------------------------------
+    // Modulo 12: Produccion
+    // -------------------------------------------------------------------------
+    Route::get('produccion/disponibilidad', [ProduccionController::class, 'disponibilidad']);
+
+    // -------------------------------------------------------------------------
     // Modulo 05: Carrito de Compras
-    Route::prefix('carrito')->group(function () {
-        // Gestion de items y subtotales
+    // -------------------------------------------------------------------------
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->prefix('carrito')->group(function (): void {
+        Route::get('/', [CarritoController::class, 'index']);
+        Route::post('items', [CarritoController::class, 'store']);
+        Route::put('items/{id}', [CarritoController::class, 'update']);
+        Route::delete('items/{id}', [CarritoController::class, 'destroy']);
+        Route::delete('/', [CarritoController::class, 'clear']);
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 06: Pedidos
-    Route::prefix('pedidos')->group(function () {
-        // Checkout, consulta de pedidos y seguimiento de estados
+    // -------------------------------------------------------------------------
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE'])->prefix('pedidos')->group(function (): void {
+        Route::get('/', [PedidoController::class, 'index']);
+        Route::post('/', [PedidoController::class, 'store']);
+    });
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->get('pedidos/{id}', [PedidoController::class, 'show']);
+    Route::middleware(['auth:sanctum', 'rol:ADMIN'])->prefix('admin/pedidos')->group(function (): void {
+        Route::get('/', [PedidoController::class, 'adminIndex']);
+        Route::patch('{id}/estado', [PedidoController::class, 'updateEstado']);
     });
 
+    // -------------------------------------------------------------------------
     // Modulo 07: Pagos y Comprobantes
-    Route::prefix('pagos')->group(function () {
-        // Registro de comprobantes y verificacion administrativa
+    // -------------------------------------------------------------------------
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE'])->post('pagos', [PagoController::class, 'store']);
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->get('pedidos/{pedidoId}/pago', [PagoController::class, 'show']);
+    Route::middleware(['auth:sanctum', 'rol:ADMIN'])->patch('admin/pagos/{id}/verificar', [PagoController::class, 'verify']);
+
+    // -------------------------------------------------------------------------
+    // Modulo 08: Multimedia — Fase 2
+    // -------------------------------------------------------------------------
+    Route::get('multimedia/publico/{ruta}', [MultimediaController::class, 'archivoPublico'])->where('ruta', '.*');
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->prefix('multimedia')->group(function (): void {
+        Route::post('/', [MultimediaController::class, 'subir']);
+        Route::get('{id}/archivo', [MultimediaController::class, 'archivoPrivado'])->whereNumber('id');
+        Route::get('{id}', [MultimediaController::class, 'mostrar']);
+        Route::delete('{id}', [MultimediaController::class, 'desactivar']);
     });
 
-    // Modulo 08: Multimedia
-    Route::prefix('multimedia')->group(function () {
-        // Subida de imagenes hacia el servidor Linux
-    });
-
+    // -------------------------------------------------------------------------
     // Modulo 10: Notificaciones
-    Route::prefix('notificaciones')->group(function () {
-        // Alertas de pedidos y pagos
+    // -------------------------------------------------------------------------
+    Route::middleware(['auth:sanctum', 'rol:CLIENTE,ADMIN'])->prefix('notificaciones')->group(function (): void {
+        Route::get('/', [NotificacionController::class, 'index']);
+        Route::patch('leer-todas', [NotificacionController::class, 'marcarTodas']);
+        Route::patch('{id}/leida', [NotificacionController::class, 'marcarLeida'])->whereNumber('id');
     });
 
-    // Rutas de Administracion protegidas
-    Route::prefix('admin')->group(function () {
-        // Rutas exclusivas para rol administrador
-    });
-
-    // Healthcheck de la version de la API
-    Route::get('/salud', function () {
-        return response()->json([
-            'success' => true,
-            'api' => 'NexoCommerce v1',
-            'estado' => 'activo',
-        ]);
-    });
+    // Healthcheck version API
+    Route::get('salud', static fn () => response()->json([
+        'success' => true,
+        'api' => 'NexoCommerce v1',
+        'estado' => 'activo',
+    ]));
 });

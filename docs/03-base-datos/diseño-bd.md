@@ -154,7 +154,7 @@ Relaciona usuarios con cuentas externas de autenticación.
 | ---------------- | ---------------------------- | ---------------------------------------- | ----------------- |
 | `id`             | PK                           | Identificador                            |                   |
 | `usuario_id`     | FK → `usuarios.id`, NOT NULL | Usuario asociado                         |                   |
-| `proveedor`      | NOT NULL                     | Proveedor externo                        | GOOGLE / FACEBOOK |
+| `proveedor`      | NOT NULL                     | Proveedor externo                        | Solo GOOGLE       |
 | `id_proveedor`   | NOT NULL                     | Identificador de usuario en el proveedor |                   |
 | `creado_en`      | NOT NULL                     | Fecha de creación                        |                   |
 | `actualizado_en` | NOT NULL                     | Última modificación                      |                   |
@@ -162,7 +162,7 @@ Relaciona usuarios con cuentas externas de autenticación.
 **Restricciones:**
 
 * La combinación `proveedor + id_proveedor` es única.
-* Los proveedores permitidos actualmente son `GOOGLE` y `FACEBOOK`.
+* El unico proveedor OAuth permitido es `GOOGLE`.
 
 **Relación:** `USUARIOS 1:N CUENTAS_OAUTH`
 

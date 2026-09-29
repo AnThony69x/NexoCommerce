@@ -64,8 +64,8 @@ Devuelve la fila `activo = true`.
   "data": {
     "id": 1,
     "nombre_tienda": "Dulces Aesca",
-    "logo_url": "http://192.168.1.50/storage/tienda/logo.png",
-    "favicon_url": "http://192.168.1.50/storage/tienda/favicon.ico",
+    "logo_url": "http://192.168.1.50:8001/api/v1/multimedia/publico/tienda/logo.png",
+    "favicon_url": "http://192.168.1.50:8001/api/v1/multimedia/publico/tienda/favicon.png",
     "color_primario": "#8B5CF6",
     "color_secundario": "#EC4899",
     "color_acento": "#F59E0B",

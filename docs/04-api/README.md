@@ -40,7 +40,7 @@ Roles y estados se exponen **exactamente** como en los `CHECK` / seeds del SQL:
 | Concepto | Valores |
 | :--- | :--- |
 | Roles | `ADMIN`, `CLIENTE` |
-| OAuth | `GOOGLE`, `FACEBOOK` |
+| OAuth | Solo `GOOGLE` |
 | Pedido | `PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO` |
 | Pago método | `PASARELA`, `TRANSFERENCIA` |
 | Pago estado | `PENDIENTE`, `APROBADO`, `RECHAZADO` |
@@ -149,5 +149,7 @@ Los tokens Sanctum viven en tablas de Laravel (`personal_access_tokens`), no en 
 * [12. Produccion](specs/12-produccion.spec.md)
 
 Contrato unificado: [openapi/openapi.yaml](openapi/openapi.yaml)
+
+Entrega para Nathalia y Emilio: [guia-integracion-web-movil.md](guia-integracion-web-movil.md)
 
 Guia de implementacion del backend: [backend/ROADMAP.md](../../backend/ROADMAP.md)

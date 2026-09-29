@@ -1,0 +1,61 @@
+name: nexocommerce-backend
+
+services:
+  backend-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nexocommerce-backend:local
+    container_name: nexocommerce-backend-1
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    environment:
+      APP_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}
+      MULTIMEDIA_PUBLIC_BASE_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}/api/v1/multimedia/publico
+      PORT: "8000"
+    volumes:
+      - multimedia-data:/app/storage/app/multimedia
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "php -r \"exit((@file_get_contents('http://127.0.0.1:8000/up')===false)?1:0);\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+
+  backend-2:
+    image: nexocommerce-backend:local
+    container_name: nexocommerce-backend-2
+    depends_on:
+      backend-1:
+        condition: service_started
+    ports:
+      - "8002:8000"
+    env_file:
+      - .env
+    environment:
+      APP_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}
+      MULTIMEDIA_PUBLIC_BASE_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}/api/v1/multimedia/publico
+      PORT: "8000"
+    volumes:
+      - multimedia-data:/app/storage/app/multimedia
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "php -r \"exit((@file_get_contents('http://127.0.0.1:8000/up')===false)?1:0);\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+
+volumes:
+  multimedia-data:
