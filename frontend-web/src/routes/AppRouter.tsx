@@ -1,5 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import CartPage from '../pages/cart/CartPage'
 import CatalogPage from '../pages/catalog/CatalogPage'
+import CheckoutPage from '../pages/checkout/CheckoutPage'
 import ProductDetailPage from '../pages/catalog/ProductDetailPage'
 import HomePage from '../pages/home/HomePage'
 
@@ -12,7 +14,8 @@ export default function AppRouter() {
         <Route path="/registro" element={<p>Registro</p>} />
         <Route path="/catalogo" element={<CatalogPage />} />
         <Route path="/productos/:id" element={<ProductDetailPage />} />
-        <Route path="/carrito" element={<p>Carrito</p>} />
+        <Route path="/carrito" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/admin" element={<p>Admin</p>} />
       </Routes>
     </BrowserRouter>
