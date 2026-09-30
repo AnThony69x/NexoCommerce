@@ -1,4 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import CatalogPage from '../pages/catalog/CatalogPage'
+import ProductDetailPage from '../pages/catalog/ProductDetailPage'
 import HomePage from '../pages/home/HomePage'
 
 export default function AppRouter() {
@@ -8,7 +10,8 @@ export default function AppRouter() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<p>Login</p>} />
         <Route path="/registro" element={<p>Registro</p>} />
-        <Route path="/catalogo" element={<p>Catalogo</p>} />
+        <Route path="/catalogo" element={<CatalogPage />} />
+        <Route path="/productos/:id" element={<ProductDetailPage />} />
         <Route path="/carrito" element={<p>Carrito</p>} />
         <Route path="/admin" element={<p>Admin</p>} />
       </Routes>
