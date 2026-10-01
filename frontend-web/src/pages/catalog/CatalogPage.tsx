@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import CatalogFilters from '../../components/catalog/CatalogFilters'
 import CatalogPagination from '../../components/catalog/CatalogPagination'
 import CatalogSearch from '../../components/catalog/CatalogSearch'
@@ -47,7 +48,10 @@ const mockProducts: CatalogProduct[] = [
 
 export default function CatalogPage() {
   const productsPerPage = 2
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchParams] = useSearchParams()
+  const [searchTerm, setSearchTerm] = useState(
+    () => searchParams.get('search') ?? '',
+  )
   const [selectedCategory, setSelectedCategory] = useState('Todas las categorías')
   const [onlyAvailable, setOnlyAvailable] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)

@@ -5,6 +5,7 @@ type ProductInfoProps = {
   categoría: string
   precio: string
   descripción: string
+  onAddToCart: (quantity: number) => void
 }
 
 export default function ProductInfo({
@@ -12,6 +13,7 @@ export default function ProductInfo({
   categoría,
   precio,
   descripción,
+  onAddToCart,
 }: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1)
 
@@ -40,13 +42,21 @@ export default function ProductInfo({
           type="number"
           min="1"
           value={quantity}
-          onChange={(event) => setQuantity(Number(event.target.value))}
+          onChange={(event) => {
+            const nextQuantity = Number(event.target.value)
+            setQuantity(
+              Number.isFinite(nextQuantity) && nextQuantity > 0
+                ? nextQuantity
+                : 1,
+            )
+          }}
           className="mt-2 block min-h-11 w-24 rounded-lg border border-stone-300 px-3 text-sm text-stone-700"
         />
       </div>
 
       <button
         type="button"
+        onClick={() => onAddToCart(Math.max(1, quantity))}
         className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700"
       >
         Agregar al carrito

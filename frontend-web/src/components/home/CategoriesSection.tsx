@@ -22,7 +22,7 @@ export default function CategoriesSection() {
             title="Detalles personalizados"
             description="Regalos pensados especialmente para ti."
             image={detailsPlaceholder}
-            href="/detalles-personalizados"
+            href="/detalles"
           />
           <CategoryCard
             title="Sublimación"

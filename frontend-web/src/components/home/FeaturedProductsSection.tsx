@@ -20,25 +20,25 @@ export default function FeaturedProductsSection() {
             nombre="Torta Jardín de Rosas"
             precio="$45.00"
             imagen={cakePlaceholder}
-            href="/catalogo/torta-jardin-de-rosas"
+            href="/productos/torta-jardin-de-rosas"
           />
           <ProductCard
             nombre="Caja Dulce Celebración"
             precio="$32.00"
             imagen={boxPlaceholder}
-            href="/catalogo/caja-dulce-celebracion"
+            href="/productos/caja-dulce-celebracion"
           />
           <ProductCard
             nombre="Taza Flores & Nombre"
             precio="$18.00"
             imagen={mugPlaceholder}
-            href="/catalogo/taza-flores-nombre"
+            href="/productos/taza-flores-nombre"
           />
           <ProductCard
             nombre="Cheesecake de Frutos Rojos"
             precio="$28.00"
             imagen={dessertPlaceholder}
-            href="/catalogo/cheesecake-frutos-rojos"
+            href="/productos/cheesecake-frutos-rojos"
           />
         </div>
       </div>

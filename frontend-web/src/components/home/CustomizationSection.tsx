@@ -25,7 +25,7 @@ export default function CustomizationSection() {
             representa tu idea y convierte cada celebración en un recuerdo.
           </p>
           <Link
-            to="/detalles-personalizados"
+            to="/detalles"
             className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-rose-700 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-rose-800"
           >
             Personalizar un detalle

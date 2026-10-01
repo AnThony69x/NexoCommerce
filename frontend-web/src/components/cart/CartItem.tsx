@@ -1,27 +1,19 @@
-import { useState } from 'react'
+import { useContext } from 'react'
+import { CartContext, type CartProduct } from '../../contexts/CartContext'
 
 type CartItemProps = {
-  nombre: string
-  imagen: string
-  precioUnitario: number
-  cantidadInicial: number
-  categoría: string
+  producto: CartProduct
 }
 
-export default function CartItem({
-  nombre,
-  imagen,
-  precioUnitario,
-  cantidadInicial,
-  categoría,
-}: CartItemProps) {
-  const [cantidad, setCantidad] = useState(cantidadInicial)
-  const [visible, setVisible] = useState(true)
+export default function CartItem({ producto }: CartItemProps) {
+  const cart = useContext(CartContext)
 
-  if (!visible) {
-    return null
+  if (!cart) {
+    throw new Error('CartItem debe renderizarse dentro de CartProvider')
   }
 
+  const { aumentarCantidad, disminuirCantidad, eliminarProducto } = cart
+  const { id, nombre, imagen, precioUnitario, cantidad, categoría } = producto
   const subtotal = precioUnitario * cantidad
 
   return (
@@ -45,7 +37,7 @@ export default function CartItem({
           <button
             type="button"
             aria-label={`Disminuir cantidad de ${nombre}`}
-            onClick={() => setCantidad((current) => Math.max(1, current - 1))}
+            onClick={() => disminuirCantidad(id)}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-300 text-stone-700 hover:border-stone-500"
           >
             -
@@ -56,7 +48,7 @@ export default function CartItem({
           <button
             type="button"
             aria-label={`Aumentar cantidad de ${nombre}`}
-            onClick={() => setCantidad((current) => current + 1)}
+            onClick={() => aumentarCantidad(id)}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-300 text-stone-700 hover:border-stone-500"
           >
             +
@@ -67,7 +59,7 @@ export default function CartItem({
         </p>
         <button
           type="button"
-          onClick={() => setVisible(false)}
+          onClick={() => eliminarProducto(id)}
           className="mt-2 text-sm text-rose-700 hover:text-rose-800"
         >
           Eliminar

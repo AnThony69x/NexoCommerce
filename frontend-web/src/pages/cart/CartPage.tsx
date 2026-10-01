@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom'
-import cakePlaceholder from '../../assets/product-cake-placeholder.svg'
-import boxPlaceholder from '../../assets/product-box-placeholder.svg'
+import { useContext } from 'react'
 import CartItem from '../../components/cart/CartItem'
 import CartSummary from '../../components/cart/CartSummary'
+import { CartContext } from '../../contexts/CartContext'
 
 export default function CartPage() {
+  const cart = useContext(CartContext)
+
+  if (!cart) {
+    throw new Error('CartPage debe renderizarse dentro de CartProvider')
+  }
+
   return (
     <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
@@ -18,21 +24,9 @@ export default function CartPage() {
               Lista de productos
             </h2>
 
-            <CartItem
-              nombre="Torta Jardín de Rosas"
-              imagen={cakePlaceholder}
-              precioUnitario={45}
-              cantidadInicial={1}
-              categoría="Repostería"
-            />
-
-            <CartItem
-              nombre="Caja Dulce Celebración"
-              imagen={boxPlaceholder}
-              precioUnitario={32}
-              cantidadInicial={1}
-              categoría="Detalles personalizados"
-            />
+            {cart.productos.map((producto) => (
+              <CartItem key={producto.id} producto={producto} />
+            ))}
           </section>
 
           <aside className="space-y-3">

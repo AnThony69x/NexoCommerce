@@ -28,7 +28,7 @@ export default function HeroSection() {
               Explorar catálogo
             </Link>
             <Link
-              to="/detalles-personalizados"
+              to="/detalles"
               className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white px-5 py-3 text-sm font-medium text-stone-700 transition-colors hover:border-stone-500"
             >
               Personalizar un detalle

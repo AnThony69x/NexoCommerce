@@ -1,5 +1,10 @@
 import AppRouter from './routes/AppRouter'
+import { CartProvider } from './contexts/CartProvider'
 
 export default function App() {
-  return <AppRouter />
+  return (
+    <CartProvider>
+      <AppRouter />
+    </CartProvider>
+  )
 }

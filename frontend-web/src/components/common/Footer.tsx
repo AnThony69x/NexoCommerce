@@ -35,7 +35,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/detalles-personalizados"
+                  to="/detalles"
                   className="hover:text-white"
                 >
                   Detalles
