@@ -26,7 +26,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {images.map((image, index) => (
           <button
-            key={image.src}
+            key={`${image.src}-${index}`}
             type="button"
             onClick={() => setActiveImageIndex(index)}
             aria-label={`Ver ${image.alt}`}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import BackButton from '../../components/common/BackButton'
 import { useSearchParams } from 'react-router-dom'
 import CatalogFilters from '../../components/catalog/CatalogFilters'
 import CatalogPagination from '../../components/catalog/CatalogPagination'
@@ -17,7 +18,7 @@ const mockProducts: CatalogProduct[] = [
     precio: '$45.00',
     imagen: cakePlaceholder,
     categoría: 'Repostería',
-    href: '/catalogo/torta-jardin-de-rosas',
+    href: '/productos/torta-jardin-de-rosas',
     disponible: true,
   },
   {
@@ -25,7 +26,7 @@ const mockProducts: CatalogProduct[] = [
     precio: '$32.00',
     imagen: boxPlaceholder,
     categoría: 'Detalles personalizados',
-    href: '/catalogo/caja-dulce-celebracion',
+    href: '/productos/caja-dulce-celebracion',
     disponible: true,
   },
   {
@@ -33,7 +34,7 @@ const mockProducts: CatalogProduct[] = [
     precio: '$18.00',
     imagen: mugPlaceholder,
     categoría: 'Sublimación',
-    href: '/catalogo/taza-flores-nombre',
+    href: '/productos/taza-flores-nombre',
     disponible: false,
   },
   {
@@ -41,7 +42,7 @@ const mockProducts: CatalogProduct[] = [
     precio: '$28.00',
     imagen: dessertPlaceholder,
     categoría: 'Repostería',
-    href: '/catalogo/cheesecake-frutos-rojos',
+    href: '/productos/cheesecake-frutos-rojos',
     disponible: true,
   },
 ]
@@ -78,6 +79,7 @@ export default function CatalogPage() {
   return (
     <main className="min-h-screen bg-stone-50 px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
+        <BackButton fallback="/" />
         <section>
           <h1 className="text-3xl font-semibold text-stone-800">Catálogo</h1>
         </section>

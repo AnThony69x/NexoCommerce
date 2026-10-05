@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useContext } from 'react'
+import BackButton from '../../components/common/BackButton'
 import CartItem from '../../components/cart/CartItem'
 import CartSummary from '../../components/cart/CartSummary'
 import { CartContext } from '../../contexts/CartContext'
@@ -14,6 +15,7 @@ export default function CartPage() {
   return (
     <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
+        <BackButton fallback="/" />
         <section>
           <h1 className="text-3xl font-semibold text-stone-800">Carrito</h1>
         </section>

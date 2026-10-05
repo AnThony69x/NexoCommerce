@@ -1,12 +1,10 @@
 import { Link } from 'react-router-dom'
+import type { Product } from '../../types/product'
 
-type CatalogProductCardProps = {
-  nombre: string
-  precio: string
-  imagen: string
-  categoría: string
-  href: string
-}
+type CatalogProductCardProps = Pick<
+  Product,
+  'nombre' | 'precio' | 'imagen' | 'categoría' | 'href'
+>
 
 export default function CatalogProductCard({
   nombre,
