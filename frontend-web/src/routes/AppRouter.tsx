@@ -7,6 +7,8 @@ import DetailsPage from '../pages/details/DetailsPage'
 import FloatingCartButton from '../components/common/FloatingCartButton'
 import ProductDetailPage from '../pages/catalog/ProductDetailPage'
 import HomePage from '../pages/home/HomePage'
+import LoginPage from '../pages/auth/LoginPage'
+import RegisterPage from '../pages/auth/RegisterPage'
 import SublimationPage from '../pages/sublimation/SublimationPage'
 
 export default function AppRouter() {
@@ -14,8 +16,8 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<p>Login</p>} />
-        <Route path="/registro" element={<p>Registro</p>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/registro" element={<RegisterPage />} />
         <Route path="/catalogo" element={<CatalogPage />} />
         <Route path="/reposteria" element={<BakeryPage />} />
         <Route path="/detalles" element={<DetailsPage />} />
