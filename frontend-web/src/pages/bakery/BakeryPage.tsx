@@ -4,7 +4,7 @@ import BackButton from '../../components/common/BackButton'
 import BakeryCategoryCard from '../../components/bakery/BakeryCategoryCard'
 import BakeryHero from '../../components/bakery/BakeryHero'
 import BakeryProductGrid from '../../components/bakery/BakeryProductGrid'
-import { bakeryProducts } from '../../data/bakeryProducts.mock'
+import { bakeryProducts } from '../../data/products.mock'
 
 export default function BakeryPage() {
   return (

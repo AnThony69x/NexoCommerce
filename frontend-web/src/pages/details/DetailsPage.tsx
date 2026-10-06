@@ -4,7 +4,7 @@ import BackButton from '../../components/common/BackButton'
 import DetailsCategoryCard from '../../components/details/DetailsCategoryCard'
 import DetailsHero from '../../components/details/DetailsHero'
 import DetailsProductGrid from '../../components/details/DetailsProductGrid'
-import { detailsProducts } from '../../data/detailsProducts.mock'
+import { detailsProducts } from '../../data/products.mock'
 
 export default function DetailsPage() {
   return (

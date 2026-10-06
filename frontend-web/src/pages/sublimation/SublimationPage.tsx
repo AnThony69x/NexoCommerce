@@ -4,7 +4,7 @@ import BackButton from '../../components/common/BackButton'
 import SublimationHero from '../../components/sublimation/SublimationHero'
 import SublimationOptionCard from '../../components/sublimation/SublimationOptionCard'
 import SublimationProductGrid from '../../components/sublimation/SublimationProductGrid'
-import { sublimationProducts } from '../../data/sublimationProducts.mock'
+import { sublimationProducts } from '../../data/products.mock'
 
 export default function SublimationPage() {
   return (

@@ -4,48 +4,8 @@ import { useSearchParams } from 'react-router-dom'
 import CatalogFilters from '../../components/catalog/CatalogFilters'
 import CatalogPagination from '../../components/catalog/CatalogPagination'
 import CatalogSearch from '../../components/catalog/CatalogSearch'
-import ProductGrid, {
-  type CatalogProduct,
-} from '../../components/catalog/ProductGrid'
-import boxPlaceholder from '../../assets/product-box-placeholder.svg'
-import cakePlaceholder from '../../assets/product-cake-placeholder.svg'
-import dessertPlaceholder from '../../assets/product-dessert-placeholder.svg'
-import mugPlaceholder from '../../assets/product-mug-placeholder.svg'
-
-const mockProducts: CatalogProduct[] = [
-  {
-    nombre: 'Torta Jardín de Rosas',
-    precio: '$45.00',
-    imagen: cakePlaceholder,
-    categoría: 'Repostería',
-    href: '/productos/torta-jardin-de-rosas',
-    disponible: true,
-  },
-  {
-    nombre: 'Caja Dulce Celebración',
-    precio: '$32.00',
-    imagen: boxPlaceholder,
-    categoría: 'Detalles personalizados',
-    href: '/productos/caja-dulce-celebracion',
-    disponible: true,
-  },
-  {
-    nombre: 'Taza Flores & Nombre',
-    precio: '$18.00',
-    imagen: mugPlaceholder,
-    categoría: 'Sublimación',
-    href: '/productos/taza-flores-nombre',
-    disponible: false,
-  },
-  {
-    nombre: 'Cheesecake de Frutos Rojos',
-    precio: '$28.00',
-    imagen: dessertPlaceholder,
-    categoría: 'Repostería',
-    href: '/productos/cheesecake-frutos-rojos',
-    disponible: true,
-  },
-]
+import ProductGrid from '../../components/catalog/ProductGrid'
+import { productsMock } from '../../data/products.mock'
 
 export default function CatalogPage() {
   const productsPerPage = 2
@@ -58,7 +18,7 @@ export default function CatalogPage() {
   const [currentPage, setCurrentPage] = useState(1)
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase()
-  const filteredProducts = mockProducts.filter((product) => {
+  const filteredProducts = productsMock.filter((product) => {
     const matchesName = product.nombre.toLowerCase().includes(normalizedSearchTerm)
     const matchesCategory =
       selectedCategory === 'Todas las categorías' ||

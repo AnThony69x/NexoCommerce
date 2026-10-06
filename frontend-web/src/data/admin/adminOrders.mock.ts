@@ -1,0 +1,93 @@
+import type { AdminOrder } from '../../types/admin'
+
+export const adminOrdersMock: AdminOrder[] = [
+  {
+    id: 'ped-001',
+    numero: 'PED-001',
+    clienteNombre: 'Cliente NexoCommerce',
+    clienteCorreo: 'cliente@nexocommerce.test',
+    clienteTelefono: '+593 999 000 002',
+    fecha_entrega: '2026-10-12',
+    subtotal: 77,
+    total: 77,
+    estado: 'PENDIENTE',
+    detalles: [
+      {
+        id: 'det-001',
+        productoNombre: 'Torta Jardín de Rosas',
+        cantidad: 1,
+        precio_unitario: 45,
+        subtotal: 45,
+        personalizacion: 'Diseño floral rosado, mock',
+      },
+      {
+        id: 'det-002',
+        productoNombre: 'Caja Dulce Celebración',
+        cantidad: 1,
+        precio_unitario: 32,
+        subtotal: 32,
+      },
+    ],
+  },
+  {
+    id: 'ped-002',
+    numero: 'PED-002',
+    clienteNombre: 'María Pérez',
+    clienteCorreo: 'maria@ejemplo.test',
+    clienteTelefono: '+593 999 000 010',
+    fecha_entrega: '2026-10-10',
+    subtotal: 56,
+    total: 56,
+    estado: 'EN_PREPARACION',
+    detalles: [
+      {
+        id: 'det-003',
+        productoNombre: 'Cheesecake Frutos Rojos',
+        cantidad: 2,
+        precio_unitario: 28,
+        subtotal: 56,
+      },
+    ],
+  },
+  {
+    id: 'ped-003',
+    numero: 'PED-003',
+    clienteNombre: 'Juan Torres',
+    clienteCorreo: 'juan@ejemplo.test',
+    clienteTelefono: '+593 999 000 011',
+    fecha_entrega: '2026-10-08',
+    subtotal: 18,
+    total: 18,
+    estado: 'LISTO',
+    detalles: [
+      {
+        id: 'det-004',
+        productoNombre: 'Taza Flores y Nombre',
+        cantidad: 1,
+        precio_unitario: 18,
+        subtotal: 18,
+        personalizacion: 'Nombre “Juan”, mock',
+      },
+    ],
+  },
+  {
+    id: 'ped-004',
+    numero: 'PED-004',
+    clienteNombre: 'Ana Gómez',
+    clienteCorreo: 'ana@ejemplo.test',
+    clienteTelefono: '+593 999 000 012',
+    fecha_entrega: '2026-10-05',
+    subtotal: 38,
+    total: 38,
+    estado: 'ENTREGADO',
+    detalles: [
+      {
+        id: 'det-005',
+        productoNombre: 'Torta Chocolate Clásico',
+        cantidad: 1,
+        precio_unitario: 38,
+        subtotal: 38,
+      },
+    ],
+  },
+]

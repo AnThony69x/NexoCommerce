@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
+import { formatPrice } from '../../utils/formatPrice'
 
 type ProductCardProps = {
   nombre: string
-  precio: string
+  precio: number
   imagen: string
   href: string
 }
@@ -24,7 +25,7 @@ export default function ProductCard({
       </div>
       <div className="mt-3 flex items-start justify-between gap-3">
         <h3 className="text-sm font-medium text-stone-800">{nombre}</h3>
-        <p className="shrink-0 text-sm text-stone-600">{precio}</p>
+        <p className="shrink-0 text-sm text-stone-600">{formatPrice(precio)}</p>
       </div>
     </Link>
   )

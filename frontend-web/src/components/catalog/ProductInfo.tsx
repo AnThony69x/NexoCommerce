@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { formatPrice } from '../../utils/formatPrice'
 
 type ProductInfoProps = {
   nombre: string
   categoría: string
-  precio: string
+  precio: number
   descripción: string
   onAddToCart: (quantity: number) => void
 }
@@ -26,7 +27,7 @@ export default function ProductInfo({
         {nombre}
       </h1>
       <p className="mt-3 text-xl font-semibold text-stone-800 sm:text-2xl">
-        {precio}
+        {formatPrice(precio)}
       </p>
       <p className="mt-4 text-sm leading-6 text-stone-600">{descripción}</p>
 

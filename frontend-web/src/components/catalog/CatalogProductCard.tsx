@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Product } from '../../types/product'
+import { formatPrice } from '../../utils/formatPrice'
 
 type CatalogProductCardProps = Pick<
   Product,
@@ -29,7 +30,7 @@ export default function CatalogProductCard({
         </p>
         <div className="mt-2 flex items-start justify-between gap-3">
           <h3 className="text-sm font-semibold text-stone-800">{nombre}</h3>
-          <p className="shrink-0 text-sm text-stone-600">{precio}</p>
+          <p className="shrink-0 text-sm text-stone-600">{formatPrice(precio)}</p>
         </div>
       </div>
     </Link>

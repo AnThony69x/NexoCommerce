@@ -1,16 +1,8 @@
 import CatalogProductCard from './CatalogProductCard'
-
-export type CatalogProduct = {
-  nombre: string
-  precio: string
-  imagen: string
-  categoría: string
-  href: string
-  disponible: boolean
-}
+import type { Product } from '../../types/product'
 
 type ProductGridProps = {
-  productos: CatalogProduct[]
+  productos: Product[]
 }
 
 export default function ProductGrid({ productos }: ProductGridProps) {
@@ -24,7 +16,7 @@ export default function ProductGrid({ productos }: ProductGridProps) {
         <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {productos.map((producto) => (
             <CatalogProductCard
-              key={producto.href}
+              key={producto.id}
               nombre={producto.nombre}
               precio={producto.precio}
               imagen={producto.imagen}

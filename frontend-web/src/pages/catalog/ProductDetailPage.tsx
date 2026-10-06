@@ -8,20 +8,12 @@ import ProductCustomization from '../../components/catalog/ProductCustomization'
 import ProductInfo from '../../components/catalog/ProductInfo'
 import RelatedProducts from '../../components/catalog/RelatedProducts'
 import { CartContext } from '../../contexts/CartContext'
-import { bakeryProducts } from '../../data/bakeryProducts.mock'
-import { detailsProducts } from '../../data/detailsProducts.mock'
-import { sublimationProducts } from '../../data/sublimationProducts.mock'
-
-const mockProducts = [
-  ...bakeryProducts,
-  ...detailsProducts,
-  ...sublimationProducts,
-]
+import { obtenerProductoPorId } from '../../data/products.mock'
 
 export default function ProductDetailPage() {
   const cart = useContext(CartContext)
   const { id } = useParams()
-  const product = mockProducts.find((mockProduct) => mockProduct.id === id)
+  const product = id ? obtenerProductoPorId(id) : undefined
 
   if (!cart) {
     throw new Error('ProductDetailPage debe renderizarse dentro de CartProvider')
@@ -44,8 +36,6 @@ export default function ProductDetailPage() {
       </main>
     )
   }
-
-  const precioUnitario = Number.parseFloat(product.precio.replace('$', ''))
 
   return (
     <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -77,7 +67,7 @@ export default function ProductDetailPage() {
                   id: product.id,
                   nombre: product.nombre,
                   imagen: product.imagen,
-                  precioUnitario,
+                  precioUnitario: product.precio,
                   categoría: product.categoría,
                 },
                 quantity,
@@ -88,7 +78,7 @@ export default function ProductDetailPage() {
 
         <ProductCustomization />
 
-        <RelatedProducts />
+        <RelatedProducts excluirId={product.id} />
       </div>
     </main>
   )
