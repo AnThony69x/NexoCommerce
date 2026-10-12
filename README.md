@@ -1,10 +1,8 @@
 # NexoCommerce
 
-### Sistema de Comercio Electrónico Modular, Parametrizable y Distribuido
+### Sistema de Comercio Electronico Modular, Parametrizable y Distribuido
 
-NexoCommerce es un sistema de comercio electrónico diseñado con una arquitectura distribuida y modular. Permite gestionar productos, categorías, personalizaciones, carritos, pedidos, pagos y contenido multimedia.
-
-El sistema cuenta con una aplicación web y una aplicación móvil que consumen una misma API REST.
+NexoCommerce es un sistema de comercio electronico con arquitectura distribuida. El **backend es una API REST pura** (sin vistas web). La aplicacion web y la aplicacion movil son clientes que consumen `/api/v1`.
 
 ## Arquitectura
 
@@ -50,39 +48,45 @@ App Móvil ─────┘                 │
 
 ## Tecnologías
 
-* **Backend:** Laravel + PHP + REST API + Sanctum
-* **Frontend:** React + TypeScript + Vite
-* **Móvil:** Kotlin + Jetpack Compose
-* **Base de datos:** PostgreSQL
-* **Servidor de archivos:** Linux
+* **Backend (API REST):** Laravel + PHP + Sanctum. Sin Blade, Vite ni sesiones web.
+* **Frontend Web (cliente):** React + TypeScript + Vite — Nathalia
+* **Móvil (cliente):** Kotlin + Jetpack Compose — Emilio
+* **Base de datos:** PostgreSQL — Melanie
+* **Servidor de archivos:** Linux — Emilio
 * **Infraestructura:** Docker + NGINX
 * **Control de versiones:** Git + GitHub
+* **Metodo de desarrollo del backend:** SDD (Spec-Driven Development). Contratos en `docs/04-api/`. Guia: `backend/ROADMAP.md`.
 
 ## Arquitectura del Backend
 
-El backend utiliza un **monolito modular** con principios de:
+El backend es un **monolito modular API-only** (Clean Architecture, DDD, SDD). No renderiza HTML.
 
-* Clean Architecture
-* DDD
-* Separación de responsabilidades
-* Inversión de dependencias
-
-Módulos principales:
+Modulos:
 
 ```text
-Autenticación
+Autenticacion
 Usuarios
-Tiendas
-Categorías
-Productos
-Personalización
+Tienda
+Categorias
+Productos (TORTA / DETALLE / SUBLIMACION)
+Publicaciones
+Produccion
 Carrito
 Pedidos
 Pagos
 Notificaciones
-Publicaciones
 Multimedia
 ```
+
+Flujo de trabajo del backend (obligatorio):
+
+1. Leer `docs/09-bitacora/bitacora-backend.md` (ultimo cambio).
+2. Leer `backend/ROADMAP.md` (siguiente tarea `[ ]`).
+3. Leer spec en `docs/04-api/specs/`.
+4. Codificar API JSON.
+5. Pruebas.
+6. Marcar ROADMAP y apuntar bitacora.
+7. Anthony recibe **un** mensaje de commit por entrega y el sube.
 
 ## Estructura del proyecto
 
@@ -106,17 +110,16 @@ NexoCommerce/
 ## Características principales
 
 * Autenticación y roles.
-* Catálogo de productos.
+* Catálogo de productos (tortas, detalles, sublimacion).
 * Categorías y subcategorías.
-* Personalización de productos.
+* Personalización segun tipo de producto (diseños de torta, plantillas, diseños del cliente).
 * Carrito de compras.
 * Gestión de pedidos.
 * Gestión de pagos.
 * Comprobantes de pago.
 * Notificaciones.
 * Gestión de imágenes y archivos.
-* Aplicación web.
-* Aplicación móvil.
+* API REST consumida por web y móvil (el backend no sirve UI).
 * Balanceo entre dos instancias del backend.
 * Manejo de fallos y errores.
 * Pruebas de integración y resiliencia.

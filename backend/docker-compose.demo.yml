@@ -1,0 +1,22 @@
+services:
+  demo-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: nexo_demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD en backend/.env antes de iniciar la base demo}
+    volumes:
+      - demo-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nexo_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend-1:
+    depends_on:
+      demo-db:
+        condition: service_healthy
+
+volumes:
+  demo-postgres-data:
