@@ -1,0 +1,4 @@
+﻿# Material local de revisiones: ZIP, cluster PostgreSQL, pruebas y logs.
+/revisiones/
+# Pruebas SQL locales no incluidas en esta entrega.
+/tests/
