@@ -239,6 +239,33 @@ class PedidosTest extends TestCase
             ->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $ids[0]);
     }
 
+    public function test_entrega_domicilio_exige_direccion_y_cancelar_restaura_stock(): void
+    {
+        $this->autenticarCliente();
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
+        DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 5]);
+        $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2])->assertCreated();
+        $fecha = now()->addDay()->toDateString();
+        $pedidoSinDireccion = ['fecha_entrega' => $fecha, 'total_esperado' => '10.00', 'tipo_entrega' => 'DOMICILIO'];
+        $this->postJson('/api/v1/pedidos', $pedidoSinDireccion)->assertUnprocessable()->assertJsonStructure(['errors' => ['direccion_entrega']]);
+
+        $id = $this->postJson('/api/v1/pedidos', $pedidoSinDireccion + [
+            'direccion_entrega' => 'Av. Principal 123', 'telefono_contacto' => '0991234567', 'hora_entrega' => '15:30',
+        ])->assertCreated()->json('data.id');
+        $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 3]);
+        $this->assertDatabaseHas('ventas.pedidos', [
+            'id' => $id, 'tipo_entrega' => 'DOMICILIO', 'direccion_entrega' => 'Av. Principal 123',
+            'hora_entrega' => '15:30:00', 'descuento' => '0.00', 'costo_envio' => '0.00', 'total' => '10.00',
+        ]);
+
+        Auth::forgetGuards();
+        $admin = UsuarioModelo::factory()->admin()->create();
+        $this->withToken($admin->createToken('test')->plainTextToken);
+        $this->patchJson('/api/v1/admin/pedidos/'.$id.'/estado', ['estado' => 'CANCELADO'])->assertOk()->assertJsonPath('data.estado', 'CANCELADO');
+        $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 5]);
+        $this->patchJson('/api/v1/admin/pedidos/'.$id.'/estado', ['estado' => 'EN_PREPARACION'])->assertBadRequest()->assertJsonPath('codigo_error', 'PED_ESTADO_INVALIDO');
+    }
+
     private function autenticarCliente(): UsuarioModelo
     {
         $cliente = UsuarioModelo::factory()->verificado()->create();

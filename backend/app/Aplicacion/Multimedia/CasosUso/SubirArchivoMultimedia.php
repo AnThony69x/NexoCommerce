@@ -20,6 +20,17 @@ use Throwable;
  */
 final class SubirArchivoMultimedia
 {
+    /** Modulo del esquema segun el destino; 'disenos' es diseño de torta. */
+    private const MODULOS = [
+        'productos' => 'PRODUCTO',
+        'categorias' => 'CATEGORIA',
+        'tienda' => 'TIENDA',
+        'publicaciones' => 'PUBLICACION',
+        'disenos' => 'DISENO_TORTA',
+        'personalizaciones' => 'DISENO_CLIENTE',
+        'comprobantes' => 'COMPROBANTE',
+    ];
+
     public function __construct(
         private readonly MultimediaRepositorioInterface $multimediaRepo,
         private readonly AlmacenamientoArchivosInterface $almacenamiento,
@@ -57,6 +68,8 @@ final class SubirArchivoMultimedia
                 'tamano_bytes' => $dto->tamano_bytes,
                 'ancho' => $ancho,
                 'alto' => $alto,
+                'modulo' => self::MODULOS[$dto->destino],
+                'checksum_sha256' => hash('sha256', $dto->contenido_binario),
                 'activo' => true,
                 'subido_por_id' => $dto->subido_por_id,
             ]);

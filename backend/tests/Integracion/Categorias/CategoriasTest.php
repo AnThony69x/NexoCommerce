@@ -357,4 +357,24 @@ class CategoriasTest extends TestCase
             ->assertNotFound()
             ->assertJsonPath('codigo_error', 'CAT_NO_ENCONTRADA');
     }
+
+    public function test_alta_de_categoria_queda_auditada_con_el_usuario_que_la_creo(): void
+    {
+        $admin = UsuarioModelo::factory()->admin()->create();
+        $token = $admin->createToken('test')->plainTextToken;
+
+        $creada = $this->withToken($token)
+            ->postJson('/api/v1/admin/categorias', ['nombre' => 'Auditada', 'activo' => true])
+            ->assertCreated();
+
+        $auditoria = DB::table('auditoria.auditoria_catalogo')
+            ->where('tabla', 'categorias')
+            ->where('registro_id', (string) $creada->json('data.id'))
+            ->where('operacion', 'INSERT')
+            ->first();
+
+        $this->assertNotNull($auditoria);
+        $this->assertSame((int) $admin->id, (int) $auditoria->usuario_id);
+        $this->assertSame('API', $auditoria->origen);
+    }
 }

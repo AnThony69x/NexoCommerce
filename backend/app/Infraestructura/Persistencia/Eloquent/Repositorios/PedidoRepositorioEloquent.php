@@ -32,9 +32,9 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
 {
     public function __construct(private VerificarCapacidadProduccion $verificarCapacidad) {}
 
-    public function crearDesdeCarrito(int $usuarioId, string $fechaEntrega, string $totalEsperado): Pedido|DominioException
+    public function crearDesdeCarrito(int $usuarioId, string $fechaEntrega, string $totalEsperado, array $entrega): Pedido|DominioException
     {
-        return DB::transaction(function () use ($usuarioId, $fechaEntrega, $totalEsperado): Pedido|DominioException {
+        return DB::transaction(function () use ($usuarioId, $fechaEntrega, $totalEsperado, $entrega): Pedido|DominioException {
             UsuarioModelo::query()->whereKey($usuarioId)->lockForUpdate()->firstOrFail();
             $carrito = CarritoModelo::query()->where('usuario_id', $usuarioId)->where('activo', true)->first();
             $items = $carrito?->items()->orderBy('id')->get();
@@ -127,11 +127,14 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
             $pedido = PedidoModelo::create([
                 'usuario_id' => $usuarioId, 'fecha_entrega' => $fechaEntrega,
                 'estado' => 'PENDIENTE', 'subtotal' => $total, 'total' => $total,
+                'descuento' => '0.00', 'costo_envio' => '0.00',
+                'tipo_entrega' => $entrega['tipo_entrega'], 'direccion_entrega' => $entrega['direccion_entrega'],
+                'telefono_contacto' => $entrega['telefono_contacto'], 'hora_entrega' => $entrega['hora_entrega'],
             ]);
             $pedido->items()->createMany($filas);
             foreach ($cantidadesPorProducto as $productoId => $cantidad) {
-                if ($stocks->has($productoId)) {
-                    $stocks->get($productoId)->decrement('stock', $cantidad);
+                if ($stocks->has($productoId) && ! DB::selectOne('SELECT catalogo.descontar_stock(?, ?) AS descontado', [$productoId, $cantidad])->descontado) {
+                    throw $this->error('Stock insuficiente.', 'PED_SIN_STOCK');
                 }
             }
             $carrito->items()->delete();
@@ -183,6 +186,12 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
                 throw $this->error('El pago no esta aprobado.', 'PED_PAGO_NO_APROBADO');
             }
             $modelo->update(['estado' => $estado]);
+            if ($estado === 'CANCELADO') {
+                // El stock se descontó al crear el pedido y el esquema no lo devuelve al cancelar.
+                foreach ($modelo->items()->get() as $item) {
+                    DetalleModelo::query()->where('producto_id', $item->producto_id)->increment('stock', $item->cantidad);
+                }
+            }
 
             Event::dispatch(new EstadoPedidoCambiado((int) $modelo->id, (int) $modelo->usuario_id, $estado));
 

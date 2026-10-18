@@ -27,6 +27,7 @@ use App\Dominio\Publicaciones\Repositorios\PublicacionRepositorioInterface;
 use App\Dominio\Tienda\Repositorios\ConfiguracionTiendaRepositorioInterface;
 use App\Infraestructura\Almacenamiento\LocalAlmacenamientoArchivos;
 use App\Infraestructura\Almacenamiento\SftpAlmacenamientoArchivos;
+use App\Infraestructura\Persistencia\ContextoAuditoria;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\TokenAccesoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CarritoRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CategoriaRepositorioEloquent;
@@ -96,6 +97,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Sanctum::usePersonalAccessTokenModel(TokenAccesoModelo::class);
+
+        ContextoAuditoria::registrar();
 
         Event::listen(PedidoCreado::class, [CrearAvisos::class, 'pedidoCreado']);
         Event::listen(PagoRegistrado::class, [CrearAvisos::class, 'pagoRegistrado']);

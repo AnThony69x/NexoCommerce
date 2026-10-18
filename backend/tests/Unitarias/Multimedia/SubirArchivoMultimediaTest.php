@@ -148,4 +148,28 @@ class SubirArchivoMultimediaTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->caso->execute($dto);
     }
+
+    public function test_comprobante_pdf_se_registra_en_modulo_comprobante_con_checksum(): void
+    {
+        $contenido = '%PDF-1.4 fake content';
+        $dto = new SubirMultimediaDTO(
+            destino: 'comprobantes',
+            nombre_original: 'comprobante.pdf',
+            extension: 'pdf',
+            tipo_mime: 'application/pdf',
+            tamano_bytes: strlen($contenido),
+            contenido_binario: $contenido,
+            subido_por_id: 5,
+        );
+
+        $this->almacenamiento->method('guardar')->willReturnCallback(fn (string $ruta) => $ruta);
+        $this->multimediaRepo
+            ->expects($this->once())
+            ->method('guardar')
+            ->with($this->callback(fn (array $datos): bool => $datos['modulo'] === 'COMPROBANTE'
+                && $datos['checksum_sha256'] === hash('sha256', $contenido)))
+            ->willReturn($this->entidadFalsa('comprobantes/test.pdf'));
+
+        $this->caso->execute($dto);
+    }
 }

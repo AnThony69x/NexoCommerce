@@ -15,7 +15,10 @@ class PedidoModelo extends Model
 
     public const UPDATED_AT = 'actualizado_en';
 
-    protected $fillable = ['usuario_id', 'fecha_entrega', 'estado', 'subtotal', 'total'];
+    protected $fillable = [
+        'usuario_id', 'fecha_entrega', 'estado', 'subtotal', 'total', 'descuento', 'costo_envio',
+        'tipo_entrega', 'direccion_entrega', 'telefono_contacto', 'hora_entrega',
+    ];
 
     protected function casts(): array
     {

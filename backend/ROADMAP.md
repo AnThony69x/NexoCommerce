@@ -391,7 +391,7 @@ Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
 - [~] Variables `MULTIMEDIA_SFTP_*` en `docker-compose.yml` (hecho 2026-10-18). Pendiente: `.env` local (no accesible desde el agente), clave privada como secreto y huella del host real
 - [~] Limites de subida: PHP en la imagen Docker (`upload_max_filesize=6M`, `post_max_size=8M`) hecho 2026-10-18. Pendiente: `client_max_body_size` de NGINX (carpeta `nginx/`, fuera del alcance acordado)
 - [x] Borrar el archivo remoto si falla el INSERT en `SubirArchivoMultimedia` (Completado: 2026-10-18; prueba unitaria)
-- [ ] Pruebas contra el esquema real: `database/tests/reglas.sql` y casos de rechazo de `nexo_backend`
+- [x] Pruebas contra el esquema real: `database/tests/reglas.sql` ejecutado en BD nueva con rollback, sin errores (Completado: 2026-10-18). Pendiente: casos de rechazo de `nexo_backend` en la BD de la VM
 - [ ] Prueba end-to-end contra file-server `100.88.4.113` (siete pasos de la guia)
 - [ ] Avisar a Nathalia y Emilio de los cambios de contrato antes de fusionar
 
