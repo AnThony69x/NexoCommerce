@@ -18,7 +18,7 @@ class MultimediaModelo extends Model
     /** @use HasFactory<MultimediaModeloFactory> */
     use HasFactory;
 
-    protected $table = 'multimedia';
+    protected $table = 'media.multimedia';
 
     protected $primaryKey = 'id';
 

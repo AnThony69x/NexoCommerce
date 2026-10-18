@@ -8,12 +8,12 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\ConfiguracionTiendaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\ConfiguracionTiendaSeeder;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class ConfiguracionTiendaTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -82,7 +82,7 @@ class ConfiguracionTiendaTest extends TestCase
             ->assertJsonPath('success', false)
             ->assertJsonStructure(['errors' => ['color_primario']]);
 
-        $this->assertDatabaseHas('configuracion_tienda', [
+        $this->assertDatabaseHas('tienda.configuracion_tienda', [
             'id' => $antes->id,
             'nombre_tienda' => $antes->nombre_tienda,
             'color_primario' => $antes->color_primario,
@@ -104,8 +104,8 @@ class ConfiguracionTiendaTest extends TestCase
             ->assertJsonPath('data.nombre_tienda', 'Tienda Actualizada')
             ->assertJsonPath('data.activo', true);
 
-        $this->assertDatabaseCount('configuracion_tienda', 1);
-        $this->assertDatabaseHas('configuracion_tienda', [
+        $this->assertDatabaseCount('tienda.configuracion_tienda', 1);
+        $this->assertDatabaseHas('tienda.configuracion_tienda', [
             'nombre_tienda' => 'Tienda Actualizada',
             'color_primario' => '#111111',
             'activo' => true,
@@ -114,7 +114,7 @@ class ConfiguracionTiendaTest extends TestCase
 
     public function test_seed_inicial_permanece_correcto(): void
     {
-        $this->assertDatabaseHas('configuracion_tienda', [
+        $this->assertDatabaseHas('tienda.configuracion_tienda', [
             'clave' => 'principal',
             'nombre_tienda' => 'Dulces Aesca',
             'color_primario' => '#8B5CF6',
@@ -131,8 +131,8 @@ class ConfiguracionTiendaTest extends TestCase
 
         $this->seed(ConfiguracionTiendaSeeder::class);
 
-        $this->assertDatabaseCount('configuracion_tienda', 1);
-        $this->assertDatabaseHas('configuracion_tienda', [
+        $this->assertDatabaseCount('tienda.configuracion_tienda', 1);
+        $this->assertDatabaseHas('tienda.configuracion_tienda', [
             'clave' => 'principal',
             'nombre_tienda' => 'Dulces Aesca',
         ]);

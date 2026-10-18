@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Productos;
 
+use App\Http\Requests\ExisteEnTabla;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CrearDisenoRequest extends FormRequest
@@ -19,7 +20,7 @@ class CrearDisenoRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:100'],
             'descripcion' => ['nullable', 'string'],
             'costo_adicional' => ['sometimes', 'numeric', 'min:0'],
-            'multimedia_id' => ['nullable', 'integer', 'exists:multimedia,id'],
+            'multimedia_id' => ['nullable', 'integer', new ExisteEnTabla('media.multimedia', 'id')],
             'activo' => ['sometimes', 'boolean'],
         ];
     }

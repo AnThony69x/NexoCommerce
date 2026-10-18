@@ -9,13 +9,13 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\PagoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\PedidoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class PagosTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -72,7 +72,7 @@ class PagosTest extends TestCase
         ])->assertCreated()->assertJsonPath('data.estado', 'PENDIENTE')
             ->assertJsonPath('data.comprobante.multimedia_id', $archivo->id);
         $pagoId = $respuesta->json('data.id');
-        $this->assertDatabaseHas('comprobantes_pago', ['pago_id' => $pagoId, 'multimedia_id' => $archivo->id]);
+        $this->assertDatabaseHas('pagos.comprobantes_pago', ['pago_id' => $pagoId, 'multimedia_id' => $archivo->id]);
         $this->getJson('/api/v1/pedidos/'.$pedido->id.'/pago')->assertOk()->assertJsonPath('data.id', $pagoId);
         $this->postJson('/api/v1/pagos', [
             'pedido_id' => $pedido->id, 'metodo' => 'PASARELA', 'monto' => '35.00', 'referencia_pasarela' => 'REF-2',
@@ -84,8 +84,8 @@ class PagosTest extends TestCase
             ->assertOk()->assertJsonPath('data.estado', 'APROBADO')->assertJsonPath('data.pedido_estado', 'PENDIENTE')
             ->assertJsonPath('data.comprobante.revisado_por_id', $admin->id)
             ->assertJsonPath('data.comprobante.comentario_revision', 'Acreditado');
-        $this->assertDatabaseHas('pedidos', ['id' => $pedido->id, 'estado' => 'PENDIENTE']);
-        $this->assertDatabaseHas('pagos', ['id' => $pagoId, 'estado' => 'APROBADO']);
+        $this->assertDatabaseHas('ventas.pedidos', ['id' => $pedido->id, 'estado' => 'PENDIENTE']);
+        $this->assertDatabaseHas('pagos.pagos', ['id' => $pagoId, 'estado' => 'APROBADO']);
         $this->assertNotNull(PagoModelo::find($pagoId)->fecha_pago);
         $this->patchJson('/api/v1/admin/pagos/'.$pagoId.'/verificar', ['estado' => 'RECHAZADO'])
             ->assertBadRequest()->assertJsonPath('codigo_error', 'PAG_ESTADO_INVALIDO');
@@ -114,7 +114,7 @@ class PagosTest extends TestCase
             'pedido_id' => $pedido->id, 'metodo' => 'PASARELA', 'monto' => '35.00', 'referencia_pasarela' => 'REF-NUEVA',
         ])->assertCreated();
         $this->getJson('/api/v1/pedidos/'.$pedido->id.'/pago')->assertJsonPath('data.id', $segundo->json('data.id'));
-        $this->assertDatabaseCount('pagos', 2);
+        $this->assertDatabaseCount('pagos.pagos', 2);
     }
 
     public function test_monto_y_estado_de_pedido_se_validan_antes_de_insertar(): void
@@ -124,12 +124,12 @@ class PagosTest extends TestCase
         $this->postJson('/api/v1/pagos', [
             'pedido_id' => $pedido->id, 'metodo' => 'PASARELA', 'monto' => '35.01', 'referencia_pasarela' => 'REF-1',
         ])->assertBadRequest()->assertJsonPath('codigo_error', 'PAG_MONTO_INVALIDO');
-        $this->assertDatabaseCount('pagos', 0);
+        $this->assertDatabaseCount('pagos.pagos', 0);
         $pedido->update(['estado' => 'LISTO']);
         $this->postJson('/api/v1/pagos', [
             'pedido_id' => $pedido->id, 'metodo' => 'PASARELA', 'monto' => '35.00', 'referencia_pasarela' => 'REF-1',
         ])->assertBadRequest()->assertJsonPath('codigo_error', 'PAG_PEDIDO_NO_PENDIENTE');
-        $this->assertDatabaseCount('pagos', 0);
+        $this->assertDatabaseCount('pagos.pagos', 0);
     }
 
     public function test_comprobante_debe_ser_propio_activo_del_destino_y_sin_uso(): void
@@ -149,7 +149,7 @@ class PagosTest extends TestCase
                 'pedido_id' => $pedido->id, 'metodo' => 'TRANSFERENCIA', 'monto' => '35.00', 'multimedia_id' => $caso['id'],
             ])->assertStatus($caso['status'])->assertJsonPath('codigo_error', $caso['codigo']);
         }
-        $this->assertDatabaseCount('pagos', 0);
+        $this->assertDatabaseCount('pagos.pagos', 0);
         $valido = $this->archivo($cliente);
         $this->postJson('/api/v1/pagos', [
             'pedido_id' => $pedido->id, 'metodo' => 'TRANSFERENCIA', 'monto' => '35.00', 'multimedia_id' => $valido->id,
@@ -158,7 +158,7 @@ class PagosTest extends TestCase
         $this->postJson('/api/v1/pagos', [
             'pedido_id' => $otroPedido->id, 'metodo' => 'TRANSFERENCIA', 'monto' => '35.00', 'multimedia_id' => $valido->id,
         ])->assertBadRequest()->assertJsonPath('codigo_error', 'PAG_COMPROBANTE_EN_USO');
-        $this->assertDatabaseCount('comprobantes_pago', 1);
+        $this->assertDatabaseCount('pagos.comprobantes_pago', 1);
     }
 
     private function autenticarCliente(): UsuarioModelo

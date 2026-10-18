@@ -366,8 +366,13 @@ Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
 
 - [x] Preparar BD de prueba aislada PostgreSQL 17 (`127.0.0.1:55432`, contenedor `nexo-test-db`) con `database/instalar.sql` y rol `nexo_backend` (Completado: 2026-10-18)
 - [x] Linea base: suite actual contra BD vacia `nexo_baseline`: 171 pruebas, 170 pasan, 1 omitida, 1028 aserciones (Completado: 2026-10-18)
-- [ ] Migraciones: retirar la migracion que crea las 25 tablas planas; el esquema se carga desde `database/instalar.sql`
-- [ ] Modelos Eloquent con schema (22 modelos), IDs `bigint` y sin `search_path` public
+- [ ] Migraciones: retirar la migracion que crea las 25 tablas planas y las migraciones de negocio; el esquema se carga desde `database/instalar.sql`. Las pruebas ya no ejecutan migraciones; falta retirar los archivos
+- [x] Modelos Eloquent con schema (23 modelos, `$table` = `schema.tabla`) (Completado: 2026-10-18)
+- [x] Pruebas con esquema real: `DatabaseTransactions` sobre BD cargada con `instalar.sql` en lugar de `RefreshDatabase` (Completado: 2026-10-18). La BD de prueba debe recrearse antes de cada corrida: las pruebas concurrentes confirman datos
+- [x] Consultas, joins y reglas de validacion con schema: `ExisteEnTabla` y `UnicoEnTabla`, porque la regla `exists`/`unique` de Laravel interpreta el punto como conexion (Completado: 2026-10-18)
+- [x] Tokens Sanctum sobre `auth.personal_access_tokens` mediante `TokenAccesoModelo` (Completado: 2026-10-18)
+- [x] Seeder de roles por `nombre`, sin fijar `id` (identidad generada) (Completado: 2026-10-18)
+- [ ] Suite con esquema real: 115 de 171 pasan (2026-10-18). Pendientes atados a tareas de contrato: `productos.tipo` NOT NULL (32), `configuracion_tienda.clave` (11), `verificaciones_correo.codigo_hash` (5), `chk_multimedia_pdf_modulo` (2), unicidad de produccion (2), pagos (5)
 - [ ] Publicaciones: `activo` pasa a `estado` (BORRADOR, PUBLICADA, ARCHIVADA) + `publicada_en`; `orden` de 1 a 10 (cambio de contrato)
 - [ ] Tienda: `logo_id`/`favicon_id`; quitar `clave`; seis reglas nuevas (cambio de contrato)
 - [ ] Pedidos: campos nuevos, estado `CANCELADO`, `total = subtotal - descuento + costo_envio`, `catalogo.descontar_stock` (cambio de contrato)

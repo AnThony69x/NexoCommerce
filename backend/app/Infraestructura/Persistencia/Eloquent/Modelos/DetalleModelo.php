@@ -15,7 +15,7 @@ class DetalleModelo extends Model
     /** @use HasFactory<DetalleModeloFactory> */
     use HasFactory;
 
-    protected $table = 'detalles';
+    protected $table = 'catalogo.detalles';
 
     protected $primaryKey = 'producto_id';
 

@@ -16,7 +16,7 @@ class PublicacionModelo extends Model
     /** @use HasFactory<PublicacionModeloFactory> */
     use HasFactory;
 
-    protected $table = 'publicaciones';
+    protected $table = 'publicaciones.publicaciones';
 
     public const CREATED_AT = 'creado_en';
 

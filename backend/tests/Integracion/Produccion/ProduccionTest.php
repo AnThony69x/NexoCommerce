@@ -12,13 +12,13 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\ConfiguracionProduccionMod
 use App\Infraestructura\Persistencia\Eloquent\Modelos\ProductoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ProduccionTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -94,7 +94,7 @@ class ProduccionTest extends TestCase
             ->assertJsonPath('data.ocupado', 0)
             ->assertJsonPath('data.disponible', 15);
         $id = (int) $creada->json('data.id');
-        $this->assertDatabaseHas('configuracion_produccion', ['id' => $id, 'activo' => true]);
+        $this->assertDatabaseHas('produccion.configuracion_produccion', ['id' => $id, 'activo' => true]);
 
         $this->withToken($token)->postJson('/api/v1/admin/produccion', $payload)
             ->assertUnprocessable()
@@ -122,7 +122,7 @@ class ProduccionTest extends TestCase
 
         $this->withToken($token)->deleteJson("/api/v1/admin/produccion/{$configuracion->id}")
             ->assertOk();
-        $this->assertDatabaseHas('configuracion_produccion', [
+        $this->assertDatabaseHas('produccion.configuracion_produccion', [
             'id' => $configuracion->id,
             'activo' => false,
         ]);
@@ -138,7 +138,7 @@ class ProduccionTest extends TestCase
             ->putJson("/api/v1/admin/produccion/{$inactiva->id}", ['activo' => true])
             ->assertUnprocessable()
             ->assertJsonPath('codigo_error', 'PRD_CONFIG_DUPLICADA');
-        $this->assertDatabaseHas('configuracion_produccion', ['id' => $inactiva->id, 'activo' => false]);
+        $this->assertDatabaseHas('produccion.configuracion_produccion', ['id' => $inactiva->id, 'activo' => false]);
     }
 
     public function test_listado_admin_filtra_fecha_categoria_y_estado_con_ocupacion(): void
@@ -217,7 +217,7 @@ class ProduccionTest extends TestCase
     private function crearPedido(string $fecha, string $estado, array $items): int
     {
         $usuario = UsuarioModelo::factory()->verificado()->create();
-        $pedidoId = (int) DB::table('pedidos')->insertGetId([
+        $pedidoId = (int) DB::table('ventas.pedidos')->insertGetId([
             'usuario_id' => $usuario->id,
             'fecha_entrega' => $fecha,
             'estado' => $estado,
@@ -228,7 +228,7 @@ class ProduccionTest extends TestCase
         ]);
 
         foreach ($items as [$productoId, $cantidad]) {
-            DB::table('detalles_pedido')->insert([
+            DB::table('ventas.detalles_pedido')->insert([
                 'pedido_id' => $pedidoId,
                 'producto_id' => $productoId,
                 'nombre_producto' => 'Producto de prueba',

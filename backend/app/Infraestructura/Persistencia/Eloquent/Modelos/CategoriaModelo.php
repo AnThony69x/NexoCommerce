@@ -19,7 +19,7 @@ class CategoriaModelo extends Model
     /** @use HasFactory<CategoriaModeloFactory> */
     use HasFactory;
 
-    protected $table = 'categorias';
+    protected $table = 'catalogo.categorias';
 
     protected $primaryKey = 'id';
 

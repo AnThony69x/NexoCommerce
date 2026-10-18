@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Productos;
 
+use App\Http\Requests\ExisteEnTabla;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -18,7 +19,7 @@ class CrearProductoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'categoria_id' => ['required', 'integer', 'exists:categorias,id'],
+            'categoria_id' => ['required', 'integer', new ExisteEnTabla('catalogo.categorias', 'id')],
             'nombre' => ['required', 'string', 'max:150'],
             'descripcion' => ['nullable', 'string'],
             'precio_base' => ['required', 'numeric', 'min:0'],
@@ -33,7 +34,7 @@ class CrearProductoRequest extends FormRequest
             'sublimacion' => ['required_if:tipo,SUBLIMACION', 'array'],
             'sublimacion.tipo_material' => ['required_if:tipo,SUBLIMACION', 'string', 'max:100'],
             'imagenes' => ['sometimes', 'array'],
-            'imagenes.*.multimedia_id' => ['required', 'integer', 'distinct', 'exists:multimedia,id'],
+            'imagenes.*.multimedia_id' => ['required', 'integer', 'distinct', new ExisteEnTabla('media.multimedia', 'id')],
             'imagenes.*.orden' => ['sometimes', 'integer', 'min:0'],
             'imagenes.*.es_principal' => ['sometimes', 'boolean'],
         ];

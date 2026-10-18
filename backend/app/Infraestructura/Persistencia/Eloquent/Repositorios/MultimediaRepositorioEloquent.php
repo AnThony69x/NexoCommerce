@@ -41,7 +41,7 @@ class MultimediaRepositorioEloquent implements MultimediaRepositorioInterface
     public function estaEnUsoRestrict(int $id): bool
     {
         // Tablas con ON DELETE RESTRICT sobre multimedia_id
-        $enComprobantes = DB::table('comprobantes_pago')
+        $enComprobantes = DB::table('pagos.comprobantes_pago')
             ->where('multimedia_id', $id)
             ->exists();
 
@@ -49,7 +49,7 @@ class MultimediaRepositorioEloquent implements MultimediaRepositorioInterface
             return true;
         }
 
-        return DB::table('disenos_personalizados')
+        return DB::table('ventas.disenos_personalizados')
             ->where('multimedia_id', $id)
             ->exists();
     }

@@ -8,13 +8,13 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\CategoriaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\MultimediaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CategoriasTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -101,7 +101,7 @@ class CategoriasTest extends TestCase
             ->assertJsonPath('data.categoria_padre_id', $padre->id)
             ->assertJsonPath('data.nombre', 'Tazas');
 
-        $this->assertDatabaseHas('categorias', [
+        $this->assertDatabaseHas('catalogo.categorias', [
             'categoria_padre_id' => $padre->id,
             'nombre' => 'Tazas',
             'activo' => true,
@@ -171,7 +171,7 @@ class CategoriasTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonStructure(['errors' => ['categoria_padre_id']]);
 
-        $this->assertDatabaseMissing('categorias', ['nombre' => 'Huerfana']);
+        $this->assertDatabaseMissing('catalogo.categorias', ['nombre' => 'Huerfana']);
     }
 
     public function test_imagen_inexistente_retorna_422(): void
@@ -187,7 +187,7 @@ class CategoriasTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonStructure(['errors' => ['imagen_id']]);
 
-        $this->assertDatabaseMissing('categorias', ['nombre' => 'Con imagen invalida']);
+        $this->assertDatabaseMissing('catalogo.categorias', ['nombre' => 'Con imagen invalida']);
     }
 
     public function test_cliente_no_puede_crear_categoria(): void
@@ -200,7 +200,7 @@ class CategoriasTest extends TestCase
             ->assertForbidden()
             ->assertJsonPath('codigo_error', 'AUTH_FORBIDDEN');
 
-        $this->assertDatabaseMissing('categorias', ['nombre' => 'No permitida']);
+        $this->assertDatabaseMissing('catalogo.categorias', ['nombre' => 'No permitida']);
     }
 
     public function test_escritura_sin_token_retorna_401(): void
@@ -229,7 +229,7 @@ class CategoriasTest extends TestCase
             ->assertJsonPath('data.imagen_id', $imagen->id)
             ->assertJsonPath('data.activo', false);
 
-        $this->assertDatabaseHas('categorias', [
+        $this->assertDatabaseHas('catalogo.categorias', [
             'id' => $categoria->id,
             'descripcion' => 'Se conserva',
             'categoria_padre_id' => $padre->id,
@@ -260,7 +260,7 @@ class CategoriasTest extends TestCase
             ->assertJsonPath('data.categoria_padre_id', null)
             ->assertJsonPath('data.imagen_id', null);
 
-        $this->assertDatabaseHas('categorias', [
+        $this->assertDatabaseHas('catalogo.categorias', [
             'id' => $categoria->id,
             'categoria_padre_id' => null,
             'descripcion' => null,
@@ -284,7 +284,7 @@ class CategoriasTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonPath('codigo_error', 'CAT_PADRE_INVALIDO');
 
-        $this->assertDatabaseHas('categorias', [
+        $this->assertDatabaseHas('catalogo.categorias', [
             'id' => $raiz->id,
             'categoria_padre_id' => null,
         ]);
@@ -308,7 +308,7 @@ class CategoriasTest extends TestCase
     public function test_delete_con_productos_activos_retorna_400_y_no_desactiva(): void
     {
         $categoria = CategoriaModelo::factory()->raiz()->create(['nombre' => 'Reposteria']);
-        DB::table('productos')->insert([
+        DB::table('catalogo.productos')->insert([
             'categoria_id' => $categoria->id,
             'nombre' => 'Torta activa',
             'precio_base' => 20,
@@ -322,7 +322,7 @@ class CategoriasTest extends TestCase
             ->assertStatus(400)
             ->assertJsonPath('codigo_error', 'CAT_CON_PRODUCTOS');
 
-        $this->assertDatabaseHas('categorias', [
+        $this->assertDatabaseHas('catalogo.categorias', [
             'id' => $categoria->id,
             'activo' => true,
         ]);
@@ -339,8 +339,8 @@ class CategoriasTest extends TestCase
             ->assertOk()
             ->assertJsonPath('message', 'Categoria desactivada.');
 
-        $this->assertDatabaseCount('categorias', 1);
-        $this->assertDatabaseHas('categorias', [
+        $this->assertDatabaseCount('catalogo.categorias', 1);
+        $this->assertDatabaseHas('catalogo.categorias', [
             'id' => $categoria->id,
             'activo' => false,
         ]);

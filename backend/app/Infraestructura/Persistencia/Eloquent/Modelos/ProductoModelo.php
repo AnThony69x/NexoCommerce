@@ -17,7 +17,7 @@ class ProductoModelo extends Model
     /** @use HasFactory<ProductoModeloFactory> */
     use HasFactory;
 
-    protected $table = 'productos';
+    protected $table = 'catalogo.productos';
 
     public const CREATED_AT = 'creado_en';
 

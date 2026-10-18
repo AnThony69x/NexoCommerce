@@ -11,14 +11,14 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\NotificacionModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\ProductoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 use Tests\TestCase;
 
 class NotificacionesTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -46,28 +46,28 @@ class NotificacionesTest extends TestCase
         $otroCliente = UsuarioModelo::factory()->verificado()->create();
         $pedidoId = $this->crearPedido();
 
-        $this->assertDatabaseHas('notificaciones', ['usuario_id' => $cliente->id, 'pedido_id' => $pedidoId, 'pago_id' => null, 'tipo' => 'PEDIDO_CREADO']);
+        $this->assertDatabaseHas('notificaciones.notificaciones', ['usuario_id' => $cliente->id, 'pedido_id' => $pedidoId, 'pago_id' => null, 'tipo' => 'PEDIDO_CREADO']);
         foreach ([$admin, $otroAdmin] as $destinatario) {
-            $this->assertDatabaseHas('notificaciones', ['usuario_id' => $destinatario->id, 'pedido_id' => $pedidoId, 'tipo' => 'PEDIDO_CREADO']);
+            $this->assertDatabaseHas('notificaciones.notificaciones', ['usuario_id' => $destinatario->id, 'pedido_id' => $pedidoId, 'tipo' => 'PEDIDO_CREADO']);
         }
-        $this->assertDatabaseMissing('notificaciones', ['usuario_id' => $inactivo->id]);
-        $this->assertDatabaseMissing('notificaciones', ['usuario_id' => $otroCliente->id]);
+        $this->assertDatabaseMissing('notificaciones.notificaciones', ['usuario_id' => $inactivo->id]);
+        $this->assertDatabaseMissing('notificaciones.notificaciones', ['usuario_id' => $otroCliente->id]);
 
         $pagoId = $this->postJson('/api/v1/pagos', [
             'pedido_id' => $pedidoId, 'metodo' => 'PASARELA', 'monto' => '5.00', 'referencia_pasarela' => 'REF-NOT-1',
         ])->assertCreated()->json('data.id');
-        $this->assertDatabaseHas('notificaciones', ['usuario_id' => $admin->id, 'pedido_id' => $pedidoId, 'pago_id' => $pagoId, 'tipo' => 'PAGO_REGISTRADO']);
-        $this->assertDatabaseHas('notificaciones', ['usuario_id' => $otroAdmin->id, 'pedido_id' => $pedidoId, 'pago_id' => $pagoId, 'tipo' => 'PAGO_REGISTRADO']);
-        $this->assertDatabaseMissing('notificaciones', ['usuario_id' => $cliente->id, 'tipo' => 'PAGO_REGISTRADO']);
+        $this->assertDatabaseHas('notificaciones.notificaciones', ['usuario_id' => $admin->id, 'pedido_id' => $pedidoId, 'pago_id' => $pagoId, 'tipo' => 'PAGO_REGISTRADO']);
+        $this->assertDatabaseHas('notificaciones.notificaciones', ['usuario_id' => $otroAdmin->id, 'pedido_id' => $pedidoId, 'pago_id' => $pagoId, 'tipo' => 'PAGO_REGISTRADO']);
+        $this->assertDatabaseMissing('notificaciones.notificaciones', ['usuario_id' => $cliente->id, 'tipo' => 'PAGO_REGISTRADO']);
 
         $this->autenticar($admin);
         $this->patchJson('/api/v1/admin/pagos/'.$pagoId.'/verificar', ['estado' => 'APROBADO'])->assertOk();
-        $this->assertDatabaseHas('notificaciones', ['usuario_id' => $cliente->id, 'pedido_id' => $pedidoId, 'pago_id' => $pagoId, 'tipo' => 'PAGO_APROBADO']);
+        $this->assertDatabaseHas('notificaciones.notificaciones', ['usuario_id' => $cliente->id, 'pedido_id' => $pedidoId, 'pago_id' => $pagoId, 'tipo' => 'PAGO_APROBADO']);
         foreach (['EN_PREPARACION', 'LISTO', 'ENTREGADO'] as $estado) {
             $this->patchJson('/api/v1/admin/pedidos/'.$pedidoId.'/estado', ['estado' => $estado])->assertOk();
-            $this->assertDatabaseHas('notificaciones', ['usuario_id' => $cliente->id, 'pedido_id' => $pedidoId, 'tipo' => 'PEDIDO_'.$estado]);
+            $this->assertDatabaseHas('notificaciones.notificaciones', ['usuario_id' => $cliente->id, 'pedido_id' => $pedidoId, 'tipo' => 'PEDIDO_'.$estado]);
         }
-        $this->assertDatabaseCount('notificaciones', 9);
+        $this->assertDatabaseCount('notificaciones.notificaciones', 9);
         $this->getJson('/api/v1/notificaciones')->assertOk()->assertJsonPath('meta.total_no_leidas', 2);
         $this->autenticar($cliente);
         $this->getJson('/api/v1/notificaciones')->assertOk()->assertJsonPath('meta.total_no_leidas', 5)
@@ -83,12 +83,12 @@ class NotificacionesTest extends TestCase
         $pagoId = $this->postJson('/api/v1/pagos', [
             'pedido_id' => $pedidoId, 'metodo' => 'TRANSFERENCIA', 'monto' => '5.00', 'multimedia_id' => $archivo->id,
         ])->assertCreated()->json('data.id');
-        $this->assertDatabaseHas('notificaciones', ['usuario_id' => $admin->id, 'pago_id' => $pagoId, 'tipo' => 'PAGO_REGISTRADO']);
+        $this->assertDatabaseHas('notificaciones.notificaciones', ['usuario_id' => $admin->id, 'pago_id' => $pagoId, 'tipo' => 'PAGO_REGISTRADO']);
         $this->autenticar($admin);
         $this->patchJson('/api/v1/admin/pagos/'.$pagoId.'/verificar', ['estado' => 'RECHAZADO'])->assertOk();
-        $this->assertDatabaseHas('notificaciones', ['usuario_id' => $cliente->id, 'pago_id' => $pagoId, 'tipo' => 'PAGO_RECHAZADO']);
+        $this->assertDatabaseHas('notificaciones.notificaciones', ['usuario_id' => $cliente->id, 'pago_id' => $pagoId, 'tipo' => 'PAGO_RECHAZADO']);
         $this->patchJson('/api/v1/admin/pagos/'.$pagoId.'/verificar', ['estado' => 'APROBADO'])->assertBadRequest();
-        $this->assertDatabaseCount('notificaciones', 4);
+        $this->assertDatabaseCount('notificaciones.notificaciones', 4);
     }
 
     public function test_listado_filtra_pagina_y_cuenta_no_leidas_globales(): void
@@ -124,8 +124,8 @@ class NotificacionesTest extends TestCase
         $this->patchJson('/api/v1/notificaciones/'.$propia->id.'/leida')->assertOk()->assertJsonPath('data.fecha_lectura', $primeraFecha);
         $this->patchJson('/api/v1/notificaciones/leer-todas')->assertOk()->assertJsonPath('data.actualizadas', 1);
         $this->patchJson('/api/v1/notificaciones/leer-todas')->assertOk()->assertJsonPath('data.actualizadas', 0);
-        $this->assertDatabaseHas('notificaciones', ['id' => $segunda->id, 'leida' => true]);
-        $this->assertDatabaseHas('notificaciones', ['id' => $ajena->id, 'leida' => false]);
+        $this->assertDatabaseHas('notificaciones.notificaciones', ['id' => $segunda->id, 'leida' => true]);
+        $this->assertDatabaseHas('notificaciones.notificaciones', ['id' => $ajena->id, 'leida' => false]);
         $this->getJson('/api/v1/notificaciones')->assertJsonPath('meta.total_no_leidas', 0);
     }
 
@@ -137,10 +137,10 @@ class NotificacionesTest extends TestCase
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 1])->assertCreated();
         $this->mock(NotificacionRepositorioInterface::class)->shouldReceive('guardar')->once()->andThrow(new RuntimeException('Falla de aviso'));
         $this->postJson('/api/v1/pedidos', ['fecha_entrega' => now()->addDay()->toDateString(), 'total_esperado' => '5.00'])->assertInternalServerError();
-        $this->assertDatabaseCount('pedidos', 0);
-        $this->assertDatabaseCount('notificaciones', 0);
-        $this->assertDatabaseCount('detalles_carrito', 1);
-        $this->assertDatabaseHas('detalles', ['producto_id' => $producto->id, 'stock' => 3]);
+        $this->assertDatabaseCount('ventas.pedidos', 0);
+        $this->assertDatabaseCount('notificaciones.notificaciones', 0);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 1);
+        $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 3]);
     }
 
     private function autenticarCliente(): UsuarioModelo

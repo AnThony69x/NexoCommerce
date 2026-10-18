@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Publicaciones;
 
+use App\Http\Requests\ExisteEnTabla;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CrearPublicacionRequest extends FormRequest
@@ -18,11 +19,11 @@ class CrearPublicacionRequest extends FormRequest
         return [
             'titulo' => ['required', 'string', 'max:150'],
             'descripcion' => ['nullable', 'string'],
-            'categoria_id' => ['nullable', 'integer', 'exists:categorias,id'],
-            'producto_id' => ['nullable', 'integer', 'exists:productos,id'],
+            'categoria_id' => ['nullable', 'integer', new ExisteEnTabla('catalogo.categorias', 'id')],
+            'producto_id' => ['nullable', 'integer', new ExisteEnTabla('catalogo.productos', 'id')],
             'activo' => ['sometimes', 'boolean'],
             'imagenes' => ['sometimes', 'array', 'max:8'],
-            'imagenes.*.multimedia_id' => ['required', 'integer', 'distinct', 'exists:multimedia,id'],
+            'imagenes.*.multimedia_id' => ['required', 'integer', 'distinct', new ExisteEnTabla('media.multimedia', 'id')],
             'imagenes.*.orden' => ['sometimes', 'integer', 'min:0'],
         ];
     }

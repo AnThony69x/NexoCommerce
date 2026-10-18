@@ -210,9 +210,9 @@ final class ConfiguracionProduccionRepositorioEloquent implements ConfiguracionP
             return [];
         }
 
-        $filas = DB::table('detalles_pedido')
-            ->join('pedidos', 'pedidos.id', '=', 'detalles_pedido.pedido_id')
-            ->join('productos', 'productos.id', '=', 'detalles_pedido.producto_id')
+        $filas = DB::table('ventas.detalles_pedido')
+            ->join('ventas.pedidos', 'pedidos.id', '=', 'detalles_pedido.pedido_id')
+            ->join('catalogo.productos', 'productos.id', '=', 'detalles_pedido.producto_id')
             ->whereIn('pedidos.fecha_entrega', $fechas)
             ->where('pedidos.estado', '<>', 'ENTREGADO')
             ->groupBy('pedidos.fecha_entrega', 'productos.categoria_id')

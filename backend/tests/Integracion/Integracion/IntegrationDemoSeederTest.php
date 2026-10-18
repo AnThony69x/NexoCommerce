@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Tests\Integracion\Integracion;
 
 use Database\Seeders\IntegrationDemoSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Tests\TestCase;
 
 class IntegrationDemoSeederTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     public function test_crea_cuentas_y_catalogo_repetibles_en_base_aislada(): void
     {
@@ -37,12 +37,12 @@ class IntegrationDemoSeederTest extends TestCase
         try {
             $this->seed(IntegrationDemoSeeder::class);
             $this->seed(IntegrationDemoSeeder::class);
-            $this->assertDatabaseCount('usuarios', 2);
-            $this->assertDatabaseCount('productos', 3);
-            $this->assertDatabaseCount('detalles', 1);
-            $this->assertDatabaseCount('tortas', 1);
-            $this->assertDatabaseCount('sublimaciones', 1);
-            $this->assertDatabaseCount('configuracion_produccion', 30);
+            $this->assertDatabaseCount('auth.usuarios', 2);
+            $this->assertDatabaseCount('catalogo.productos', 3);
+            $this->assertDatabaseCount('catalogo.detalles', 1);
+            $this->assertDatabaseCount('catalogo.tortas', 1);
+            $this->assertDatabaseCount('catalogo.sublimaciones', 1);
+            $this->assertDatabaseCount('produccion.configuracion_produccion', 30);
             $this->postJson('/api/v1/auth/login', ['correo' => $variables['INTEGRATION_CLIENT_EMAIL'], 'password' => $variables['INTEGRATION_CLIENT_PASSWORD']])
                 ->assertOk()->assertJsonPath('data.usuario.rol', 'CLIENTE');
             $this->postJson('/api/v1/auth/login', ['correo' => $variables['INTEGRATION_ADMIN_EMAIL'], 'password' => $variables['INTEGRATION_ADMIN_PASSWORD']])

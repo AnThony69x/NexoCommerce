@@ -20,7 +20,7 @@ class ConfiguracionTiendaSeeder extends Seeder
             'activo' => true,
         ];
 
-        DB::table('configuracion_tienda')->updateOrInsert(
+        DB::table('tienda.configuracion_tienda')->updateOrInsert(
             ['clave' => 'principal'],
             $payload,
         );

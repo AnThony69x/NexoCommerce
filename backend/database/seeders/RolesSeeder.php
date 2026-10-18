@@ -9,17 +9,9 @@ class RolesSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('roles')->updateOrInsert(
-            ['id' => 1],
-            ['nombre' => 'ADMIN']
-        );
-        DB::table('roles')->updateOrInsert(
-            ['id' => 2],
-            ['nombre' => 'CLIENTE']
-        );
-
-        if (DB::getDriverName() === 'pgsql') {
-            DB::statement("SELECT setval(pg_get_serial_sequence('roles', 'id'), (SELECT MAX(id) FROM roles))");
-        }
+        DB::table('auth.roles')->insertOrIgnore([
+            ['nombre' => 'ADMIN'],
+            ['nombre' => 'CLIENTE'],
+        ]);
     }
 }

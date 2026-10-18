@@ -40,9 +40,9 @@ class PedidosConcurrentesTest extends TestCase
 
         sort($resultados);
         $this->assertSame(['OK', 'PED_SIN_STOCK'], $resultados);
-        $this->assertDatabaseHas('detalles', ['producto_id' => $producto->id, 'stock' => 0]);
-        $this->assertDatabaseCount('pedidos', 1);
-        $this->assertDatabaseCount('detalles_carrito', 1);
+        $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 0]);
+        $this->assertDatabaseCount('ventas.pedidos', 1);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 1);
     }
 
     public function test_dos_pedidos_simultaneos_no_superan_el_cupo(): void
@@ -58,8 +58,8 @@ class PedidosConcurrentesTest extends TestCase
 
         sort($resultados);
         $this->assertSame(['OK', 'PED_SIN_CAPACIDAD'], $resultados);
-        $this->assertDatabaseCount('pedidos', 1);
-        $this->assertDatabaseCount('detalles_carrito', 1);
+        $this->assertDatabaseCount('ventas.pedidos', 1);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 1);
     }
 
     private function requiereFork(): void

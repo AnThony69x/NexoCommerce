@@ -15,7 +15,7 @@ class DisenoPersonalizadoModelo extends Model
     /** @use HasFactory<DisenoPersonalizadoModeloFactory> */
     use HasFactory;
 
-    protected $table = 'disenos_personalizados';
+    protected $table = 'ventas.disenos_personalizados';
 
     public const CREATED_AT = 'creado_en';
 

@@ -17,7 +17,7 @@ class ConfiguracionTiendaModelo extends Model
     /** @use HasFactory<ConfiguracionTiendaModeloFactory> */
     use HasFactory;
 
-    protected $table = 'configuracion_tienda';
+    protected $table = 'tienda.configuracion_tienda';
 
     protected $primaryKey = 'id';
 

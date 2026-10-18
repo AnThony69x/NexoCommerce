@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VerificacionCorreoModelo extends Model
 {
-    protected $table = 'verificaciones_correo';
+    protected $table = 'auth.verificaciones_correo';
 
     protected $primaryKey = 'id';
 

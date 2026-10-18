@@ -7,7 +7,7 @@ namespace Tests\Integracion\Multimedia;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\MultimediaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 class MultimediaTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -64,7 +64,7 @@ class MultimediaTest extends TestCase
         $this->assertIsString($ruta);
         $this->assertStringStartsWith('personalizaciones/', $ruta);
         $this->assertNull($response->json('data.url'));
-        $this->assertDatabaseHas('multimedia', [
+        $this->assertDatabaseHas('media.multimedia', [
             'id' => $response->json('data.id'),
             'subido_por_id' => $usuario->id,
             'tamano_bytes' => 102400,
@@ -90,7 +90,7 @@ class MultimediaTest extends TestCase
             ->assertJsonPath('success', false)
             ->assertJsonPath('errors.archivo.0', 'El archivo no puede superar los 5 MB.');
 
-        $this->assertDatabaseCount('multimedia', 0);
+        $this->assertDatabaseCount('media.multimedia', 0);
         Storage::disk('multimedia')->assertEmpty();
     }
 
@@ -121,7 +121,7 @@ class MultimediaTest extends TestCase
             ->post('/api/v1/multimedia', [
                 'archivo' => UploadedFile::fake()->create('publica.png', 100, 'image/png'), 'destino' => 'productos',
             ])->assertForbidden();
-        $this->assertDatabaseCount('multimedia', 0);
+        $this->assertDatabaseCount('media.multimedia', 0);
 
         Auth::forgetGuards();
         $admin = UsuarioModelo::factory()->admin()->create();
@@ -176,7 +176,7 @@ class MultimediaTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonPath('errors.destino.0', 'Los archivos PDF solo pueden registrarse como comprobantes.');
 
-        $this->assertDatabaseCount('multimedia', 0);
+        $this->assertDatabaseCount('media.multimedia', 0);
         Storage::disk('multimedia')->assertEmpty();
     }
 
@@ -205,7 +205,7 @@ class MultimediaTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
 
-        $this->assertDatabaseHas('multimedia', [
+        $this->assertDatabaseHas('media.multimedia', [
             'id' => $multimedia->id,
             'activo' => false,
         ]);
@@ -223,7 +223,7 @@ class MultimediaTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
 
-        $this->assertDatabaseHas('multimedia', [
+        $this->assertDatabaseHas('media.multimedia', [
             'id' => $multimedia->id,
             'activo' => false,
         ]);
@@ -241,7 +241,7 @@ class MultimediaTest extends TestCase
             ->assertForbidden()
             ->assertJsonPath('codigo_error', 'MED_NO_AUTORIZADO');
 
-        $this->assertDatabaseHas('multimedia', [
+        $this->assertDatabaseHas('media.multimedia', [
             'id' => $multimedia->id,
             'activo' => true,
         ]);

@@ -179,7 +179,7 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
             if (! EstadosPedido::admite($modelo->estado, $estado)) {
                 throw $this->error('Transicion de estado invalida.', 'PED_ESTADO_INVALIDO');
             }
-            if ($estado === 'EN_PREPARACION' && ! DB::table('pagos')->where('pedido_id', $id)->where('estado', 'APROBADO')->exists()) {
+            if ($estado === 'EN_PREPARACION' && ! DB::table('pagos.pagos')->where('pedido_id', $id)->where('estado', 'APROBADO')->exists()) {
                 throw $this->error('El pago no esta aprobado.', 'PED_PAGO_NO_APROBADO');
             }
             $modelo->update(['estado' => $estado]);
@@ -202,7 +202,7 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
             : [];
         $pago = null;
         if ($conPago) {
-            $registro = DB::table('pagos')->where('pedido_id', $modelo->id)->orderByDesc('id')->first();
+            $registro = DB::table('pagos.pagos')->where('pedido_id', $modelo->id)->orderByDesc('id')->first();
             if ($registro !== null) {
                 $pago = ['id' => (int) $registro->id, 'metodo' => $registro->metodo, 'estado' => $registro->estado, 'monto' => (string) $registro->monto];
             }

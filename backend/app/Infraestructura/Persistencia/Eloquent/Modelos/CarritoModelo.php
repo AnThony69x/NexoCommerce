@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CarritoModelo extends Model
 {
-    protected $table = 'carritos';
+    protected $table = 'ventas.carritos';
 
     public const CREATED_AT = 'creado_en';
 

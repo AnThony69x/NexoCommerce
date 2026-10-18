@@ -38,7 +38,7 @@ class PagosConcurrentesTest extends TestCase
 
         sort($resultados);
         $this->assertSame(['OK', 'PAG_PAGO_ACTIVO'], $resultados);
-        $this->assertDatabaseCount('pagos', 1);
+        $this->assertDatabaseCount('pagos.pagos', 1);
     }
 
     public function test_una_referencia_simultanea_no_se_asocia_a_dos_pedidos(): void
@@ -55,7 +55,7 @@ class PagosConcurrentesTest extends TestCase
 
         sort($resultados);
         $this->assertSame(['OK', 'PAG_REFERENCIA_DUPLICADA'], $resultados);
-        $this->assertDatabaseCount('pagos', 1);
+        $this->assertDatabaseCount('pagos.pagos', 1);
     }
 
     private function requiereFork(): void

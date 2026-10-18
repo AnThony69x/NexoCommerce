@@ -12,13 +12,13 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\PublicacionModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PublicacionesTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -119,13 +119,13 @@ class PublicacionesTest extends TestCase
             ->assertJsonPath('data.imagenes.0.id', $imagen->id);
 
         $id = (int) $response->json('data.id');
-        $this->assertDatabaseHas('publicaciones', [
+        $this->assertDatabaseHas('publicaciones.publicaciones', [
             'id' => $id,
             'usuario_id' => $admin->id,
             'categoria_id' => null,
             'producto_id' => null,
         ]);
-        $this->assertDatabaseHas('publicacion_multimedia', [
+        $this->assertDatabaseHas('publicaciones.publicacion_multimedia', [
             'publicacion_id' => $id,
             'multimedia_id' => $imagen->id,
             'orden' => 3,
@@ -152,8 +152,8 @@ class PublicacionesTest extends TestCase
             ],
         ])->assertUnprocessable()->assertJsonStructure(['errors' => ['imagenes.1.multimedia_id']]);
 
-        $this->assertDatabaseMissing('publicaciones', ['titulo' => 'Demasiadas imagenes']);
-        $this->assertDatabaseMissing('publicaciones', ['titulo' => 'Imagen repetida']);
+        $this->assertDatabaseMissing('publicaciones.publicaciones', ['titulo' => 'Demasiadas imagenes']);
+        $this->assertDatabaseMissing('publicaciones.publicaciones', ['titulo' => 'Imagen repetida']);
     }
 
     public function test_put_conserva_omitidos_permite_nulos_y_reemplaza_o_limpia_imagenes(): void
@@ -184,7 +184,7 @@ class PublicacionesTest extends TestCase
             ->assertJsonPath('data.categoria_id', null)
             ->assertJsonPath('data.producto_id', null)
             ->assertJsonPath('data.imagenes.0.id', $nueva->id);
-        $this->assertDatabaseMissing('publicacion_multimedia', [
+        $this->assertDatabaseMissing('publicaciones.publicacion_multimedia', [
             'publicacion_id' => $publicacion->id,
             'multimedia_id' => $anterior->id,
         ]);
@@ -203,7 +203,7 @@ class PublicacionesTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
 
-        $this->assertDatabaseHas('publicaciones', ['id' => $publicacion->id, 'activo' => false]);
+        $this->assertDatabaseHas('publicaciones.publicaciones', ['id' => $publicacion->id, 'activo' => false]);
         $this->withHeaders(['Authorization' => ''])->getJson("/api/v1/publicaciones/{$publicacion->id}")
             ->assertNotFound()
             ->assertJsonPath('codigo_error', 'PUB_NO_ENCONTRADA');
@@ -245,8 +245,8 @@ class PublicacionesTest extends TestCase
             ]);
             $this->fail('Se esperaba una violacion de llave foranea.');
         } catch (QueryException) {
-            $this->assertDatabaseMissing('publicaciones', ['titulo' => 'Debe revertirse']);
-            $this->assertSame(0, DB::table('publicacion_multimedia')->count());
+            $this->assertDatabaseMissing('publicaciones.publicaciones', ['titulo' => 'Debe revertirse']);
+            $this->assertSame(0, DB::table('publicaciones.publicacion_multimedia')->count());
         }
     }
 

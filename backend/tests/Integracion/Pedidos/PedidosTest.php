@@ -15,14 +15,14 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\SublimacionModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\TortaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PedidosTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -62,13 +62,13 @@ class PedidosTest extends TestCase
             'fecha_entrega' => now()->addDay()->toDateString(), 'total_esperado' => '20.10',
         ])->assertCreated()->assertJsonPath('data.estado', 'PENDIENTE')->assertJsonPath('data.total', 20.1);
         $id = $pedido->json('data.id');
-        $this->assertDatabaseHas('detalles', ['producto_id' => $producto->id, 'stock' => 3]);
-        $this->assertDatabaseHas('detalles_pedido', [
+        $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 3]);
+        $this->assertDatabaseHas('ventas.detalles_pedido', [
             'pedido_id' => $id, 'nombre_producto' => 'Caja regalo', 'precio_unitario' => '10.05',
             'subtotal' => '20.10', 'indicaciones' => 'Entregar con lazo',
         ]);
-        $this->assertDatabaseCount('detalles_carrito', 0);
-        $this->assertDatabaseHas('carritos', ['usuario_id' => $cliente->id, 'activo' => true]);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 0);
+        $this->assertDatabaseHas('ventas.carritos', ['usuario_id' => $cliente->id, 'activo' => true]);
         $producto->update(['nombre' => 'Nombre nuevo', 'precio_base' => '50.00']);
         $this->getJson('/api/v1/pedidos/'.$id)->assertOk()
             ->assertJsonPath('data.items.0.nombre_producto', 'Caja regalo')
@@ -86,9 +86,9 @@ class PedidosTest extends TestCase
 
         $this->postJson('/api/v1/pedidos', ['fecha_entrega' => now()->addDay()->toDateString(), 'total_esperado' => '20.00'])
             ->assertBadRequest()->assertJsonPath('codigo_error', 'PED_PRECIO_CAMBIADO');
-        $this->assertDatabaseHas('detalles_carrito', ['producto_id' => $producto->id, 'cantidad' => 2, 'precio_unitario' => '11.25']);
-        $this->assertDatabaseHas('detalles', ['producto_id' => $producto->id, 'stock' => 4]);
-        $this->assertDatabaseCount('pedidos', 0);
+        $this->assertDatabaseHas('ventas.detalles_carrito', ['producto_id' => $producto->id, 'cantidad' => 2, 'precio_unitario' => '11.25']);
+        $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 4]);
+        $this->assertDatabaseCount('ventas.pedidos', 0);
         $this->getJson('/api/v1/carrito')->assertJsonPath('data.total', 22.5);
         $this->postJson('/api/v1/pedidos', ['fecha_entrega' => now()->addDay()->toDateString(), 'total_esperado' => '22.50'])->assertCreated();
     }
@@ -103,13 +103,13 @@ class PedidosTest extends TestCase
 
         $this->postJson('/api/v1/pedidos', ['fecha_entrega' => now()->addDay()->toDateString(), 'total_esperado' => '10.00'])
             ->assertBadRequest()->assertJsonPath('codigo_error', 'PED_SIN_STOCK');
-        $this->assertDatabaseCount('pedidos', 0);
-        $this->assertDatabaseCount('detalles_carrito', 1);
-        $this->assertDatabaseHas('detalles', ['producto_id' => $producto->id, 'stock' => 1]);
+        $this->assertDatabaseCount('ventas.pedidos', 0);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 1);
+        $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 1]);
         $producto->update(['activo' => false]);
         $this->postJson('/api/v1/pedidos', ['fecha_entrega' => now()->addDay()->toDateString(), 'total_esperado' => '10.00'])
             ->assertBadRequest()->assertJsonPath('codigo_error', 'PED_ITEM_NO_DISPONIBLE');
-        $this->assertDatabaseCount('pedidos', 0);
+        $this->assertDatabaseCount('ventas.pedidos', 0);
     }
 
     public function test_sublimacion_guarda_costo_y_ambas_indicaciones(): void
@@ -126,8 +126,8 @@ class PedidosTest extends TestCase
 
         $pedido = $this->postJson('/api/v1/pedidos', ['fecha_entrega' => now()->addDay()->toDateString(), 'total_esperado' => '16.40'])->assertCreated();
         $id = $pedido->json('data.id');
-        $this->assertDatabaseHas('detalles_pedido', ['pedido_id' => $id, 'tipo_configuracion' => 'PLANTILLA', 'nombre_diseno' => $plantilla->nombre, 'costo_diseno' => '0.20']);
-        $this->assertDatabaseHas('detalles_pedido', [
+        $this->assertDatabaseHas('ventas.detalles_pedido', ['pedido_id' => $id, 'tipo_configuracion' => 'PLANTILLA', 'nombre_diseno' => $plantilla->nombre, 'costo_diseno' => '0.20']);
+        $this->assertDatabaseHas('ventas.detalles_pedido', [
             'pedido_id' => $id, 'tipo_configuracion' => 'DISENO_PERSONALIZADO', 'nombre_diseno' => null,
             'costo_diseno' => '0.00', 'indicaciones' => "Comentario: Empacar\nDiseño personalizado: Texto azul",
         ]);
@@ -148,7 +148,7 @@ class PedidosTest extends TestCase
         $this->postJson('/api/v1/pedidos', ['fecha_entrega' => $fecha, 'total_esperado' => '44.00'])->assertBadRequest();
         ConfiguracionProduccionModelo::query()->update(['capacidad_maxima' => 2]);
         $pedido = $this->postJson('/api/v1/pedidos', ['fecha_entrega' => $fecha, 'total_esperado' => '44.00'])->assertCreated();
-        $this->assertDatabaseHas('detalles_pedido', [
+        $this->assertDatabaseHas('ventas.detalles_pedido', [
             'pedido_id' => $pedido->json('data.id'), 'tipo_configuracion' => 'DISENO_TORTA',
             'nombre_diseno' => $diseno->nombre, 'costo_diseno' => '2.00',
         ]);
@@ -179,7 +179,7 @@ class PedidosTest extends TestCase
             ->assertBadRequest()->assertJsonPath('codigo_error', 'PED_ESTADO_INVALIDO');
         $this->patchJson('/api/v1/admin/pedidos/'.$id.'/estado', ['estado' => 'EN_PREPARACION'])
             ->assertBadRequest()->assertJsonPath('codigo_error', 'PED_PAGO_NO_APROBADO');
-        DB::table('pagos')->insert([
+        DB::table('pagos.pagos')->insert([
             'pedido_id' => $id, 'metodo' => 'PASARELA', 'estado' => 'APROBADO', 'monto' => '5.00',
             'creado_en' => now(), 'actualizado_en' => now(),
         ]);
@@ -201,9 +201,9 @@ class PedidosTest extends TestCase
 
         $this->postJson('/api/v1/pedidos', ['fecha_entrega' => now()->addDay()->toDateString(), 'total_esperado' => '20.00'])
             ->assertBadRequest()->assertJsonPath('codigo_error', 'PED_SIN_STOCK');
-        $this->assertDatabaseCount('pedidos', 0);
-        $this->assertDatabaseCount('detalles_carrito', 2);
-        $this->assertDatabaseHas('detalles', ['producto_id' => $producto->id, 'stock' => 3]);
+        $this->assertDatabaseCount('ventas.pedidos', 0);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 2);
+        $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 3]);
     }
 
     public function test_plantilla_desactivada_bloquea_pedido_y_conserva_carrito(): void
@@ -217,8 +217,8 @@ class PedidosTest extends TestCase
 
         $this->postJson('/api/v1/pedidos', ['fecha_entrega' => now()->addDay()->toDateString(), 'total_esperado' => '10.00'])
             ->assertBadRequest()->assertJsonPath('codigo_error', 'PED_ITEM_NO_DISPONIBLE');
-        $this->assertDatabaseCount('pedidos', 0);
-        $this->assertDatabaseCount('detalles_carrito', 1);
+        $this->assertDatabaseCount('ventas.pedidos', 0);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 1);
     }
 
     public function test_listado_del_cliente_pagina_quince_pedidos_estables(): void
