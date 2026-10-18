@@ -258,6 +258,9 @@ class PedidosTest extends TestCase
             'hora_entrega' => '15:30:00', 'descuento' => '0.00', 'costo_envio' => '0.00', 'total' => '10.00',
         ]);
 
+        $this->getJson('/api/v1/pedidos/'.$id)->assertOk()
+            ->assertJsonPath('data.tipo_entrega', 'DOMICILIO')->assertJsonPath('data.direccion_entrega', 'Av. Principal 123')
+            ->assertJsonPath('data.telefono_contacto', '0991234567')->assertJsonPath('data.hora_entrega', '15:30');
         Auth::forgetGuards();
         $admin = UsuarioModelo::factory()->admin()->create();
         $this->withToken($admin->createToken('test')->plainTextToken);

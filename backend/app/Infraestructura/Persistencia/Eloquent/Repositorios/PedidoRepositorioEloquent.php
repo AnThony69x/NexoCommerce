@@ -217,10 +217,16 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
             }
         }
 
+        $entrega = [
+            'tipo_entrega' => $modelo->tipo_entrega, 'direccion_entrega' => $modelo->direccion_entrega,
+            'telefono_contacto' => $modelo->telefono_contacto,
+            'hora_entrega' => $modelo->hora_entrega === null ? null : substr((string) $modelo->hora_entrega, 0, 5),
+        ];
+
         return new Pedido(
             (int) $modelo->id, (int) $modelo->usuario_id, $modelo->fecha_entrega->format('Y-m-d'),
             $modelo->estado, (string) $modelo->subtotal, (string) $modelo->total,
-            DateTimeImmutable::createFromInterface($modelo->creado_en), $items, $pago,
+            DateTimeImmutable::createFromInterface($modelo->creado_en), $items, $pago, $entrega,
         );
     }
 

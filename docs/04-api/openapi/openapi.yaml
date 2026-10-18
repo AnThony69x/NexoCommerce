@@ -519,7 +519,7 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Pedido con snapshot de detalles y pago mas reciente o null; CLIENTE propio o ADMIN cualquiera }
+        '200': { description: 'Pedido con snapshot de detalles, datos de entrega (tipo_entrega, direccion_entrega, telefono_contacto, hora_entrega) y pago mas reciente o null; CLIENTE propio o ADMIN cualquiera' }
         '403': { description: Pedido de otro CLIENTE }
 
   /admin/pedidos:

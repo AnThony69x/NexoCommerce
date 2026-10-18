@@ -174,6 +174,8 @@ Query: `estado` (`PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO`, `CANCELADO
 
 CLIENTE solo el propio. ADMIN cualquiera. 403 si no es dueño.
 
+El detalle incluye los datos de entrega: `tipo_entrega`, `direccion_entrega`, `telefono_contacto` y `hora_entrega` (`HH:MM` o null). El listado (4.2 y 4.4) no los incluye.
+
 ```json
 {
   "success": true,
@@ -184,6 +186,10 @@ CLIENTE solo el propio. ADMIN cualquiera. 403 si no es dueño.
     "estado": "PENDIENTE",
     "subtotal": 35.00,
     "total": 35.00,
+    "tipo_entrega": "RETIRO",
+    "direccion_entrega": null,
+    "telefono_contacto": null,
+    "hora_entrega": null,
     "items": [
       {
         "id": 1,
@@ -250,11 +256,11 @@ Salto, retroceso o repeticion de estado: 400 `PED_ESTADO_INVALIDO`. Cancelar des
 * [x] **TC-07:** Precio cambiado persiste en carrito y requiere reconfirmacion; no crea pedido.
 * [x] **TC-08:** Crear pedido descuenta stock de DETALLE, guarda snapshot y vacia carrito atomicamente.
 * [x] **TC-09:** Dos pedidos concurrentes no exceden stock ni cupo de produccion.
-* [ ] **TC-10:** `DOMICILIO` sin `direccion_entrega`: 422. Con direccion: 201, `descuento` y `costo_envio` en 0. (Pendiente de ejecutar: prueba `test_entrega_domicilio_exige_direccion_y_cancelar_restaura_stock`.)
-* [ ] **TC-11:** Cancelar un pedido `PENDIENTE` devuelve el stock descontado al crearlo; cancelar desde `LISTO`: 400. (Pendiente de ejecutar, misma prueba.)
+* [x] **TC-10:** `DOMICILIO` sin `direccion_entrega`: 422. Con direccion: 201, `descuento` y `costo_envio` en 0, y el detalle devuelve los datos de entrega.
+* [x] **TC-11:** Cancelar un pedido `PENDIENTE` devuelve el stock descontado al crearlo; cancelar desde `LISTO`: 400.
 
 ---
 
 ## 6. Historial de cambios
-* **1.2.0 (2026-10-18):** cambio de contrato. Nuevo estado `CANCELADO` (en `PATCH /admin/pedidos/{id}/estado` y filtros de listado). Campos de entrega opcionales en `POST /pedidos`: `tipo_entrega`, `direccion_entrega`, `telefono_contacto`, `hora_entrega`. Sin cambios en las respuestas de pedido; los campos de entrega aun no se devuelven en `GET /pedidos` (pendiente).
+* **1.2.0 (2026-10-18):** cambio de contrato. Nuevo estado `CANCELADO` (en `PATCH /admin/pedidos/{id}/estado` y filtros de listado). Campos de entrega opcionales en `POST /pedidos`: `tipo_entrega`, `direccion_entrega`, `telefono_contacto`, `hora_entrega`. El detalle (`GET /pedidos/{id}`) devuelve `tipo_entrega`, `direccion_entrega`, `telefono_contacto` y `hora_entrega`. El listado no cambia.
 * **1.1.1 (2026-09-24):** version previa del contrato.

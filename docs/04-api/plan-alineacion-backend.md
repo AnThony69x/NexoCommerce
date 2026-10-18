@@ -74,6 +74,15 @@ Actualizar los specs afectados (`docs/04-api/specs/06` a `11`), `docs/04-api/ope
   - un pago parcial deja el pedido en PENDIENTE;
   - pasar a EN_PREPARACION exige pago APROBADO.
 - Actualizar `tests/Integracion/EsquemaBaseDatosTest.php` y los tests de los módulos tocados.
+- **Estado (2026-10-18, verificado en local):**
+  - Suite principal como `postgres` (superusuario local): 172 pasan y 1 se omite, que ya estaba omitida antes.
+  - Pruebas concurrentes en base nueva: 4 de 4.
+  - Permisos con `nexo_backend`, script `backend/tests/Sql/permisos_nexo_backend.sql`: las 8 operaciones prohibidas se rechazan (borrar pedidos, escribir en `pedido_historial_estado`, leer, modificar y truncar `auditoria`).
+  - Decisión sobre la auditoría: la prueba `test_alta_de_categoria_queda_auditada_con_el_usuario_que_la_creo` lleva el grupo `auditoria`. Lee `auditoria` con la conexión de la app, así que solo corre con la cuenta dueña. Con `nexo_backend` se excluye con `--exclude-group auditoria`.
+  - Suite como `nexo_backend` (sin `concurrente` ni `auditoria`): 171 pasan y 1 se omite, en PostgreSQL 17.11 y 18.6.
+  - Escritura real como `nexo_backend`: el INSERT en `catalogo.categorias` queda auditado con origen `API`. Sin usuario válido en la base de prueba, `usuario_id` queda vacío.
+  - PostgreSQL 18.6 (la versión documentada por la base, validada 18.4): `instalar.sql`, `database/tests/reglas.sql` y las 9 comprobaciones de permisos pasan. La versión 17 también pasa todo.
+  - `migrate` como `nexo_backend` falla sin `CREATE` en `public` (PostgreSQL 15 o superior lo bloquea por defecto). Las tablas técnicas (`cache`, `jobs`, `sessions`, `password_reset_tokens`) se crean una vez con la cuenta dueña.
 
 ### Fase 4: prueba con el servidor de archivos
 
@@ -107,6 +116,17 @@ Lectura pública por Laravel.
 7. Subir con la instancia 8001 y leer con la 8002.
 
 **Éxito:** los siete pasos pasan, y un fallo de red (servidor apagado) devuelve un error de servicio controlado.
+
+### Pendientes para cuando estén encendidas la BD de Melanie y el servidor de archivos
+
+Esto no se puede hacer desde la VM sin ellos:
+
+- Prueba end-to-end de los siete pasos de la Fase 4 contra `100.88.4.113`.
+- Variables SFTP en el `.env` local, clave privada como secreto y huella del host real (la da Emilio).
+- Confirmar con Melanie los permisos finales de `nexo_backend` en su base y que las tablas técnicas las crea la cuenta dueña.
+- Las pruebas escriben datos: solo contra una base de prueba que Melanie apruebe, nunca contra la base de producción.
+- Avisos a Nathalia y Emilio de los cambios de contrato.
+- `client_max_body_size` de NGINX (carpeta `nginx/`, fuera del alcance acordado).
 
 ### Fase 5: cierre
 

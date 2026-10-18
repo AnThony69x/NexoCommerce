@@ -10,6 +10,7 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 class CategoriasTest extends TestCase
@@ -358,6 +359,7 @@ class CategoriasTest extends TestCase
             ->assertJsonPath('codigo_error', 'CAT_NO_ENCONTRADA');
     }
 
+    #[Group('auditoria')]
     public function test_alta_de_categoria_queda_auditada_con_el_usuario_que_la_creo(): void
     {
         $admin = UsuarioModelo::factory()->admin()->create();
