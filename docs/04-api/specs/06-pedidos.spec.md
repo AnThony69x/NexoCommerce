@@ -1,7 +1,7 @@
 # Modulo 06: Pedidos — Especificacion Tecnica (SDD)
 
-* **Version del contrato:** 1.1.1
-* **Fecha:** 2026-09-24
+* **Version del contrato:** 1.2.0
+* **Fecha:** 2026-10-18
 * **Prefijo base:** `/api/v1/pedidos`
 * **Estado:** Aprobado para implementacion
 * **Fuente de datos:** `pedidos`, `detalles_pedido`
@@ -10,31 +10,34 @@
 ---
 
 ## 1. Proposito y Alcance
-Crear pedidos desde el carrito activo. `fecha_entrega` y `total_esperado` son obligatorios. No hay `direccion_envio`, `codigo`, `telefono_contacto`, `notas` ni `metodo_pago` en `pedidos` (el metodo vive en `pagos`). Los detalles guardan snapshot: `nombre_producto`, precios, `tipo_configuracion`, `nombre_diseno`, `costo_diseno`, `indicaciones`.
+Crear pedidos desde el carrito activo. `fecha_entrega` y `total_esperado` son obligatorios. Datos de entrega opcionales: `tipo_entrega`, `direccion_entrega`, `telefono_contacto`, `hora_entrega`. El metodo de pago vive en `pagos`, no en `pedidos`. Los detalles guardan snapshot: `nombre_producto`, precios, `tipo_configuracion`, `nombre_diseno`, `costo_diseno`, `indicaciones`.
 
-Maquina de estados SQL:
+Maquina de estados (schema `ventas.fn_validar_estado_pedido`):
 
 ```text
 PENDIENTE → EN_PREPARACION → LISTO → ENTREGADO
+PENDIENTE → CANCELADO
+EN_PREPARACION → CANCELADO
 ```
 
-No existen estados `pagado`, `enviado`, `cancelado` ni `en_espera_pago`.
+No existen estados `pagado`, `enviado` ni `en_espera_pago`. `CANCELADO` solo se admite antes de `LISTO`.
 
 ---
 
 ## 2. Reglas de Negocio e Invariantes
 * **RN-PED-01:** Solo usuarios autenticados. CLIENTE crea y ve los propios. ADMIN lista todos y cambia estado.
-* **RN-PED-02:** Alta en transaccion: revalidar disponibilidad y configuracion, precio vigente, stock agregado de DETALLE y capacidad (spec 12); copiar items del carrito a `detalles_pedido`, calcular `subtotal`/`total`, descontar stock de DETALLE, crear estado inicial `PENDIENTE` y vaciar `detalles_carrito`. El descuento se realiza una sola vez por producto, bajo bloqueo, y no se revierte al entregar (no existe cancelacion).
+* **RN-PED-02:** Alta en transaccion: revalidar disponibilidad y configuracion, precio vigente, stock agregado de DETALLE y capacidad (spec 12); copiar items del carrito a `detalles_pedido`, calcular `subtotal`/`total`, descontar stock de DETALLE, crear estado inicial `PENDIENTE` y vaciar `detalles_carrito`. El descuento de stock se realiza con `catalogo.descontar_stock(producto_id, cantidad)` una vez por producto, bajo bloqueo; se revierte solo si el pedido pasa a `CANCELADO` (RN-PED-08).
 * **RN-PED-03:** `fecha_entrega` NOT NULL. No se aceptan fechas pasadas (aplicacion).
 * **RN-PED-04:** Secuencia de estados sin saltos. Solo ADMIN hace PATCH de estado.
 * **RN-PED-05:** No avanzar a `EN_PREPARACION` si el pedido no tiene un `pagos` en `APROBADO` (spec 07).
 * **RN-PED-06:** `subtotal >= 0`, `total >= 0`. `total` = suma de `detalles_pedido.subtotal`.
 * **RN-PED-07:** CHECK de configuracion en detalle: a lo sumo una FK de diseño. Snapshot `tipo_configuracion`: `DISENO_TORTA` | `PLANTILLA` | `DISENO_PERSONALIZADO` | null.
-* **RN-PED-08:** No hay cancelacion en SQL. Un PENDIENTE sin pago aprobado permanece PENDIENTE.
+* **RN-PED-08:** Cancelacion: ADMIN puede pasar a `CANCELADO` desde `PENDIENTE` o `EN_PREPARACION`. El esquema no devuelve stock al cancelar; la aplicacion suma de nuevo la cantidad de cada item a `catalogo.detalles.stock` en la misma transaccion. Un pedido cancelado no se borra.
 * **RN-PED-09:** FKs de producto en detalle son RESTRICT; el historial conserva el nombre aunque el catalogo cambie.
 * **RN-PED-10:** El cliente envia `total_esperado` como texto decimal de dos posiciones. Si difiere del total vigente, se persisten los precios nuevos en el carrito y se responde 400 `PED_PRECIO_CAMBIADO`; el cliente consulta el carrito y reintenta. No se crea pedido ni se descuenta stock.
 * **RN-PED-11:** En diseño personalizado, `nombre_diseno = null` y `tipo_configuracion = DISENO_PERSONALIZADO`. Si hay comentario e indicaciones, `indicaciones` conserva ambos como `Comentario: ...\nDiseño personalizado: ...`; si solo hay uno, se guarda sin prefijo.
 * **RN-PED-12:** El detalle muestra el pago de mayor ID o `null`. Las notificaciones se implementaran en Fase 11 (spec 10).
+* **RN-PED-13:** `tipo_entrega` es `RETIRO` (defecto) o `DOMICILIO`. Con `DOMICILIO`, `direccion_entrega` es obligatoria (CHECK `chk_pedido_direccion`). `costo_envio` y `descuento` se fijan en 0 en el servidor; el cliente no los envia. `total = subtotal - descuento + costo_envio` (CHECK `chk_pedido_total`).
 
 ---
 
@@ -47,12 +50,19 @@ No existen estados `pagado`, `enviado`, `cancelado` ni `en_espera_pago`.
 | `usuario_id` | INT | NO | FK `usuarios.id` RESTRICT |
 | `fecha_entrega` | DATE | NO | |
 | `estado` | VARCHAR(50) | NO | Default `PENDIENTE` |
+| `estado_pago` | VARCHAR(20) | NO | Default `PENDIENTE`; lo mantiene un trigger de pagos |
+| `hora_entrega` | TIME | SI | |
+| `tipo_entrega` | VARCHAR(20) | NO | Default `RETIRO`: `RETIRO`, `DOMICILIO` |
+| `direccion_entrega` | VARCHAR(255) | SI | Obligatoria si `DOMICILIO` |
+| `telefono_contacto` | VARCHAR(20) | SI | |
 | `subtotal` | DECIMAL(10,2) | NO | |
+| `descuento` | DECIMAL(10,2) | NO | Default 0; el servidor lo fija en 0 |
+| `costo_envio` | DECIMAL(10,2) | NO | Default 0; el servidor lo fija en 0 |
 | `total` | DECIMAL(10,2) | NO | |
 | `creado_en` | TIMESTAMP | NO | |
 | `actualizado_en` | TIMESTAMP | NO | |
 
-CHECK estado: `PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO`.
+CHECK estado: `PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO`, `CANCELADO`.
 
 ### Tabla: `detalles_pedido`
 | Campo | Tipo | Nulo | Descripcion |
@@ -88,13 +98,21 @@ El body no envia items; se leen del carrito activo.
 ```json
 {
   "fecha_entrega": "2026-10-01",
-  "total_esperado": "35.00"
+  "total_esperado": "35.00",
+  "tipo_entrega": "DOMICILIO",
+  "direccion_entrega": "Av. Principal 123",
+  "telefono_contacto": "0991234567",
+  "hora_entrega": "15:30"
 }
 ```
 
 #### Validaciones
 * `fecha_entrega`: `required|date_format:Y-m-d|after_or_equal:today`
 * `total_esperado`: texto decimal canonico no negativo, dos posiciones, maximo `99999999.99`; obligatorio.
+* `tipo_entrega`: opcional, `RETIRO` (defecto) o `DOMICILIO`.
+* `direccion_entrega`: `required_if:tipo_entrega,DOMICILIO`, texto de maximo 255.
+* `telefono_contacto`: opcional, texto de maximo 20.
+* `hora_entrega`: opcional, `HH:MM` (`date_format:H:i`).
 
 Carrito vacio: 400 `PED_CARRITO_VACIO`. Item inactivo o configuracion no disponible: 400 `PED_ITEM_NO_DISPONIBLE`. Stock insuficiente: 400 `PED_SIN_STOCK`. Precio cambiado: 400 `PED_PRECIO_CAMBIADO`. Capacidad de produccion excedida: 400 `PED_SIN_CAPACIDAD`. Total fuera del rango DECIMAL(10,2): 400 `PED_TOTAL_INVALIDO`. Las validaciones de body fallan con 422. Ante 400, el carrito permanece y no se descuenta stock; los precios vigentes quedan persistidos.
 
@@ -124,7 +142,7 @@ Tras crear, el cliente registra el pago (spec 07).
 * **Ruta:** `/api/v1/pedidos`
 * **Autenticacion:** Sanctum; solo CLIENTE.
 
-Query: `estado`, `page`.
+Query: `estado` (`PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO`, `CANCELADO`), `page`.
 
 #### 200 OK
 ```json
@@ -201,7 +219,7 @@ CLIENTE solo el propio. ADMIN cualquiera. 403 si no es dueño.
 * **Metodo:** `GET`
 * **Ruta:** `/api/v1/admin/pedidos`
 
-Query: `estado`, `fecha_entrega`, `usuario_id`, `page`.
+Query: `estado` (mismos valores que 4.2), `fecha_entrega`, `usuario_id`, `page`.
 
 ---
 
@@ -216,9 +234,9 @@ Query: `estado`, `fecha_entrega`, `usuario_id`, `page`.
 ```
 
 #### Validaciones
-* `estado`: `required|in:PENDIENTE,EN_PREPARACION,LISTO,ENTREGADO`
+* `estado`: `required|in:PENDIENTE,EN_PREPARACION,LISTO,ENTREGADO,CANCELADO`
 
-Salto, retroceso o repeticion de estado: 400 `PED_ESTADO_INVALIDO`. A `EN_PREPARACION` sin pago `APROBADO`: 400 `PED_PAGO_NO_APROBADO`. La notificacion se incorpora en Fase 11 (spec 10).
+Salto, retroceso o repeticion de estado: 400 `PED_ESTADO_INVALIDO`. Cancelar desde `LISTO` o `ENTREGADO`: 400 `PED_ESTADO_INVALIDO`. A `EN_PREPARACION` sin pago `APROBADO`: 400 `PED_PAGO_NO_APROBADO`. Al cancelar se devuelve el stock (RN-PED-08). La notificacion se incorpora en Fase 11 (spec 10).
 
 ---
 
@@ -232,3 +250,11 @@ Salto, retroceso o repeticion de estado: 400 `PED_ESTADO_INVALIDO`. A `EN_PREPAR
 * [x] **TC-07:** Precio cambiado persiste en carrito y requiere reconfirmacion; no crea pedido.
 * [x] **TC-08:** Crear pedido descuenta stock de DETALLE, guarda snapshot y vacia carrito atomicamente.
 * [x] **TC-09:** Dos pedidos concurrentes no exceden stock ni cupo de produccion.
+* [ ] **TC-10:** `DOMICILIO` sin `direccion_entrega`: 422. Con direccion: 201, `descuento` y `costo_envio` en 0. (Pendiente de ejecutar: prueba `test_entrega_domicilio_exige_direccion_y_cancelar_restaura_stock`.)
+* [ ] **TC-11:** Cancelar un pedido `PENDIENTE` devuelve el stock descontado al crearlo; cancelar desde `LISTO`: 400. (Pendiente de ejecutar, misma prueba.)
+
+---
+
+## 6. Historial de cambios
+* **1.2.0 (2026-10-18):** cambio de contrato. Nuevo estado `CANCELADO` (en `PATCH /admin/pedidos/{id}/estado` y filtros de listado). Campos de entrega opcionales en `POST /pedidos`: `tipo_entrega`, `direccion_entrega`, `telefono_contacto`, `hora_entrega`. Sin cambios en las respuestas de pedido; los campos de entrega aun no se devuelven en `GET /pedidos` (pendiente).
+* **1.1.1 (2026-09-24):** version previa del contrato.

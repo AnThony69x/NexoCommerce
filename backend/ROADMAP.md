@@ -366,7 +366,7 @@ Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
 
 - [x] Preparar BD de prueba aislada PostgreSQL 17 (`127.0.0.1:55432`, contenedor `nexo-test-db`) con `database/instalar.sql` y rol `nexo_backend` (Completado: 2026-10-18)
 - [x] Linea base: suite actual contra BD vacia `nexo_baseline`: 171 pruebas, 170 pasan, 1 omitida, 1028 aserciones (Completado: 2026-10-18)
-- [ ] Migraciones: retirar la migracion que crea las 25 tablas planas y las migraciones de negocio; el esquema se carga desde `database/instalar.sql`. Las pruebas ya no ejecutan migraciones; falta retirar los archivos
+- [x] Migraciones: retiradas las 4 migraciones de negocio (`personal_access_tokens`, `nexocommerce_tables`, `oauth_solo_google`, `add_clave_to_configuracion_tienda`). Conservadas las tecnicas: `password_reset_tokens`/`sessions` (0001_01_01_000000, sin `users`), `cache` y `jobs`. El esquema se carga desde `database/instalar.sql` (Completado: 2026-10-18; pendiente verificar `migrate` sobre BD nueva y permisos de `nexo_backend` en tablas tecnicas)
 - [x] Modelos Eloquent con schema (23 modelos, `$table` = `schema.tabla`) (Completado: 2026-10-18)
 - [x] Pruebas con esquema real: `DatabaseTransactions` sobre BD cargada con `instalar.sql` en lugar de `RefreshDatabase` (Completado: 2026-10-18). La BD de prueba debe recrearse antes de cada corrida: las pruebas concurrentes confirman datos
 - [x] Consultas, joins y reglas de validacion con schema: `ExisteEnTabla` y `UnicoEnTabla`, porque la regla `exists`/`unique` de Laravel interpreta el punto como conexion (Completado: 2026-10-18)
@@ -382,10 +382,10 @@ Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
 - [x] Suite con esquema real: 171 de 171 pasan (2026-10-18) en dos corridas. Principal: `--exclude-group concurrente` con base nueva. Concurrentes (`#[Group('concurrente')]`): base nueva propia. Las pruebas concurrentes no limpian porque el esquema impide borrar pagos y pedidos
 - [x] Publicaciones: la API conserva `activo`; internamente `estado` PUBLICADA/ARCHIVADA y `publicada_en`; orden 0-based en la API y 1-based en BD (maximo 9 en la API) (Completado: 2026-10-18)
 - [x] Tienda: `logo_id`/`favicon_id` con `media.multimedia`; la API conserva `logo_url`/`favicon_url` (archivo validado y URL calculada); `clave` retirada (Completado: 2026-10-18)
-- [ ] Pedidos: campos nuevos, estado `CANCELADO`, `total = subtotal - descuento + costo_envio`, `catalogo.descontar_stock` (cambio de contrato)
+- [~] Pedidos: campos de entrega, estado `CANCELADO` (restituye stock), `descuento`/`costo_envio` en 0, `catalogo.descontar_stock`; contrato `docs/04-api` spec 06 v1.2.0 y OpenAPI 1.2.0 (cambio de contrato). Codigo hecho 2026-10-18; prueba `test_entrega_domicilio_exige_direccion_y_cancelar_restaura_stock` escrita, pendiente de ejecutar (la BD de prueba no era accesible con la configuracion de `.env`)
 - [x] Productos: `tipo` persistido y coherente con la subtabla; diseños personalizados con `producto_id`/`tipo_producto` y costo fijo de sublimacion; imagen obligatoria en diseños de torta y plantillas (Completado: 2026-10-18)
-- [ ] Pagos, multimedia y notificaciones: `moneda` USD; multimedia `descripcion`/`modulo`/`checksum_sha256`; notificaciones `canal`/`estado_envio`/`intentos_envio`
-- [ ] Auditoria: `set_config` dentro de cada transaccion de escritura
+- [~] Pagos, multimedia y notificaciones: multimedia `modulo`/`checksum_sha256` persistidos y probados (2026-10-18). Pagos (`moneda`) y notificaciones (`canal`, `estado_envio`, `intentos_envio`) cubiertos por defaults del esquema; no se setean explicitamente
+- [x] Auditoria: `ContextoAuditoria` aplica `set_config` (`app.usuario_id`, `app.ip_origen`, `app.origen`, `app.solicitud_id`) en cada transaccion iniciada y en la autenticacion Sanctum; prueba de alta de categoria auditada (Completado: 2026-10-18)
 - [x] Instalar `league/flysystem-sftp-v3` (aprobado por el usuario el 2026-10-18; instalado 3.36.0 con phpseclib 3.0.57) (Completado: 2026-10-18)
 - [x] Disco `multimedia_sftp` y `SftpAlmacenamientoArchivos` con errores controlados 503 `MUL_ALMACENAMIENTO_NO_DISPONIBLE`; binding por `MULTIMEDIA_DISK` (por defecto local); sin `MULTIMEDIA_SFTP_HOST_FINGERPRINT` no arranca el adaptador; prueba con servidor inaccesible (Completado: 2026-10-18)
 - [~] Variables `MULTIMEDIA_SFTP_*` en `docker-compose.yml` (hecho 2026-10-18). Pendiente: `.env` local (no accesible desde el agente), clave privada como secreto y huella del host real
