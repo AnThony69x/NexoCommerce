@@ -7,6 +7,7 @@ namespace App\Infraestructura\Almacenamiento;
 use App\Aplicacion\Multimedia\Contratos\AlmacenamientoArchivosInterface;
 use App\Dominio\Compartido\Excepciones\DominioException;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -15,6 +16,13 @@ use Throwable;
  */
 final class SftpAlmacenamientoArchivos implements AlmacenamientoArchivosInterface
 {
+    public function __construct()
+    {
+        if (blank(config('filesystems.disks.multimedia_sftp.hostFingerprint'))) {
+            throw new RuntimeException('MULTIMEDIA_SFTP_HOST_FINGERPRINT es obligatoria cuando MULTIMEDIA_DISK=sftp.');
+        }
+    }
+
     public function guardar(string $rutaRelativa, string $contenido): string
     {
         $this->ejecutar(fn () => Storage::disk('multimedia_sftp')->put($rutaRelativa, $contenido));

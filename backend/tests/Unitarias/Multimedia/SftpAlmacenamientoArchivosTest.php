@@ -7,10 +7,19 @@ namespace Tests\Unitarias\Multimedia;
 use App\Dominio\Compartido\Excepciones\DominioException;
 use App\Infraestructura\Almacenamiento\SftpAlmacenamientoArchivos;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Tests\TestCase;
 
 class SftpAlmacenamientoArchivosTest extends TestCase
 {
+    public function test_sin_huella_del_host_no_se_construye(): void
+    {
+        config(['filesystems.disks.multimedia_sftp.hostFingerprint' => null]);
+
+        $this->expectException(RuntimeException::class);
+        new SftpAlmacenamientoArchivos;
+    }
+
     public function test_servidor_inaccesible_responde_503_controlado(): void
     {
         config(['filesystems.disks.multimedia_sftp' => [
@@ -19,6 +28,7 @@ class SftpAlmacenamientoArchivosTest extends TestCase
             'port' => 1,
             'username' => 'prueba',
             'password' => 'prueba',
+            'hostFingerprint' => 'SHA256:prueba',
             'root' => '/srv/nexocommerce',
             'timeout' => 1,
             'throw' => true,

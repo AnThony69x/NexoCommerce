@@ -8,6 +8,7 @@ use App\Aplicacion\Multimedia\Contratos\AlmacenamientoArchivosInterface;
 use App\Aplicacion\Multimedia\DTOs\SubirMultimediaDTO;
 use App\Dominio\Multimedia\Entidades\Multimedia;
 use App\Dominio\Multimedia\Repositorios\MultimediaRepositorioInterface;
+use Throwable;
 
 /**
  * RN-MED-01: jpeg, png, jpg, webp para imagenes; + pdf para comprobantes.
@@ -48,16 +49,26 @@ final class SubirArchivoMultimedia
             $alto = $info['alto'];
         }
 
-        return $this->multimediaRepo->guardar([
-            'nombre_archivo' => $dto->nombre_original,
-            'ruta_archivo' => $rutaRelativa,
-            'tipo_mime' => $dto->tipo_mime,
-            'tamano_bytes' => $dto->tamano_bytes,
-            'ancho' => $ancho,
-            'alto' => $alto,
-            'activo' => true,
-            'subido_por_id' => $dto->subido_por_id,
-        ]);
+        try {
+            return $this->multimediaRepo->guardar([
+                'nombre_archivo' => $dto->nombre_original,
+                'ruta_archivo' => $rutaRelativa,
+                'tipo_mime' => $dto->tipo_mime,
+                'tamano_bytes' => $dto->tamano_bytes,
+                'ancho' => $ancho,
+                'alto' => $alto,
+                'activo' => true,
+                'subido_por_id' => $dto->subido_por_id,
+            ]);
+        } catch (Throwable $excepcion) {
+            // shortcut: si el servidor cae justo tras guardar, el archivo queda huerfano; revisar con una limpieza periodica.
+            try {
+                $this->almacenamiento->eliminar($rutaRelativa);
+            } catch (Throwable) {
+            }
+
+            throw $excepcion;
+        }
     }
 
     private function esImagen(string $mime): bool

@@ -387,10 +387,10 @@ Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
 - [ ] Pagos, multimedia y notificaciones: `moneda` USD; multimedia `descripcion`/`modulo`/`checksum_sha256`; notificaciones `canal`/`estado_envio`/`intentos_envio`
 - [ ] Auditoria: `set_config` dentro de cada transaccion de escritura
 - [x] Instalar `league/flysystem-sftp-v3` (aprobado por el usuario el 2026-10-18; instalado 3.36.0 con phpseclib 3.0.57) (Completado: 2026-10-18)
-- [x] Disco `multimedia_sftp` y `SftpAlmacenamientoArchivos` con errores controlados 503 `MUL_ALMACENAMIENTO_NO_DISPONIBLE`; binding por `MULTIMEDIA_DISK` (por defecto local); prueba con servidor inaccesible (Completado: 2026-10-18)
+- [x] Disco `multimedia_sftp` y `SftpAlmacenamientoArchivos` con errores controlados 503 `MUL_ALMACENAMIENTO_NO_DISPONIBLE`; binding por `MULTIMEDIA_DISK` (por defecto local); sin `MULTIMEDIA_SFTP_HOST_FINGERPRINT` no arranca el adaptador; prueba con servidor inaccesible (Completado: 2026-10-18)
 - [~] Variables `MULTIMEDIA_SFTP_*` en `docker-compose.yml` (hecho 2026-10-18). Pendiente: `.env` local (no accesible desde el agente), clave privada como secreto y huella del host real
-- [ ] Limites: `upload_max_filesize` y `post_max_size` de PHP, `client_max_body_size` de NGINX, por encima de 5 MB
-- [ ] Borrar el archivo remoto si falla el INSERT en `SubirArchivoMultimedia`
+- [~] Limites de subida: PHP en la imagen Docker (`upload_max_filesize=6M`, `post_max_size=8M`) hecho 2026-10-18. Pendiente: `client_max_body_size` de NGINX (carpeta `nginx/`, fuera del alcance acordado)
+- [x] Borrar el archivo remoto si falla el INSERT en `SubirArchivoMultimedia` (Completado: 2026-10-18; prueba unitaria)
 - [ ] Pruebas contra el esquema real: `database/tests/reglas.sql` y casos de rechazo de `nexo_backend`
 - [ ] Prueba end-to-end contra file-server `100.88.4.113` (siete pasos de la guia)
 - [ ] Avisar a Nathalia y Emilio de los cambios de contrato antes de fusionar

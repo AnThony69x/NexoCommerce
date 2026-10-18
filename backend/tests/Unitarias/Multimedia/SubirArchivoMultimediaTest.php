@@ -12,6 +12,7 @@ use App\Dominio\Multimedia\Repositorios\MultimediaRepositorioInterface;
 use DateTimeImmutable;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class SubirArchivoMultimediaTest extends TestCase
 {
@@ -114,6 +115,37 @@ class SubirArchivoMultimediaTest extends TestCase
             ->with($this->callback(fn (array $datos) => $datos['subido_por_id'] === 42))
             ->willReturn($this->entidadFalsa());
 
+        $this->caso->execute($dto);
+    }
+
+    public function test_fallo_al_guardar_registro_elimina_el_archivo_subido(): void
+    {
+        $dto = new SubirMultimediaDTO(
+            destino: 'comprobantes',
+            nombre_original: 'comprobante.pdf',
+            extension: 'pdf',
+            tipo_mime: 'application/pdf',
+            tamano_bytes: 2048,
+            contenido_binario: '%PDF-1.4 fake content',
+            subido_por_id: 5,
+        );
+
+        $this->almacenamiento
+            ->expects($this->once())
+            ->method('guardar')
+            ->willReturnCallback(fn (string $ruta) => $ruta);
+
+        $this->multimediaRepo
+            ->expects($this->once())
+            ->method('guardar')
+            ->willThrowException(new RuntimeException('fallo de base de datos'));
+
+        $this->almacenamiento
+            ->expects($this->once())
+            ->method('eliminar')
+            ->with($this->stringStartsWith('comprobantes/'));
+
+        $this->expectException(RuntimeException::class);
         $this->caso->execute($dto);
     }
 }
