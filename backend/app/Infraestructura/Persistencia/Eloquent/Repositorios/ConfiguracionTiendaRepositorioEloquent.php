@@ -8,6 +8,7 @@ use App\Dominio\Tienda\Entidades\ConfiguracionTienda;
 use App\Dominio\Tienda\Excepciones\ConfiguracionTiendaNoEncontradaException;
 use App\Dominio\Tienda\Repositorios\ConfiguracionTiendaRepositorioInterface;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\ConfiguracionTiendaModelo;
+use App\Infraestructura\Persistencia\Eloquent\Modelos\MultimediaModelo;
 use DateTimeImmutable;
 
 class ConfiguracionTiendaRepositorioEloquent implements ConfiguracionTiendaRepositorioInterface
@@ -15,7 +16,7 @@ class ConfiguracionTiendaRepositorioEloquent implements ConfiguracionTiendaRepos
     public function buscarActiva(): ?ConfiguracionTienda
     {
         $modelo = ConfiguracionTiendaModelo::query()
-            ->where('clave', 'principal')
+            ->with(['logo', 'favicon'])
             ->where('activo', true)
             ->first();
 
@@ -33,9 +34,35 @@ class ConfiguracionTiendaRepositorioEloquent implements ConfiguracionTiendaRepos
             throw new ConfiguracionTiendaNoEncontradaException;
         }
 
+        $datos['logo_id'] = $this->idMultimedia($datos['logo_url'] ?? null);
+        $datos['favicon_id'] = $this->idMultimedia($datos['favicon_url'] ?? null);
+        unset($datos['logo_url'], $datos['favicon_url']);
+
         $modelo->update($datos);
 
-        return $this->mapearAEntidad($modelo->fresh());
+        return $this->mapearAEntidad($modelo->fresh(['logo', 'favicon']));
+    }
+
+    private function idMultimedia(?string $ruta): ?int
+    {
+        if ($ruta === null) {
+            return null;
+        }
+
+        $id = MultimediaModelo::query()->where('ruta_archivo', $ruta)->value('id');
+
+        return $id !== null ? (int) $id : null;
+    }
+
+    private function urlPublica(?string $ruta): ?string
+    {
+        if ($ruta === null) {
+            return null;
+        }
+
+        $base = rtrim((string) config('app.multimedia_public_base_url', ''), '/');
+
+        return $base === '' ? $ruta : $base.'/'.$ruta;
     }
 
     private function mapearAEntidad(ConfiguracionTiendaModelo $modelo): ConfiguracionTienda
@@ -43,8 +70,8 @@ class ConfiguracionTiendaRepositorioEloquent implements ConfiguracionTiendaRepos
         return new ConfiguracionTienda(
             id: (int) $modelo->id,
             nombre_tienda: $modelo->nombre_tienda,
-            logo_url: $modelo->logo_url,
-            favicon_url: $modelo->favicon_url,
+            logo_url: $this->urlPublica($modelo->logo?->ruta_archivo),
+            favicon_url: $this->urlPublica($modelo->favicon?->ruta_archivo),
             color_primario: $modelo->color_primario,
             color_secundario: $modelo->color_secundario,
             color_acento: $modelo->color_acento,
