@@ -48,7 +48,7 @@ class PublicacionesTest extends TestCase
         $segunda = MultimediaModelo::factory()->create(['ruta_archivo' => 'publicaciones/segunda.webp']);
         $primera = MultimediaModelo::factory()->create(['ruta_archivo' => 'publicaciones/primera.webp']);
         $destacada->multimedia()->attach($segunda->id, ['orden' => 2]);
-        $destacada->multimedia()->attach($primera->id, ['orden' => 0]);
+        $destacada->multimedia()->attach($primera->id, ['orden' => 1]);
 
         $this->getJson("/api/v1/publicaciones?categoria_id={$categoria->id}")
             ->assertOk()
@@ -128,7 +128,7 @@ class PublicacionesTest extends TestCase
         $this->assertDatabaseHas('publicaciones.publicacion_multimedia', [
             'publicacion_id' => $id,
             'multimedia_id' => $imagen->id,
-            'orden' => 3,
+            'orden' => 4,
         ]);
     }
 
@@ -167,7 +167,7 @@ class PublicacionesTest extends TestCase
         ]);
         $anterior = MultimediaModelo::factory()->create();
         $nueva = MultimediaModelo::factory()->create(['ruta_archivo' => 'publicaciones/nueva.webp']);
-        $publicacion->multimedia()->attach($anterior->id, ['orden' => 0]);
+        $publicacion->multimedia()->attach($anterior->id, ['orden' => 1]);
         $token = $this->tokenAdmin();
 
         $this->withToken($token)->putJson("/api/v1/admin/publicaciones/{$publicacion->id}", [
@@ -203,7 +203,7 @@ class PublicacionesTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
 
-        $this->assertDatabaseHas('publicaciones.publicaciones', ['id' => $publicacion->id, 'activo' => false]);
+        $this->assertDatabaseHas('publicaciones.publicaciones', ['id' => $publicacion->id, 'estado' => 'ARCHIVADA']);
         $this->withHeaders(['Authorization' => ''])->getJson("/api/v1/publicaciones/{$publicacion->id}")
             ->assertNotFound()
             ->assertJsonPath('codigo_error', 'PUB_NO_ENCONTRADA');

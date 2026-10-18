@@ -130,12 +130,11 @@ class ProduccionTest extends TestCase
 
     public function test_reactivar_una_configuracion_duplicada_responde_422(): void
     {
-        $fecha = '2026-10-13';
-        ConfiguracionProduccionModelo::factory()->create(['fecha' => $fecha]);
-        $inactiva = ConfiguracionProduccionModelo::factory()->inactiva()->create(['fecha' => $fecha]);
+        ConfiguracionProduccionModelo::factory()->create(['fecha' => '2026-10-13']);
+        $inactiva = ConfiguracionProduccionModelo::factory()->inactiva()->create(['fecha' => '2026-10-14']);
 
         $this->withToken($this->tokenAdmin())
-            ->putJson("/api/v1/admin/produccion/{$inactiva->id}", ['activo' => true])
+            ->putJson("/api/v1/admin/produccion/{$inactiva->id}", ['fecha' => '2026-10-13', 'activo' => true])
             ->assertUnprocessable()
             ->assertJsonPath('codigo_error', 'PRD_CONFIG_DUPLICADA');
         $this->assertDatabaseHas('produccion.configuracion_produccion', ['id' => $inactiva->id, 'activo' => false]);

@@ -42,6 +42,7 @@ class MultimediaModeloFactory extends Factory
             'nombre_archivo' => 'comprobante.pdf',
             'ruta_archivo' => 'comprobantes/20260923_comprobante.pdf',
             'tipo_mime' => 'application/pdf',
+            'modulo' => 'COMPROBANTE',
             'ancho' => null,
             'alto' => null,
         ]);

@@ -28,7 +28,8 @@ class PublicacionModelo extends Model
         'producto_id',
         'titulo',
         'descripcion',
-        'activo',
+        'estado',
+        'publicada_en',
     ];
 
     protected function casts(): array
@@ -37,7 +38,7 @@ class PublicacionModelo extends Model
             'usuario_id' => 'integer',
             'categoria_id' => 'integer',
             'producto_id' => 'integer',
-            'activo' => 'boolean',
+            'publicada_en' => 'datetime',
             'creado_en' => 'datetime',
             'actualizado_en' => 'datetime',
         ];

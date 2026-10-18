@@ -24,7 +24,7 @@ class ActualizarPublicacionRequest extends FormRequest
             'activo' => ['sometimes', 'boolean'],
             'imagenes' => ['sometimes', 'array', 'max:8'],
             'imagenes.*.multimedia_id' => ['required', 'integer', 'distinct', new ExisteEnTabla('media.multimedia', 'id')],
-            'imagenes.*.orden' => ['sometimes', 'integer', 'min:0'],
+            'imagenes.*.orden' => ['sometimes', 'integer', 'min:0', 'max:9'],
         ];
     }
 }

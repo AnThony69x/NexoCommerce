@@ -101,7 +101,7 @@ class MultimediaTest extends TestCase
         Storage::disk('multimedia')->put($imagen->ruta_archivo, 'imagen-demo');
         $inactiva = MultimediaModelo::factory()->inactivo()->create(['ruta_archivo' => 'categorias/inactiva.png']);
         Storage::disk('multimedia')->put($inactiva->ruta_archivo, 'inactiva');
-        $falso = MultimediaModelo::factory()->create(['ruta_archivo' => 'productos/falso.png', 'tipo_mime' => 'application/pdf']);
+        $falso = MultimediaModelo::factory()->create(['ruta_archivo' => 'productos/falso.png', 'tipo_mime' => 'application/pdf', 'modulo' => 'COMPROBANTE']);
         Storage::disk('multimedia')->put($falso->ruta_archivo, '%PDF-falso');
         $this->get('/api/v1/multimedia/publico/productos/demo.png')->assertOk()
             ->assertHeader('Content-Type', 'image/png')->assertSee('imagen-demo');

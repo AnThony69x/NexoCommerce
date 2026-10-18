@@ -21,12 +21,13 @@ class PublicacionModeloFactory extends Factory
             'producto_id' => null,
             'titulo' => fake()->sentence(4),
             'descripcion' => fake()->optional()->paragraph(),
-            'activo' => true,
+            'estado' => 'PUBLICADA',
+            'publicada_en' => now(),
         ];
     }
 
     public function inactiva(): static
     {
-        return $this->state(['activo' => false]);
+        return $this->state(['estado' => 'ARCHIVADA', 'publicada_en' => null]);
     }
 }
