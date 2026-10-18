@@ -359,6 +359,32 @@ Dependencias: Todas las anteriores
 
 ---
 
+## FASE 13: Alineacion con esquema v4.3.2 y almacenamiento SFTP
+
+Estado: En progreso
+Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
+
+- [x] Preparar BD de prueba aislada PostgreSQL 17 (`127.0.0.1:55432`, contenedor `nexo-test-db`) con `database/instalar.sql` y rol `nexo_backend` (Completado: 2026-10-18)
+- [x] Linea base: suite actual contra BD vacia `nexo_baseline`: 171 pruebas, 170 pasan, 1 omitida, 1028 aserciones (Completado: 2026-10-18)
+- [ ] Migraciones: retirar la migracion que crea las 25 tablas planas; el esquema se carga desde `database/instalar.sql`
+- [ ] Modelos Eloquent con schema (22 modelos), IDs `bigint` y sin `search_path` public
+- [ ] Publicaciones: `activo` pasa a `estado` (BORRADOR, PUBLICADA, ARCHIVADA) + `publicada_en`; `orden` de 1 a 10 (cambio de contrato)
+- [ ] Tienda: `logo_id`/`favicon_id`; quitar `clave`; seis reglas nuevas (cambio de contrato)
+- [ ] Pedidos: campos nuevos, estado `CANCELADO`, `total = subtotal - descuento + costo_envio`, `catalogo.descontar_stock` (cambio de contrato)
+- [ ] Productos: `tipo`, FK compuestas en subtipos; disenos con `producto_id`/`tipo_producto`; carrito con `costo_diseno`
+- [ ] Pagos, multimedia y notificaciones: `moneda` USD; multimedia `descripcion`/`modulo`/`checksum_sha256`; notificaciones `canal`/`estado_envio`/`intentos_envio`
+- [ ] Auditoria: `set_config` dentro de cada transaccion de escritura
+- [ ] Instalar `league/flysystem-sftp-v3` (aprobado por el usuario el 2026-10-18)
+- [ ] Disco `multimedia_sftp` y `SftpAlmacenamientoArchivos` con errores controlados; binding por `MULTIMEDIA_DISK`
+- [ ] Variables `MULTIMEDIA_SFTP_*` en `docker-compose.yml` y en `.env` local; clave privada como secreto; huella del host fijada
+- [ ] Limites: `upload_max_filesize` y `post_max_size` de PHP, `client_max_body_size` de NGINX, por encima de 5 MB
+- [ ] Borrar el archivo remoto si falla el INSERT en `SubirArchivoMultimedia`
+- [ ] Pruebas contra el esquema real: `database/tests/reglas.sql` y casos de rechazo de `nexo_backend`
+- [ ] Prueba end-to-end contra file-server `100.88.4.113` (siete pasos de la guia)
+- [ ] Avisar a Nathalia y Emilio de los cambios de contrato antes de fusionar
+
+---
+
 ## Mapa rapido spec → fase
 
 | Spec | Fase |

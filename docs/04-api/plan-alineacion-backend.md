@@ -16,9 +16,26 @@ Además, el compañero del servidor de archivos (Laptop 5, `100.88.4.113`) ya lo
 
 ## Guía
 
+### Entorno de trabajo (verificado 2026-10-18)
+
+Todo corre en VMs Debian 13 conectadas por Tailscale (tailnet `nexocommerce4`). Se trabaja desde la VM del backend por SSH.
+
+| Nodo | IP Tailscale | Responsable | Estado |
+|---|---|---|---|
+| backend | 100.73.6.17 | Anthony | En línea. Desde aquí se trabaja. |
+| file-server | 100.88.4.113 | Emilio | En línea. `tailscale ping` responde (83 a 96 ms). |
+| postgresql | 100.88.139.50 | Melanie | **Offline, última vez visto hace 12 días.** |
+
+- **SFTP verificado:** desde la VM del backend, `sftp user@100.88.4.113` conecta (puerto 22, autenticación por contraseña). El adaptador de Laravel usará esa misma ruta; no hace falta pasar por NGINX.
+- **Pendiente de SFTP:** la prueba fue con contraseña. El plan pide autenticación por clave. La clave privada va como secreto en la VM, fuera del repo, y la huella del host se fija en la configuración.
+- **Pendiente de red:** comprobar que los contenedores Docker del backend alcancen `100.88.4.113`. Su tráfico sale por la interfaz `tailscale0` del host; hay que probarlo, no asumirlo.
+- **Consecuencia para las pruebas:** como PostgreSQL de Melanie está offline, las pruebas no pueden usar la BD central. Ver Fase 0.
+
 ### Fase 0: preparación
 
-- Crear una BD de prueba con `database/instalar.sql`. Solo funciona sobre una BD vacía y no es repetible. Crear el rol `nexo_backend` con `GRANT nexo_app TO nexo_backend`, sin propiedad de tablas.
+- **BD de pruebas:** no usar la BD de `.env` (Supabase según la bitácora). `RefreshDatabase` borra y recrea las tablas, y `phpunit.xml` no fija una BD propia. Levantar un PostgreSQL 17 local en la VM del backend con `docker-compose.demo.yml` (puerto distinto, sin tocar `.env`) y ejecutar las pruebas con variables de entorno que apunten a ese contenedor.
+- Cargar `database/instalar.sql` en esa BD vacía. Solo funciona sobre una BD vacía y no es repetible. Crear el rol `nexo_backend` con `GRANT nexo_app TO nexo_backend`, sin propiedad de tablas.
+- **Estado (2026-10-18):** hecho. Contenedor `nexo-test-db` (PostgreSQL 17.11, `postgres:17-alpine`), ligado solo a `127.0.0.1:55432`, base `nexo_test`. `instalar.sql` cargado sin errores: 11 schemas con sus tablas y roles `nexo_app`, `nexo_auditor`, `nexo_captura` y `nexo_exportador`. Rol `nexo_backend` creado y miembro de `nexo_app`. El contenedor usa autenticación `trust`, válida solo para esta prueba local. No se usó `docker-compose.demo.yml`: falla porque `backend-1` está definido sin imagen y solo sirve como override.
 - Revisar a mano `backend/.env.example`, que no se pudo leer en el análisis: `DB_CONNECTION=pgsql`, `DB_USERNAME=nexo_backend`, host por nombre de servicio en Docker y `pdo_pgsql` habilitado.
 - Punto abierto: el esquema solo se validó en PostgreSQL 18.4. Confirmar con la compañera qué versión usa la Laptop 4.
 
@@ -64,7 +81,7 @@ Lectura pública por Laravel.
 
 **Backend (nosotros):**
 
-1. `composer require league/flysystem-sftp-v3`. Hoy no está instalado.
+1. `composer require league/flysystem-sftp-v3`. Hoy no está instalado. **Requiere aprobación previa:** `backend/CLAUDE.md` prohíbe cambiar dependencias sin permiso.
 2. Completar el disco `multimedia_sftp`, que hoy es un stub comentado en `backend/config/filesystems.php`: `throw=true`, `timeout`, `hostFingerprint` y `root`.
 3. Crear `SftpAlmacenamientoArchivos` en `backend/app/Infraestructura/Almacenamiento/`, hermana de `LocalAlmacenamientoArchivos`. Los errores deben ser controlados (503 o excepción de dominio), no un 404 engañoso.
 4. Binding por variable `MULTIMEDIA_DISK` en `backend/app/Providers/AppServiceProvider.php:60`, para poder volver a local.
@@ -81,7 +98,7 @@ Lectura pública por Laravel.
 
 **Prueba manual, en orden:**
 
-1. `nc -zv 100.88.4.113 22 80` desde el contenedor del backend.
+1. Desde la VM del backend: `sftp user@100.88.4.113` (ya verificado). Después, desde el contenedor del backend: `nc -zv 100.88.4.113 22 80`.
 2. Subir como ADMIN a `productos` y como CLIENTE a `comprobantes`.
 3. Verificar el archivo en el disco de la VM.
 4. Leer la imagen pública sin token por la API.
