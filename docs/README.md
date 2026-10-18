@@ -34,6 +34,10 @@ Cada documento está en su carpeta en dos formatos: el PDF original y la transcr
 
 Asignatura: Integración e Implementación de Software · Docente: Ing. Junior Zamora · Periodo 2026-A.
 
+## Planes de trabajo
+
+- [Plan de alineación del backend con el esquema de BD y prueba con el servidor de archivos](04-api/plan-alineacion-backend.md)
+
 ## Regla
 
 La documentación debe mantenerse actualizada conforme avance el proyecto.
