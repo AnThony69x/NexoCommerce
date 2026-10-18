@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Integracion\Autenticacion;
 
+use App\Dominio\Autenticacion\Repositorios\VerificacionCorreoRepositorioInterface;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
-use App\Infraestructura\Persistencia\Eloquent\Modelos\VerificacionCorreoModelo;
 use App\Mail\CodigoVerificacionMail;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -233,11 +233,7 @@ class AuthTest extends TestCase
         $usuario = UsuarioModelo::factory()->create(['correo_verificado' => false]);
         $token = $usuario->createToken('test')->plainTextToken;
 
-        VerificacionCorreoModelo::create([
-            'usuario_id' => $usuario->id,
-            'codigo' => '654321',
-            'expira_en' => now()->addHours(24)->format('Y-m-d H:i:s'),
-        ]);
+        app(VerificacionCorreoRepositorioInterface::class)->crear($usuario->id, '654321', now()->addHours(24)->toDateTimeImmutable());
 
         $response = $this->withToken($token)
             ->postJson('/api/v1/auth/verificar-correo', ['codigo' => '654321']);
