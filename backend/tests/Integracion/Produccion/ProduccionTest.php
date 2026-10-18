@@ -219,7 +219,8 @@ class ProduccionTest extends TestCase
         $pedidoId = (int) DB::table('ventas.pedidos')->insertGetId([
             'usuario_id' => $usuario->id,
             'fecha_entrega' => $fecha,
-            'estado' => $estado,
+            'estado' => 'PENDIENTE',
+            'estado_pago' => 'PENDIENTE',
             'subtotal' => 0,
             'total' => 0,
             'creado_en' => now(),
@@ -237,6 +238,22 @@ class ProduccionTest extends TestCase
                 'costo_diseno' => 0,
                 'creado_en' => now(),
             ]);
+        }
+
+        $pasos = ['EN_PREPARACION', 'LISTO', 'ENTREGADO'];
+        if ($estado !== 'PENDIENTE') {
+            DB::table('pagos.pagos')->insert([
+                'pedido_id' => $pedidoId,
+                'metodo' => 'PASARELA',
+                'estado' => 'APROBADO',
+                'monto' => 1,
+                'moneda' => 'USD',
+                'referencia_pasarela' => 'REF-'.$pedidoId,
+                'creado_en' => now(),
+            ]);
+            foreach (array_slice($pasos, 0, array_search($estado, $pasos, true) + 1) as $paso) {
+                DB::table('ventas.pedidos')->where('id', $pedidoId)->update(['estado' => $paso]);
+            }
         }
 
         return $pedidoId;
