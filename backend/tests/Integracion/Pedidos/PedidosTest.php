@@ -54,7 +54,7 @@ class PedidosTest extends TestCase
     public function test_crea_detalle_con_snapshot_descuenta_stock_y_vacia_carrito(): void
     {
         $cliente = $this->autenticarCliente();
-        $producto = ProductoModelo::factory()->create(['nombre' => 'Caja regalo', 'precio_base' => '10.05']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'nombre' => 'Caja regalo', 'precio_base' => '10.05']);
         $detalle = DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 5]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2, 'comentario' => 'Entregar con lazo'])->assertCreated();
 
@@ -79,7 +79,7 @@ class PedidosTest extends TestCase
     public function test_precio_cambiado_persiste_en_carrito_y_exige_reconfirmacion(): void
     {
         $this->autenticarCliente();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '10.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '10.00']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 4]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2])->assertCreated();
         $producto->update(['precio_base' => '11.25']);
@@ -96,7 +96,7 @@ class PedidosTest extends TestCase
     public function test_rechaza_stock_insuficiente_o_producto_inactivo_sin_consumir_carrito(): void
     {
         $this->autenticarCliente();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         $detalle = DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 3]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2])->assertCreated();
         $detalle->update(['stock' => 1]);
@@ -115,7 +115,7 @@ class PedidosTest extends TestCase
     public function test_sublimacion_guarda_costo_y_ambas_indicaciones(): void
     {
         $cliente = $this->autenticarCliente();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '8.10']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'SUBLIMACION', 'precio_base' => '8.10']);
         SublimacionModelo::factory()->create(['producto_id' => $producto->id]);
         $plantilla = PlantillaDisenoModelo::factory()->create(['sublimacion_id' => $producto->id, 'costo_adicional' => '0.20']);
         $personalizado = DisenoPersonalizadoModelo::factory()->create([
@@ -136,7 +136,7 @@ class PedidosTest extends TestCase
     public function test_torta_exige_cupo_y_snapshot_de_diseno(): void
     {
         $this->autenticarCliente();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '20.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'TORTA', 'precio_base' => '20.00']);
         TortaModelo::factory()->create(['producto_id' => $producto->id]);
         $diseno = DisenoTortaModelo::factory()->create(['torta_id' => $producto->id, 'costo_adicional' => '2.00']);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2, 'diseno_torta_id' => $diseno->id])->assertCreated();
@@ -157,7 +157,7 @@ class PedidosTest extends TestCase
     public function test_listados_aislamiento_y_cambio_de_estado_con_pago(): void
     {
         $primero = $this->autenticarCliente();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 5]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 1])->assertCreated();
         $fecha = now()->addDay()->toDateString();
@@ -193,7 +193,7 @@ class PedidosTest extends TestCase
     public function test_stock_se_valida_sobre_todos_los_renglones_del_producto(): void
     {
         $this->autenticarCliente();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         $detalle = DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 5]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2, 'comentario' => 'A'])->assertCreated();
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2, 'comentario' => 'B'])->assertCreated();
@@ -209,7 +209,7 @@ class PedidosTest extends TestCase
     public function test_plantilla_desactivada_bloquea_pedido_y_conserva_carrito(): void
     {
         $this->autenticarCliente();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '8.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'SUBLIMACION', 'precio_base' => '8.00']);
         SublimacionModelo::factory()->create(['producto_id' => $producto->id]);
         $plantilla = PlantillaDisenoModelo::factory()->create(['sublimacion_id' => $producto->id, 'costo_adicional' => '2.00']);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 1, 'plantilla_diseno_id' => $plantilla->id])->assertCreated();

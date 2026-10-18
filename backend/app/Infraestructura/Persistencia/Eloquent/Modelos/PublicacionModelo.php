@@ -62,7 +62,7 @@ class PublicacionModelo extends Model
     {
         return $this->belongsToMany(
             MultimediaModelo::class,
-            'publicacion_multimedia',
+            'publicaciones.publicacion_multimedia',
             'publicacion_id',
             'multimedia_id',
         )->withPivot('orden');

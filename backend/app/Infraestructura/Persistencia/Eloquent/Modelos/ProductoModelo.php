@@ -23,7 +23,7 @@ class ProductoModelo extends Model
 
     public const UPDATED_AT = 'actualizado_en';
 
-    protected $fillable = ['categoria_id', 'nombre', 'descripcion', 'precio_base', 'activo'];
+    protected $fillable = ['categoria_id', 'tipo', 'nombre', 'descripcion', 'precio_base', 'activo'];
 
     protected function casts(): array
     {
@@ -60,7 +60,7 @@ class ProductoModelo extends Model
     {
         return $this->belongsToMany(
             MultimediaModelo::class,
-            'producto_multimedia',
+            'catalogo.producto_multimedia',
             'producto_id',
             'multimedia_id',
         )->withPivot(['orden', 'es_principal']);

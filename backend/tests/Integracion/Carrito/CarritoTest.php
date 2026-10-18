@@ -47,7 +47,7 @@ class CarritoTest extends TestCase
     {
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $this->withToken($cliente->createToken('test')->plainTextToken);
-        $producto = ProductoModelo::factory()->create(['precio_base' => '10.05']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '10.05']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 5]);
         $url = '/api/v1/carrito/items';
 
@@ -74,11 +74,11 @@ class CarritoTest extends TestCase
     {
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $this->withToken($cliente->createToken('test')->plainTextToken);
-        $torta = ProductoModelo::factory()->create(['precio_base' => '12.35']);
+        $torta = ProductoModelo::factory()->create(['tipo' => 'TORTA', 'precio_base' => '12.35']);
         TortaModelo::factory()->create(['producto_id' => $torta->id]);
         $diseno = DisenoTortaModelo::factory()->create(['torta_id' => $torta->id, 'costo_adicional' => '1.50']);
         $otroDiseno = DisenoTortaModelo::factory()->create();
-        $sublimacion = ProductoModelo::factory()->create(['precio_base' => '8.10']);
+        $sublimacion = ProductoModelo::factory()->create(['tipo' => 'SUBLIMACION', 'precio_base' => '8.10']);
         SublimacionModelo::factory()->create(['producto_id' => $sublimacion->id]);
         $plantilla = PlantillaDisenoModelo::factory()->create(['sublimacion_id' => $sublimacion->id, 'costo_adicional' => '0.20']);
         $personalizado = DisenoPersonalizadoModelo::factory()->create(['usuario_id' => $cliente->id, 'sublimacion_id' => $sublimacion->id]);
@@ -102,7 +102,7 @@ class CarritoTest extends TestCase
     {
         $primero = UsuarioModelo::factory()->verificado()->create();
         $segundo = UsuarioModelo::factory()->admin()->create();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '10.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '10.00']);
         $detalle = DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 3]);
         $this->withToken($primero->createToken('test')->plainTextToken);
         $creado = $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2])->assertCreated();
@@ -132,7 +132,7 @@ class CarritoTest extends TestCase
     {
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $this->withToken($cliente->createToken('test')->plainTextToken);
-        $producto = ProductoModelo::factory()->create(['precio_base' => '9.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'SUBLIMACION', 'precio_base' => '9.00']);
         SublimacionModelo::factory()->create(['producto_id' => $producto->id]);
         $plantilla = PlantillaDisenoModelo::factory()->create(['sublimacion_id' => $producto->id, 'costo_adicional' => '1.00']);
         $creado = $this->postJson('/api/v1/carrito/items', [
@@ -157,7 +157,7 @@ class CarritoTest extends TestCase
     {
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $this->withToken($cliente->createToken('test')->plainTextToken);
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 1]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 0])->assertUnprocessable();
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2])->assertBadRequest();

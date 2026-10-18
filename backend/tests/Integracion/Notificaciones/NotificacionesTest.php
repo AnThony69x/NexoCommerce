@@ -132,7 +132,7 @@ class NotificacionesTest extends TestCase
     public function test_error_al_guardar_aviso_revierte_pedido_stock_y_carrito(): void
     {
         $cliente = $this->autenticarCliente();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 3]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 1])->assertCreated();
         $this->mock(NotificacionRepositorioInterface::class)->shouldReceive('guardar')->once()->andThrow(new RuntimeException('Falla de aviso'));
@@ -159,7 +159,7 @@ class NotificacionesTest extends TestCase
 
     private function crearPedido(): int
     {
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 3]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 1])->assertCreated();
 

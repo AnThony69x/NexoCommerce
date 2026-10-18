@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Infraestructura\Persistencia\Eloquent\Modelos\DisenoTortaModelo;
+use App\Infraestructura\Persistencia\Eloquent\Modelos\MultimediaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\TortaModelo;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,7 +21,7 @@ class DisenoTortaModeloFactory extends Factory
             'nombre' => fake()->words(2, true),
             'descripcion' => fake()->optional()->sentence(),
             'costo_adicional' => 5,
-            'multimedia_id' => null,
+            'multimedia_id' => MultimediaModelo::factory()->state(['modulo' => 'DISENO_TORTA']),
             'activo' => true,
         ];
     }

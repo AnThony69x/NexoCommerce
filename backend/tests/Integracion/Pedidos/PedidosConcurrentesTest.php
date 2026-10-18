@@ -32,7 +32,7 @@ class PedidosConcurrentesTest extends TestCase
     public function test_dos_pedidos_simultaneos_no_venden_el_mismo_stock(): void
     {
         $this->requiereFork();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 1]);
         $usuarios = $this->dosCarritos($producto->id, '5.00');
 
@@ -48,7 +48,7 @@ class PedidosConcurrentesTest extends TestCase
     public function test_dos_pedidos_simultaneos_no_superan_el_cupo(): void
     {
         $this->requiereFork();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'TORTA', 'precio_base' => '5.00']);
         TortaModelo::factory()->create(['producto_id' => $producto->id]);
         $fecha = now()->addDay()->toDateString();
         ConfiguracionProduccionModelo::factory()->create(['fecha' => $fecha, 'categoria_id' => $producto->categoria_id, 'capacidad_maxima' => 1]);

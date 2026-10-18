@@ -310,6 +310,7 @@ class CategoriasTest extends TestCase
         $categoria = CategoriaModelo::factory()->raiz()->create(['nombre' => 'Reposteria']);
         DB::table('catalogo.productos')->insert([
             'categoria_id' => $categoria->id,
+            'tipo' => 'TORTA',
             'nombre' => 'Torta activa',
             'precio_base' => 20,
             'activo' => true,

@@ -71,6 +71,7 @@ final class ProductoRepositorioEloquent implements ProductoRepositorioInterface
         $id = DB::transaction(function () use ($datos): int {
             $producto = ProductoModelo::create([
                 'categoria_id' => $datos['categoria_id'],
+                'tipo' => $datos['tipo'],
                 'nombre' => $datos['nombre'],
                 'descripcion' => $datos['descripcion'],
                 'precio_base' => $datos['precio_base'],

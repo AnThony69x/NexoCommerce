@@ -37,6 +37,7 @@ class ProductosTest extends TestCase
         foreach (range(1, 13) as $numero) {
             $producto = ProductoModelo::factory()->create([
                 'categoria_id' => $categoria->id,
+                'tipo' => 'TORTA',
                 'nombre' => "Torta Chocolate {$numero}",
                 'precio_base' => $numero,
             ]);
@@ -69,7 +70,7 @@ class ProductosTest extends TestCase
     public function test_detalle_publico_devuelve_especializacion_diseno_e_imagen_sin_campos_inexistentes(): void
     {
         config(['app.multimedia_public_base_url' => 'https://files.example.test/multimedia']);
-        $producto = ProductoModelo::factory()->create();
+        $producto = ProductoModelo::factory()->create(['tipo' => 'TORTA']);
         $torta = TortaModelo::factory()->create(['producto_id' => $producto->id]);
         $imagen = MultimediaModelo::factory()->create(['ruta_archivo' => 'productos/torta.webp']);
         $producto->multimedia()->attach($imagen->id, ['orden' => 0, 'es_principal' => true]);
@@ -208,7 +209,7 @@ class ProductosTest extends TestCase
 
     public function test_put_conserva_omitidos_reemplaza_imagenes_y_tipo_es_inmutable(): void
     {
-        $producto = ProductoModelo::factory()->create(['descripcion' => 'Conservar', 'precio_base' => 20]);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'descripcion' => 'Conservar', 'precio_base' => 20]);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 8]);
         $anterior = MultimediaModelo::factory()->create();
         $nueva = MultimediaModelo::factory()->create(['ruta_archivo' => 'productos/nueva.png']);
@@ -311,7 +312,7 @@ class ProductosTest extends TestCase
 
     public function test_crud_logico_de_diseno_torta_conserva_campos_omitidos(): void
     {
-        $producto = ProductoModelo::factory()->create();
+        $producto = ProductoModelo::factory()->create(['tipo' => 'TORTA']);
         TortaModelo::factory()->create(['producto_id' => $producto->id]);
         $token = $this->tokenAdmin();
 
@@ -389,7 +390,7 @@ class ProductosTest extends TestCase
 
     private function crearSublimacion(): SublimacionModelo
     {
-        $producto = ProductoModelo::factory()->create();
+        $producto = ProductoModelo::factory()->create(['tipo' => 'SUBLIMACION']);
 
         return SublimacionModelo::factory()->create(['producto_id' => $producto->id]);
     }
