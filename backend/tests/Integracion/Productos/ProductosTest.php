@@ -338,11 +338,11 @@ class ProductosTest extends TestCase
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $otro = UsuarioModelo::factory()->verificado()->create();
         $sublimacion = $this->crearSublimacion();
-        $propia = MultimediaModelo::factory()->create(['subido_por_id' => $cliente->id]);
-        $ajena = MultimediaModelo::factory()->create(['subido_por_id' => $otro->id]);
+        $propia = MultimediaModelo::factory()->create(['subido_por_id' => $cliente->id, 'ancho' => 1000, 'alto' => 1000]);
+        $ajena = MultimediaModelo::factory()->create(['subido_por_id' => $otro->id, 'ancho' => 1000, 'alto' => 1000]);
         DisenoPersonalizadoModelo::factory()->create([
             'usuario_id' => $otro->id,
-            'sublimacion_id' => $sublimacion->producto_id,
+            'producto_id' => $sublimacion->producto_id,
             'multimedia_id' => $ajena->id,
         ]);
         $token = $cliente->createToken('test')->plainTextToken;

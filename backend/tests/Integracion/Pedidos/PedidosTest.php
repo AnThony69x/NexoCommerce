@@ -119,7 +119,7 @@ class PedidosTest extends TestCase
         SublimacionModelo::factory()->create(['producto_id' => $producto->id]);
         $plantilla = PlantillaDisenoModelo::factory()->create(['sublimacion_id' => $producto->id, 'costo_adicional' => '0.20']);
         $personalizado = DisenoPersonalizadoModelo::factory()->create([
-            'usuario_id' => $cliente->id, 'sublimacion_id' => $producto->id, 'indicaciones' => 'Texto azul',
+            'usuario_id' => $cliente->id, 'producto_id' => $producto->id, 'indicaciones' => 'Texto azul',
         ]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 1, 'plantilla_diseno_id' => $plantilla->id])->assertCreated();
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 1, 'diseno_personalizado_id' => $personalizado->id, 'comentario' => 'Empacar'])->assertCreated();

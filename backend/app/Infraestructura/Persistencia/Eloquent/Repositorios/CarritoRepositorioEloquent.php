@@ -168,7 +168,7 @@ final class CarritoRepositorioEloquent implements CarritoRepositorioInterface
         } elseif ($personalizadoId !== null) {
             $modelo = DisenoPersonalizadoModelo::find($personalizadoId);
             $tipo = 'PERSONALIZADO';
-            $aviso = $modelo === null || $modelo->sublimacion_id !== $productoId || $modelo->usuario_id !== $usuarioId ? 'DISENO_NO_DISPONIBLE' : null;
+            $aviso = $modelo === null || $modelo->producto_id !== $productoId || $modelo->usuario_id !== $usuarioId ? 'DISENO_NO_DISPONIBLE' : null;
         }
 
         return [

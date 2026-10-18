@@ -220,9 +220,18 @@ final class ProductoRepositorioEloquent implements ProductoRepositorioInterface
             throw new MultimediaPersonalizacionNoAutorizadaException;
         }
 
+        $costoDiseno = SublimacionModelo::query()
+            ->whereKey($datos['sublimacion_id'])
+            ->value('costo_diseno_personalizado');
+
         $modelo = DisenoPersonalizadoModelo::create([
             'usuario_id' => $usuarioId,
-            ...$datos,
+            'producto_id' => $datos['sublimacion_id'],
+            'tipo_producto' => 'SUBLIMACION',
+            'multimedia_id' => $datos['multimedia_id'],
+            'indicaciones' => $datos['indicaciones'] ?? null,
+            'estado_cotizacion' => 'NO_REQUIERE',
+            'costo_adicional' => $costoDiseno,
         ]);
 
         return $this->mapearDisenoPersonalizado($modelo);
@@ -424,7 +433,7 @@ final class ProductoRepositorioEloquent implements ProductoRepositorioInterface
         return new DisenoPersonalizado(
             id: (int) $modelo->id,
             usuario_id: (int) $modelo->usuario_id,
-            sublimacion_id: (int) $modelo->sublimacion_id,
+            sublimacion_id: (int) $modelo->producto_id,
             multimedia_id: (int) $modelo->multimedia_id,
             indicaciones: $modelo->indicaciones,
             creado_en: new DateTimeImmutable($modelo->creado_en->toDateTimeString()),

@@ -81,8 +81,8 @@ class CarritoTest extends TestCase
         $sublimacion = ProductoModelo::factory()->create(['tipo' => 'SUBLIMACION', 'precio_base' => '8.10']);
         SublimacionModelo::factory()->create(['producto_id' => $sublimacion->id]);
         $plantilla = PlantillaDisenoModelo::factory()->create(['sublimacion_id' => $sublimacion->id, 'costo_adicional' => '0.20']);
-        $personalizado = DisenoPersonalizadoModelo::factory()->create(['usuario_id' => $cliente->id, 'sublimacion_id' => $sublimacion->id]);
-        $ajeno = DisenoPersonalizadoModelo::factory()->create(['sublimacion_id' => $sublimacion->id]);
+        $personalizado = DisenoPersonalizadoModelo::factory()->create(['usuario_id' => $cliente->id, 'producto_id' => $sublimacion->id]);
+        $ajeno = DisenoPersonalizadoModelo::factory()->create(['producto_id' => $sublimacion->id]);
         $url = '/api/v1/carrito/items';
 
         $this->postJson($url, ['producto_id' => $sublimacion->id, 'cantidad' => 1])->assertBadRequest();
