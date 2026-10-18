@@ -72,7 +72,7 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
                 $configuracionValida = ReglasCarrito::configuracionValida($tipo, $item->diseno_torta_id, $item->plantilla_diseno_id, $item->diseno_personalizado_id)
                     && ($item->diseno_torta_id === null || ($diseno !== null && $diseno->activo && $diseno->torta_id === $producto->id))
                     && ($item->plantilla_diseno_id === null || ($plantilla !== null && $plantilla->activo && $plantilla->sublimacion_id === $producto->id))
-                    && ($item->diseno_personalizado_id === null || ($personalizado !== null && $personalizado->usuario_id === $usuarioId && $personalizado->sublimacion_id === $producto->id));
+                    && ($item->diseno_personalizado_id === null || ($personalizado !== null && $personalizado->usuario_id === $usuarioId && $personalizado->producto_id === $producto->id));
                 if (! $producto->activo || ($tipo === 'SUBLIMACION' && $producto->sublimacion === null) || ! $configuracionValida) {
                     $error ??= $this->error('Item no disponible.', 'PED_ITEM_NO_DISPONIBLE');
                 }

@@ -20,7 +20,7 @@ class CrearDisenoRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:100'],
             'descripcion' => ['nullable', 'string'],
             'costo_adicional' => ['sometimes', 'numeric', 'min:0'],
-            'multimedia_id' => ['nullable', 'integer', new ExisteEnTabla('media.multimedia', 'id')],
+            'multimedia_id' => ['required', 'integer', new ExisteEnTabla('media.multimedia', 'id')],
             'activo' => ['sometimes', 'boolean'],
         ];
     }

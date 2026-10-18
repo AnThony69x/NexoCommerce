@@ -379,11 +379,11 @@ Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
 - [x] Publicaciones: la API conserva `activo`; internamente `estado` PUBLICADA/ARCHIVADA y `publicada_en`; orden de imagenes 0-based en la API y 1-based en BD (maximo 9 en la API) (Completado: 2026-10-18)
 - [x] Demo: productos con `tipo`, diseños y plantillas con imagen; seeder con helper de imagen de demo (Completado: 2026-10-18)
 - [x] Pedidos de produccion en pruebas: se crean PENDIENTE y avanzan con pago aprobado y transiciones validas (Completado: 2026-10-18)
-- [ ] Suite con esquema real: 153 de 171 pasan (2026-10-18). Pendientes, cada uno con decision tuya: (a) pruebas concurrentes de pedidos y pagos contaminan la base y el esquema impide borrar pagos (trigger) y pedidos (sin DELETE); propongo base separada por corrida (8); (b) plantillas de sublimacion: el esquema exige imagen y la API no la pide, cambio de contrato (2)
-- [ ] Publicaciones: `activo` pasa a `estado` (BORRADOR, PUBLICADA, ARCHIVADA) + `publicada_en`; `orden` de 1 a 10 (cambio de contrato)
-- [ ] Tienda: `logo_id`/`favicon_id`; quitar `clave`; seis reglas nuevas (cambio de contrato)
+- [x] Suite con esquema real: 171 de 171 pasan (2026-10-18) en dos corridas. Principal: `--exclude-group concurrente` con base nueva. Concurrentes (`#[Group('concurrente')]`): base nueva propia. Las pruebas concurrentes no limpian porque el esquema impide borrar pagos y pedidos
+- [x] Publicaciones: la API conserva `activo`; internamente `estado` PUBLICADA/ARCHIVADA y `publicada_en`; orden 0-based en la API y 1-based en BD (maximo 9 en la API) (Completado: 2026-10-18)
+- [x] Tienda: `logo_id`/`favicon_id` con `media.multimedia`; la API conserva `logo_url`/`favicon_url` (archivo validado y URL calculada); `clave` retirada (Completado: 2026-10-18)
 - [ ] Pedidos: campos nuevos, estado `CANCELADO`, `total = subtotal - descuento + costo_envio`, `catalogo.descontar_stock` (cambio de contrato)
-- [ ] Productos: `tipo`, FK compuestas en subtipos; disenos con `producto_id`/`tipo_producto`; carrito con `costo_diseno`
+- [x] Productos: `tipo` persistido y coherente con la subtabla; diseños personalizados con `producto_id`/`tipo_producto` y costo fijo de sublimacion; imagen obligatoria en diseños de torta y plantillas (Completado: 2026-10-18)
 - [ ] Pagos, multimedia y notificaciones: `moneda` USD; multimedia `descripcion`/`modulo`/`checksum_sha256`; notificaciones `canal`/`estado_envio`/`intentos_envio`
 - [ ] Auditoria: `set_config` dentro de cada transaccion de escritura
 - [ ] Instalar `league/flysystem-sftp-v3` (aprobado por el usuario el 2026-10-18)

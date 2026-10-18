@@ -125,7 +125,7 @@ class PagosTest extends TestCase
             'pedido_id' => $pedido->id, 'metodo' => 'PASARELA', 'monto' => '35.01', 'referencia_pasarela' => 'REF-1',
         ])->assertBadRequest()->assertJsonPath('codigo_error', 'PAG_MONTO_INVALIDO');
         $this->assertDatabaseCount('pagos.pagos', 0);
-        $pedido->update(['estado' => 'LISTO']);
+        $pedido->update(['estado' => 'CANCELADO']);
         $this->postJson('/api/v1/pagos', [
             'pedido_id' => $pedido->id, 'metodo' => 'PASARELA', 'monto' => '35.00', 'referencia_pasarela' => 'REF-1',
         ])->assertBadRequest()->assertJsonPath('codigo_error', 'PAG_PEDIDO_NO_PENDIENTE');

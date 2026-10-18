@@ -290,7 +290,10 @@ class ProductosTest extends TestCase
             ->assertJsonPath('codigo_error', 'PROD_SUBLIMACION_SIN_PLANTILLA');
 
         $plantilla = $this->withToken($token)
-            ->postJson("/api/v1/admin/sublimaciones/{$productoId}/plantillas", ['nombre' => 'Logo'])
+            ->postJson("/api/v1/admin/sublimaciones/{$productoId}/plantillas", [
+                'nombre' => 'Logo',
+                'multimedia_id' => MultimediaModelo::factory()->state(['modulo' => 'PLANTILLA', 'ancho' => 1000, 'alto' => 1000])->create()->id,
+            ])
             ->assertCreated();
         $plantillaId = (int) $plantilla->json('data.id');
 
@@ -321,6 +324,7 @@ class ProductosTest extends TestCase
                 'nombre' => 'Flores',
                 'descripcion' => 'Original',
                 'costo_adicional' => 5,
+                'multimedia_id' => MultimediaModelo::factory()->state(['modulo' => 'DISENO_TORTA', 'ancho' => 1000, 'alto' => 1000])->create()->id,
             ])->assertCreated();
         $id = (int) $creado->json('data.id');
 

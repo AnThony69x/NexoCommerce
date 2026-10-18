@@ -14,15 +14,14 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\ProductoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\TortaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 use Throwable;
 
+#[Group('concurrente')]
 class PedidosConcurrentesTest extends TestCase
 {
-    use DatabaseMigrations;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -41,8 +40,8 @@ class PedidosConcurrentesTest extends TestCase
         sort($resultados);
         $this->assertSame(['OK', 'PED_SIN_STOCK'], $resultados);
         $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 0]);
-        $this->assertDatabaseCount('ventas.pedidos', 1);
-        $this->assertDatabaseCount('ventas.detalles_carrito', 1);
+        $this->assertSame(1, DB::table('ventas.pedidos')->whereIn('usuario_id', $usuarios)->count());
+        $this->assertSame(1, DB::table('ventas.detalles_carrito')->whereIn('carrito_id', DB::table('ventas.carritos')->whereIn('usuario_id', $usuarios)->pluck('id'))->count());
     }
 
     public function test_dos_pedidos_simultaneos_no_superan_el_cupo(): void
@@ -58,8 +57,8 @@ class PedidosConcurrentesTest extends TestCase
 
         sort($resultados);
         $this->assertSame(['OK', 'PED_SIN_CAPACIDAD'], $resultados);
-        $this->assertDatabaseCount('ventas.pedidos', 1);
-        $this->assertDatabaseCount('ventas.detalles_carrito', 1);
+        $this->assertSame(1, DB::table('ventas.pedidos')->whereIn('usuario_id', $usuarios)->count());
+        $this->assertSame(1, DB::table('ventas.detalles_carrito')->whereIn('carrito_id', DB::table('ventas.carritos')->whereIn('usuario_id', $usuarios)->pluck('id'))->count());
     }
 
     private function requiereFork(): void

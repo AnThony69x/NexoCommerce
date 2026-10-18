@@ -101,7 +101,8 @@ class ProduccionTest extends TestCase
             ->assertJsonPath('codigo_error', 'PRD_CONFIG_DUPLICADA');
 
         $this->withToken($token)->postJson('/api/v1/admin/produccion', $payload + ['activo' => false])
-            ->assertCreated();
+            ->assertUnprocessable()
+            ->assertJsonPath('codigo_error', 'PRD_CONFIG_DUPLICADA');
     }
 
     public function test_put_conserva_omitidos_reactiva_si_no_hay_duplicado_y_delete_desactiva(): void
