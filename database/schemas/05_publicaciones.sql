@@ -36,25 +36,7 @@ CREATE TABLE publicaciones.publicacion_multimedia (
 );
 CREATE INDEX idx_pubmedia_multimedia ON publicaciones.publicacion_multimedia (multimedia_id);
 
--- Auditoría propia del schema publicaciones: quién, cuándo y qué cambió (solo inserción).
-CREATE TABLE publicaciones.auditoria (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tabla            VARCHAR(100) NOT NULL,
-    operacion        VARCHAR(10)  NOT NULL,
-    registro_id      VARCHAR(100),               -- PK del registro afectado
-    usuario_id       BIGINT,                     -- sin FK: la auditoría no debe bloquear borrados
-    datos_anteriores JSONB,
-    datos_nuevos     JSONB,
-    ip_origen        INET,
-    creado_en        TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    CONSTRAINT chk_publicaciones_auditoria_operacion CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE'))
-);
-CREATE INDEX idx_publicaciones_auditoria_registro ON publicaciones.auditoria (tabla, registro_id);
-CREATE INDEX idx_publicaciones_auditoria_fecha    ON publicaciones.auditoria (creado_en);
-CREATE TRIGGER trg_publicaciones_auditoria_inmutable
-    BEFORE UPDATE OR DELETE ON publicaciones.auditoria
-    FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_inmutable();
 
 
 -- ============================================================

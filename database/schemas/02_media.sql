@@ -33,25 +33,7 @@ CREATE TABLE media.multimedia (
 CREATE INDEX idx_multimedia_subido_por ON media.multimedia (subido_por_id);
 CREATE INDEX idx_multimedia_checksum   ON media.multimedia (checksum_sha256);
 
--- Auditoría propia del schema media: quién, cuándo y qué cambió (solo inserción).
-CREATE TABLE media.auditoria (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tabla            VARCHAR(100) NOT NULL,
-    operacion        VARCHAR(10)  NOT NULL,
-    registro_id      VARCHAR(100),               -- PK del registro afectado
-    usuario_id       BIGINT,                     -- sin FK: la auditoría no debe bloquear borrados
-    datos_anteriores JSONB,
-    datos_nuevos     JSONB,
-    ip_origen        INET,
-    creado_en        TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    CONSTRAINT chk_media_auditoria_operacion CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE'))
-);
-CREATE INDEX idx_media_auditoria_registro ON media.auditoria (tabla, registro_id);
-CREATE INDEX idx_media_auditoria_fecha    ON media.auditoria (creado_en);
-CREATE TRIGGER trg_media_auditoria_inmutable
-    BEFORE UPDATE OR DELETE ON media.auditoria
-    FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_inmutable();
 
 
 -- ============================================================

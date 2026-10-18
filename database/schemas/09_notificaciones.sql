@@ -32,25 +32,7 @@ CREATE INDEX idx_notif_usuario ON notificaciones.notificaciones (usuario_id, lei
 CREATE INDEX idx_notif_pedido  ON notificaciones.notificaciones (pedido_id);
 CREATE INDEX idx_notif_pago    ON notificaciones.notificaciones (pago_id);
 
--- Auditoría propia del schema notificaciones: quién, cuándo y qué cambió (solo inserción).
-CREATE TABLE notificaciones.auditoria (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tabla            VARCHAR(100) NOT NULL,
-    operacion        VARCHAR(10)  NOT NULL,
-    registro_id      VARCHAR(100),               -- PK del registro afectado
-    usuario_id       BIGINT,                     -- sin FK: la auditoría no debe bloquear borrados
-    datos_anteriores JSONB,
-    datos_nuevos     JSONB,
-    ip_origen        INET,
-    creado_en        TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    CONSTRAINT chk_notificaciones_auditoria_operacion CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE'))
-);
-CREATE INDEX idx_notificaciones_auditoria_registro ON notificaciones.auditoria (tabla, registro_id);
-CREATE INDEX idx_notificaciones_auditoria_fecha    ON notificaciones.auditoria (creado_en);
-CREATE TRIGGER trg_notificaciones_auditoria_inmutable
-    BEFORE UPDATE OR DELETE ON notificaciones.auditoria
-    FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_inmutable();
 
 
 -- ============================================================

@@ -223,25 +223,25 @@ CREATE INDEX idx_det_pedido_dpers    ON ventas.detalles_pedido (diseno_personali
 -- (que es técnica). Se llena solo, con el trigger de abajo.
 CREATE TABLE ventas.pedido_historial_estado (
     id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    pedido_id       BIGINT NOT NULL REFERENCES ventas.pedidos(id) ON DELETE CASCADE,
+    pedido_id       BIGINT NOT NULL REFERENCES ventas.pedidos(id) ON DELETE RESTRICT,   -- el historial no se pierde con el pedido
     estado_anterior VARCHAR(50),
     estado_nuevo    VARCHAR(50) NOT NULL,
-    usuario_id      BIGINT REFERENCES auth.usuarios(id) ON DELETE SET NULL,
+    usuario_id      BIGINT REFERENCES auth.usuarios(id) ON DELETE RESTRICT,
     comentario      TEXT,
-    creado_en       TIMESTAMPTZ NOT NULL DEFAULT now()
+    creado_en       TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
 );
 CREATE INDEX idx_hist_pedido  ON ventas.pedido_historial_estado (pedido_id, creado_en);
 CREATE INDEX idx_hist_usuario ON ventas.pedido_historial_estado (usuario_id);
 
 CREATE FUNCTION ventas.fn_historial_estado() RETURNS trigger
-LANGUAGE plpgsql AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, pg_temp AS $$
 BEGIN
     IF TG_OP = 'INSERT' OR NEW.estado IS DISTINCT FROM OLD.estado THEN
         INSERT INTO ventas.pedido_historial_estado (pedido_id, estado_anterior, estado_nuevo, usuario_id)
         VALUES (NEW.id,
                 CASE WHEN TG_OP = 'UPDATE' THEN OLD.estado END,
                 NEW.estado,
-                NULLIF(current_setting('app.usuario_id', true), '')::bigint);
+                public.fn_actor_id());
     END IF;
     RETURN NULL;
 END $$;
@@ -250,25 +250,13 @@ CREATE TRIGGER trg_pedidos_historial
     AFTER INSERT OR UPDATE OF estado ON ventas.pedidos
     FOR EACH ROW EXECUTE FUNCTION ventas.fn_historial_estado();
 
--- Auditoría propia del schema ventas: quién, cuándo y qué cambió (solo inserción).
-CREATE TABLE ventas.auditoria (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tabla            VARCHAR(100) NOT NULL,
-    operacion        VARCHAR(10)  NOT NULL,
-    registro_id      VARCHAR(100),               -- PK del registro afectado
-    usuario_id       BIGINT,                     -- sin FK: la auditoría no debe bloquear borrados
-    datos_anteriores JSONB,
-    datos_nuevos     JSONB,
-    ip_origen        INET,
-    creado_en        TIMESTAMPTZ NOT NULL DEFAULT now(),
-
-    CONSTRAINT chk_ventas_auditoria_operacion CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE'))
-);
-CREATE INDEX idx_ventas_auditoria_registro ON ventas.auditoria (tabla, registro_id);
-CREATE INDEX idx_ventas_auditoria_fecha    ON ventas.auditoria (creado_en);
-CREATE TRIGGER trg_ventas_auditoria_inmutable
-    BEFORE UPDATE OR DELETE ON ventas.auditoria
+-- El historial es solo de inserción (lo escribe únicamente el trigger de arriba).
+CREATE TRIGGER trg_historial_inmutable BEFORE UPDATE OR DELETE ON ventas.pedido_historial_estado
     FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_inmutable();
+CREATE TRIGGER trg_historial_no_truncate BEFORE TRUNCATE ON ventas.pedido_historial_estado
+    FOR EACH STATEMENT EXECUTE FUNCTION public.fn_auditoria_inmutable();
+
+
 
 
 -- ============================================================

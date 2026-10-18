@@ -86,25 +86,7 @@ CREATE TABLE auth.personal_access_tokens (
 );
 CREATE INDEX idx_pat_tokenable ON auth.personal_access_tokens (tokenable_type, tokenable_id);
 
--- Auditoría propia del schema auth: quién, cuándo y qué cambió (solo inserción).
-CREATE TABLE auth.auditoria (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tabla            VARCHAR(100) NOT NULL,
-    operacion        VARCHAR(10)  NOT NULL,
-    registro_id      VARCHAR(100),               -- PK del registro afectado
-    usuario_id       BIGINT,                     -- sin FK: la auditoría no debe bloquear borrados
-    datos_anteriores JSONB,
-    datos_nuevos     JSONB,
-    ip_origen        INET,
-    creado_en        TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    CONSTRAINT chk_auth_auditoria_operacion CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE'))
-);
-CREATE INDEX idx_auth_auditoria_registro ON auth.auditoria (tabla, registro_id);
-CREATE INDEX idx_auth_auditoria_fecha    ON auth.auditoria (creado_en);
-CREATE TRIGGER trg_auth_auditoria_inmutable
-    BEFORE UPDATE OR DELETE ON auth.auditoria
-    FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_inmutable();
 
 
 -- ============================================================

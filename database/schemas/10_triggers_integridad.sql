@@ -19,9 +19,12 @@ BEGIN
 END $$;
 
 -- ============================================================
--- 11b. TRIGGERS DE AUDITORÍA (cada tabla escribe en la auditoría de SU schema)
---      Selectivo: identidad, catálogo, stock, pedidos, pagos y configuración.
---      Los demás dominios no generan registros automáticos de auditoría.
+-- 11b. TRIGGERS DE AUDITORÍA (destinos en auditoria.auditoria_<dominio>)
+--      Cobertura (ver LEEME_AUDITORIA.md): identidad, OAuth, catálogo y galerías, archivos,
+--      publicaciones, diseños del cliente, stock, pedidos, pagos y configuración.
+--      Omitidas a propósito: carritos y detalles_carrito (alto volumen, datos temporales),
+--      pedido_historial_estado (es historial inmutable) y, en notificaciones, solo se
+--      auditan los borrados. Tokens: altas, bajas y cambios de permisos/vencimiento/identidad; se excluye last_used_at y nunca se guarda el secreto.
 -- ============================================================
 CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON auth.roles
     FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
@@ -52,6 +55,24 @@ CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON produccion.config
 CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON pagos.pagos
     FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
 CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON pagos.comprobantes_pago
+    FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
+CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON auth.cuentas_oauth
+    FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
+CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE ON auth.verificaciones_correo
+    FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
+CREATE TRIGGER trg_auditar AFTER INSERT OR DELETE OR UPDATE OF abilities, expires_at, tokenable_id, tokenable_type, token ON auth.personal_access_tokens
+    FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
+CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON media.multimedia
+    FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
+CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON catalogo.producto_multimedia
+    FOR EACH ROW EXECUTE FUNCTION public.fn_auditar('producto_id,multimedia_id');
+CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON publicaciones.publicaciones
+    FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
+CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON publicaciones.publicacion_multimedia
+    FOR EACH ROW EXECUTE FUNCTION public.fn_auditar('publicacion_id,multimedia_id');
+CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE OR DELETE ON ventas.disenos_personalizados
+    FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
+CREATE TRIGGER trg_auditar AFTER DELETE ON notificaciones.notificaciones
     FOR EACH ROW EXECUTE FUNCTION public.fn_auditar();
 
 
@@ -85,19 +106,26 @@ END $$;
 CREATE CONSTRAINT TRIGGER trg_categorias_validar AFTER INSERT OR UPDATE ON catalogo.categorias
     DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION catalogo.fn_validar_jerarquia();
 
--- TRUNCATE requiere un trigger por sentencia; UPDATE/DELETE ya están protegidos.
+-- TRUNCATE en tablas de NEGOCIO: bloqueado salvo procedimiento administrativo declarado
+-- (ver public.fn_truncate_negocio). Las auditorías y el historial lo bloquean siempre.
 DO $$
-DECLARE s TEXT;
+DECLARE r record;
 BEGIN
-    FOREACH s IN ARRAY ARRAY['auth','media','tienda','catalogo','publicaciones',
-                            'ventas','produccion','pagos','notificaciones'] LOOP
-        EXECUTE format('CREATE TRIGGER trg_auditoria_no_truncate BEFORE TRUNCATE ON %I.auditoria
-                        FOR EACH STATEMENT EXECUTE FUNCTION public.fn_auditoria_inmutable()', s);
-        EXECUTE format('REVOKE UPDATE, DELETE, TRUNCATE ON %I.auditoria FROM PUBLIC', s);
+    FOR r IN
+        SELECT table_schema, table_name FROM information_schema.tables
+        WHERE table_type = 'BASE TABLE'
+          AND table_schema IN ('auth','media','tienda','catalogo','publicaciones',
+                               'ventas','produccion','pagos','notificaciones')
+          AND table_name NOT IN ('auditoria', 'pedido_historial_estado')
+    LOOP
+        EXECUTE format('CREATE TRIGGER trg_no_truncate_negocio BEFORE TRUNCATE ON %I.%I
+                        FOR EACH STATEMENT EXECUTE FUNCTION public.fn_truncate_negocio()',
+                       r.table_schema, r.table_name);
     END LOOP;
 END $$;
--- Infraestructura debe conceder al rol del backend solo INSERT/SELECT en auditoría;
--- dicho rol no debe ser propietario de tablas ni tener permisos para desactivar triggers.
+
+-- Los permisos (rol de la aplicación sin INSERT en auditorías, sin TRUNCATE y sin ser
+-- propietario de tablas) están en 12_seguridad_y_consultas.sql.
 -- Coordinación backend: diseños usan producto_id/tipo_producto; publicaciones usa
 -- publicada_en y pierde activo; pedidos usa costo_envio y estado_pago APROBADO.
 -- La autorización de diseños y los totales de líneas siguen siendo responsabilidad del API.

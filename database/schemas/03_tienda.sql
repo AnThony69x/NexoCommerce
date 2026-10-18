@@ -41,25 +41,7 @@ CREATE UNIQUE INDEX uq_tienda_config_activa ON tienda.configuracion_tienda (acti
 CREATE INDEX idx_tienda_logo    ON tienda.configuracion_tienda (logo_id);
 CREATE INDEX idx_tienda_favicon ON tienda.configuracion_tienda (favicon_id);
 
--- Auditoría propia del schema tienda: quién, cuándo y qué cambió (solo inserción).
-CREATE TABLE tienda.auditoria (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tabla            VARCHAR(100) NOT NULL,
-    operacion        VARCHAR(10)  NOT NULL,
-    registro_id      VARCHAR(100),               -- PK del registro afectado
-    usuario_id       BIGINT,                     -- sin FK: la auditoría no debe bloquear borrados
-    datos_anteriores JSONB,
-    datos_nuevos     JSONB,
-    ip_origen        INET,
-    creado_en        TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    CONSTRAINT chk_tienda_auditoria_operacion CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE'))
-);
-CREATE INDEX idx_tienda_auditoria_registro ON tienda.auditoria (tabla, registro_id);
-CREATE INDEX idx_tienda_auditoria_fecha    ON tienda.auditoria (creado_en);
-CREATE TRIGGER trg_tienda_auditoria_inmutable
-    BEFORE UPDATE OR DELETE ON tienda.auditoria
-    FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_inmutable();
 
 
 -- ============================================================

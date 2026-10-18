@@ -160,25 +160,7 @@ BEGIN
     RETURN FOUND;
 END $$;
 
--- Auditoría propia del schema catalogo: quién, cuándo y qué cambió (solo inserción).
-CREATE TABLE catalogo.auditoria (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tabla            VARCHAR(100) NOT NULL,
-    operacion        VARCHAR(10)  NOT NULL,
-    registro_id      VARCHAR(100),               -- PK del registro afectado
-    usuario_id       BIGINT,                     -- sin FK: la auditoría no debe bloquear borrados
-    datos_anteriores JSONB,
-    datos_nuevos     JSONB,
-    ip_origen        INET,
-    creado_en        TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    CONSTRAINT chk_catalogo_auditoria_operacion CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE'))
-);
-CREATE INDEX idx_catalogo_auditoria_registro ON catalogo.auditoria (tabla, registro_id);
-CREATE INDEX idx_catalogo_auditoria_fecha    ON catalogo.auditoria (creado_en);
-CREATE TRIGGER trg_catalogo_auditoria_inmutable
-    BEFORE UPDATE OR DELETE ON catalogo.auditoria
-    FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_inmutable();
 
 
 -- ============================================================
