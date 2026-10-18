@@ -386,9 +386,9 @@ Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
 - [x] Productos: `tipo` persistido y coherente con la subtabla; diseños personalizados con `producto_id`/`tipo_producto` y costo fijo de sublimacion; imagen obligatoria en diseños de torta y plantillas (Completado: 2026-10-18)
 - [ ] Pagos, multimedia y notificaciones: `moneda` USD; multimedia `descripcion`/`modulo`/`checksum_sha256`; notificaciones `canal`/`estado_envio`/`intentos_envio`
 - [ ] Auditoria: `set_config` dentro de cada transaccion de escritura
-- [ ] Instalar `league/flysystem-sftp-v3` (aprobado por el usuario el 2026-10-18)
-- [ ] Disco `multimedia_sftp` y `SftpAlmacenamientoArchivos` con errores controlados; binding por `MULTIMEDIA_DISK`
-- [ ] Variables `MULTIMEDIA_SFTP_*` en `docker-compose.yml` y en `.env` local; clave privada como secreto; huella del host fijada
+- [x] Instalar `league/flysystem-sftp-v3` (aprobado por el usuario el 2026-10-18; instalado 3.36.0 con phpseclib 3.0.57) (Completado: 2026-10-18)
+- [x] Disco `multimedia_sftp` y `SftpAlmacenamientoArchivos` con errores controlados 503 `MUL_ALMACENAMIENTO_NO_DISPONIBLE`; binding por `MULTIMEDIA_DISK` (por defecto local); prueba con servidor inaccesible (Completado: 2026-10-18)
+- [~] Variables `MULTIMEDIA_SFTP_*` en `docker-compose.yml` (hecho 2026-10-18). Pendiente: `.env` local (no accesible desde el agente), clave privada como secreto y huella del host real
 - [ ] Limites: `upload_max_filesize` y `post_max_size` de PHP, `client_max_body_size` de NGINX, por encima de 5 MB
 - [ ] Borrar el archivo remoto si falla el INSERT en `SubirArchivoMultimedia`
 - [ ] Pruebas contra el esquema real: `database/tests/reglas.sql` y casos de rechazo de `nexo_backend`
