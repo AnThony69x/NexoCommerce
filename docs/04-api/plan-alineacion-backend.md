@@ -39,6 +39,32 @@ Todo corre en VMs Debian 13 conectadas por Tailscale (tailnet `nexocommerce4`). 
 - Revisar a mano `backend/.env.example`, que no se pudo leer en el análisis: `DB_CONNECTION=pgsql`, `DB_USERNAME=nexo_backend`, host por nombre de servicio en Docker y `pdo_pgsql` habilitado.
 - Punto abierto: el esquema solo se validó en PostgreSQL 18.4. Confirmar con la compañera qué versión usa la Laptop 4.
 
+### Instalación de la base (procedimiento)
+
+Dos cuentas distintas:
+
+- **Administrativa** (`postgres` en local, o la que tenga Melanie): crea el esquema. Nunca se usa en la aplicación.
+- **`nexo_backend`**: la usa la aplicación. Solo tiene permisos de `nexo_app`.
+
+Hay dos caminos para crear el esquema. Son excluyentes: no ejecutar los dos sobre la misma base.
+
+**Camino A, API independiente (el que usa el equipo de backend):** el esquema está en `backend/database/schemas/` (copia de `database/schemas/`, sin cambios) y la migración `0001_01_02_000000_esquema_negocio` lo ejecuta en el orden de `backend/database/instalar.sql`. Pasos, con la cuenta administrativa, en una base nueva:
+
+1. `DB_USERNAME=<administrativa> php artisan migrate`: crea las 47 tablas de negocio (más la tabla `migrations` de Laravel).
+2. Crear la cuenta de la aplicación, una sola vez por clúster; la contraseña se configura con `\password nexo_backend`, nunca en scripts:
+   `CREATE ROLE nexo_backend LOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; GRANT nexo_app TO nexo_backend;`
+3. Dar a la aplicación acceso a las tablas: `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nexo_backend;` y `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO nexo_backend;`.
+
+Si `auth.usuarios` ya existe, la migración de negocio no hace nada. Se verificó que es no-op sobre una base instalada con el camino B.
+
+La API no usa tablas técnicas de Laravel: no hay colas, caché en base de datos, sesiones ni recuperación de contraseña. Por eso no hay migraciones `cache`, `jobs` ni `sessions`. `.env.example` usa `CACHE_STORE=file`, `SESSION_DRIVER=cookie` y `QUEUE_CONNECTION=sync`. Si un `.env` local usa `database` para cualquiera de estos drivers, debe cambiarse, porque esas tablas ya no se crean.
+
+**Camino B, instalador de Melanie (`database/README.md`):** `psql -X -U postgres -d <base> -v ON_ERROR_STOP=1 -f database/instalar.sql` en una base vacía, debe terminar en `COMMIT`. Después se sigue el paso 2 y el 3 del camino A.
+
+**Mantenimiento de la copia:** `backend/database/schemas/` y `backend/database/instalar.sql` son copias de `database/`. Si Melanie cambia el SQL, hay que volver a copiarlo y validar; hoy son idénticos (`diff -r`).
+
+Verificado en local el 2026-10-19 con PostgreSQL 17.11: camino A (migrate solo, 55 tablas), suite administrativa 172 de 173, suite `nexo_backend` 171 de 172, concurrentes 4 de 4. No ejecutar `php artisan migrate --seed` (ver `database/OBSERVACIONES_BACKEND.md`).
+
 ### Fase 1: backend alineado al esquema
 
 Orden recomendado, de lo que rompe contratos a lo que solo añade columnas:
