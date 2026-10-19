@@ -48,8 +48,9 @@ Dos cuentas distintas:
 
 Hay dos caminos para crear el esquema. Son excluyentes: no ejecutar los dos sobre la misma base.
 
-**Camino A, API independiente (el que usa el equipo de backend):** el esquema está en `backend/database/schemas/` (copia de `database/schemas/`, sin cambios) y la migración `0001_01_02_000000_esquema_negocio` lo ejecuta en el orden de `backend/database/instalar.sql`. Pasos, con la cuenta administrativa, en una base nueva:
+**Camino A, API independiente (el que usa el equipo de backend):** el esquema está en `backend/database/schemas/` (copia de `database/schemas/`, sin cambios) y hay 19 migraciones `0001_01_02_000001` a `0001_01_02_000019` (`esquema_<modulo>`), una por módulo, que ejecutan cada archivo SQL tal cual en el orden de `backend/database/instalar.sql`. Pasos, con la cuenta administrativa, en una base nueva:
 
+0. Antes de migrar, revisar la base con `php artisan bd:verificar`. Informa si hay conexión, qué cuenta se usa, si esa cuenta puede crear tablas y si el esquema ya está instalado. Con `--connection=<nombre>` revisa otra conexión configurada.
 1. `DB_USERNAME=<administrativa> php artisan migrate`: crea las 47 tablas de negocio (más la tabla `migrations` de Laravel).
 2. Crear la cuenta de la aplicación, una sola vez por clúster; la contraseña se configura con `\password nexo_backend`, nunca en scripts:
    `CREATE ROLE nexo_backend LOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; GRANT nexo_app TO nexo_backend;`
