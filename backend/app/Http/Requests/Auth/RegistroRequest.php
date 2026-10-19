@@ -14,6 +14,12 @@ class RegistroRequest extends FormRequest
         return true;
     }
 
+    /** La unicidad se valida en minusculas, igual que se guarda el correo. */
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['correo' => strtolower((string) $this->input('correo'))]);
+    }
+
     public function rules(): array
     {
         return [
