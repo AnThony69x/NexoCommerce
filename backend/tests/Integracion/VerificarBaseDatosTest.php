@@ -11,7 +11,7 @@ class VerificarBaseDatosTest extends TestCase
     public function test_reconoce_una_base_con_el_esquema_ya_instalado(): void
     {
         $this->artisan('bd:verificar')
-            ->expectsOutputToContain('Esquema ya instalado')
+            ->expectsOutputToContain('Esquema instalado')
             ->assertExitCode(0);
     }
 
