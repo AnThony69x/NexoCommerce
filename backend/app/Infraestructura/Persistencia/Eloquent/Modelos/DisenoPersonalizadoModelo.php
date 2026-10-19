@@ -15,19 +15,28 @@ class DisenoPersonalizadoModelo extends Model
     /** @use HasFactory<DisenoPersonalizadoModeloFactory> */
     use HasFactory;
 
-    protected $table = 'disenos_personalizados';
+    protected $table = 'ventas.disenos_personalizados';
 
     public const CREATED_AT = 'creado_en';
 
     public const UPDATED_AT = 'actualizado_en';
 
-    protected $fillable = ['usuario_id', 'sublimacion_id', 'multimedia_id', 'indicaciones'];
+    protected $fillable = [
+        'usuario_id',
+        'producto_id',
+        'tipo_producto',
+        'multimedia_id',
+        'indicaciones',
+        'estado_cotizacion',
+        'costo_adicional',
+    ];
 
     protected function casts(): array
     {
         return [
             'usuario_id' => 'integer',
-            'sublimacion_id' => 'integer',
+            'producto_id' => 'integer',
+            'costo_adicional' => 'decimal:2',
             'multimedia_id' => 'integer',
             'creado_en' => 'datetime',
             'actualizado_en' => 'datetime',
@@ -41,7 +50,7 @@ class DisenoPersonalizadoModelo extends Model
 
     public function sublimacion(): BelongsTo
     {
-        return $this->belongsTo(SublimacionModelo::class, 'sublimacion_id');
+        return $this->belongsTo(SublimacionModelo::class, 'producto_id', 'producto_id');
     }
 
     public function multimedia(): BelongsTo

@@ -16,7 +16,7 @@ class SublimacionModelo extends Model
     /** @use HasFactory<SublimacionModeloFactory> */
     use HasFactory;
 
-    protected $table = 'sublimaciones';
+    protected $table = 'catalogo.sublimaciones';
 
     protected $primaryKey = 'producto_id';
 

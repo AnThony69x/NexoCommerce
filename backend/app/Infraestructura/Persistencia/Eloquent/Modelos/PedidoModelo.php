@@ -9,13 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PedidoModelo extends Model
 {
-    protected $table = 'pedidos';
+    protected $table = 'ventas.pedidos';
 
     public const CREATED_AT = 'creado_en';
 
     public const UPDATED_AT = 'actualizado_en';
 
-    protected $fillable = ['usuario_id', 'fecha_entrega', 'estado', 'subtotal', 'total'];
+    protected $fillable = [
+        'usuario_id', 'fecha_entrega', 'estado', 'subtotal', 'total', 'descuento', 'costo_envio',
+        'tipo_entrega', 'direccion_entrega', 'telefono_contacto', 'hora_entrega',
+    ];
 
     protected function casts(): array
     {

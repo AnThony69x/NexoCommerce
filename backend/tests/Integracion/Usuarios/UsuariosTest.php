@@ -6,7 +6,7 @@ namespace Tests\Integracion\Usuarios;
 
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
@@ -16,7 +16,7 @@ use Tests\TestCase;
  */
 class UsuariosTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -146,7 +146,7 @@ class UsuariosTest extends TestCase
             ->assertStatus(200)
             ->assertJsonPath('success', true);
 
-        $this->assertDatabaseHas('usuarios', ['id' => $admin2->id, 'activo' => false]);
+        $this->assertDatabaseHas('auth.usuarios', ['id' => $admin2->id, 'activo' => false]);
     }
 
     // -------------------------------------------------------------------------
@@ -168,7 +168,7 @@ class UsuariosTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.nombre_completo', 'Nombre Actualizado');
 
-        $this->assertDatabaseHas('usuarios', [
+        $this->assertDatabaseHas('auth.usuarios', [
             'id' => $usuario->id,
             'nombre_completo' => 'Nombre Actualizado',
             'telefono' => '0991234567',

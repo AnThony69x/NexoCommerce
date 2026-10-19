@@ -41,7 +41,8 @@ Roles y estados se exponen **exactamente** como en los `CHECK` / seeds del SQL:
 | :--- | :--- |
 | Roles | `ADMIN`, `CLIENTE` |
 | OAuth | Solo `GOOGLE` |
-| Pedido | `PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO` |
+| Pedido | `PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO`, `CANCELADO` |
+| Pedido tipo de entrega | `RETIRO` (defecto), `DOMICILIO` |
 | Pago método | `PASARELA`, `TRANSFERENCIA` |
 | Pago estado | `PENDIENTE`, `APROBADO`, `RECHAZADO` |
 | Tipo de producto | `TORTA`, `DETALLE`, `SUBLIMACION` (derivado de la tabla especializada 1:1) |

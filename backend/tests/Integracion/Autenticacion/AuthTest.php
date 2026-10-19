@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Integracion\Autenticacion;
 
+use App\Dominio\Autenticacion\Repositorios\VerificacionCorreoRepositorioInterface;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
-use App\Infraestructura\Persistencia\Eloquent\Modelos\VerificacionCorreoModelo;
 use App\Mail\CodigoVerificacionMail;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -20,7 +20,7 @@ use Tests\TestCase;
  */
 class AuthTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -62,13 +62,13 @@ class AuthTest extends TestCase
             ->assertJsonPath('data.usuario.correo_verificado', false)
             ->assertJsonPath('data.usuario.activo', true);
 
-        $this->assertDatabaseHas('usuarios', [
+        $this->assertDatabaseHas('auth.usuarios', [
             'correo' => 'juan@example.com',
         ]);
 
         $usuario = UsuarioModelo::where('correo', 'juan@example.com')->first();
         $this->assertNotNull($usuario);
-        $this->assertDatabaseHas('verificaciones_correo', ['usuario_id' => $usuario->id]);
+        $this->assertDatabaseHas('auth.verificaciones_correo', ['usuario_id' => $usuario->id]);
         $this->assertNotEmpty($response->json('data.token'));
 
         // Verifica que se envio el correo de verificacion.
@@ -134,7 +134,7 @@ class AuthTest extends TestCase
             ]);
         }
 
-        $this->assertDatabaseMissing('usuarios', [
+        $this->assertDatabaseMissing('auth.usuarios', [
             'id' => $usuario->id,
             'bloqueado_hasta' => null,
         ]);
@@ -233,11 +233,7 @@ class AuthTest extends TestCase
         $usuario = UsuarioModelo::factory()->create(['correo_verificado' => false]);
         $token = $usuario->createToken('test')->plainTextToken;
 
-        VerificacionCorreoModelo::create([
-            'usuario_id' => $usuario->id,
-            'codigo' => '654321',
-            'expira_en' => now()->addHours(24)->format('Y-m-d H:i:s'),
-        ]);
+        app(VerificacionCorreoRepositorioInterface::class)->crear($usuario->id, '654321', now()->addHours(24)->toDateTimeImmutable());
 
         $response = $this->withToken($token)
             ->postJson('/api/v1/auth/verificar-correo', ['codigo' => '654321']);
@@ -245,7 +241,7 @@ class AuthTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('success', true);
 
-        $this->assertDatabaseHas('usuarios', [
+        $this->assertDatabaseHas('auth.usuarios', [
             'id' => $usuario->id,
             'correo_verificado' => true,
         ]);

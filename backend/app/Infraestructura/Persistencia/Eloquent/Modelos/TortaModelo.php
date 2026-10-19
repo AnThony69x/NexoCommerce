@@ -16,7 +16,7 @@ class TortaModelo extends Model
     /** @use HasFactory<TortaModeloFactory> */
     use HasFactory;
 
-    protected $table = 'tortas';
+    protected $table = 'catalogo.tortas';
 
     protected $primaryKey = 'producto_id';
 

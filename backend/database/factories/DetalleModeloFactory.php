@@ -15,6 +15,6 @@ class DetalleModeloFactory extends Factory
 
     public function definition(): array
     {
-        return ['producto_id' => ProductoModelo::factory(), 'stock' => 10];
+        return ['producto_id' => ProductoModelo::factory()->state(['tipo' => 'DETALLE']), 'stock' => 10];
     }
 }

@@ -12,7 +12,7 @@ final class VerificacionCorreo
     public function __construct(
         public readonly int $id,
         public readonly int $usuario_id,
-        public readonly string $codigo,
+        public readonly string $codigo_hash,
         public readonly DateTimeImmutable $expira_en,
         public readonly ?DateTimeImmutable $usado_en,
         public readonly DateTimeImmutable $creado_en,

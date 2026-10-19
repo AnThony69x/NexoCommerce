@@ -15,6 +15,6 @@ class SublimacionModeloFactory extends Factory
 
     public function definition(): array
     {
-        return ['producto_id' => ProductoModelo::factory(), 'tipo_material' => 'Ceramica'];
+        return ['producto_id' => ProductoModelo::factory()->state(['tipo' => 'SUBLIMACION']), 'tipo_material' => 'Ceramica'];
     }
 }

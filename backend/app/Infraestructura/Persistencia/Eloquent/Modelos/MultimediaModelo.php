@@ -18,7 +18,7 @@ class MultimediaModelo extends Model
     /** @use HasFactory<MultimediaModeloFactory> */
     use HasFactory;
 
-    protected $table = 'multimedia';
+    protected $table = 'media.multimedia';
 
     protected $primaryKey = 'id';
 
@@ -32,6 +32,8 @@ class MultimediaModelo extends Model
 
     protected $fillable = [
         'nombre_archivo',
+        'modulo',
+        'checksum_sha256',
         'ruta_archivo',
         'tipo_mime',
         'tamano_bytes',

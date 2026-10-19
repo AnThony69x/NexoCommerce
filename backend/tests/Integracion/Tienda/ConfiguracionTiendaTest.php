@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Tests\Integracion\Tienda;
 
 use App\Infraestructura\Persistencia\Eloquent\Modelos\ConfiguracionTiendaModelo;
+use App\Infraestructura\Persistencia\Eloquent\Modelos\MultimediaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\ConfiguracionTiendaSeeder;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class ConfiguracionTiendaTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -82,7 +83,7 @@ class ConfiguracionTiendaTest extends TestCase
             ->assertJsonPath('success', false)
             ->assertJsonStructure(['errors' => ['color_primario']]);
 
-        $this->assertDatabaseHas('configuracion_tienda', [
+        $this->assertDatabaseHas('tienda.configuracion_tienda', [
             'id' => $antes->id,
             'nombre_tienda' => $antes->nombre_tienda,
             'color_primario' => $antes->color_primario,
@@ -104,8 +105,8 @@ class ConfiguracionTiendaTest extends TestCase
             ->assertJsonPath('data.nombre_tienda', 'Tienda Actualizada')
             ->assertJsonPath('data.activo', true);
 
-        $this->assertDatabaseCount('configuracion_tienda', 1);
-        $this->assertDatabaseHas('configuracion_tienda', [
+        $this->assertDatabaseCount('tienda.configuracion_tienda', 1);
+        $this->assertDatabaseHas('tienda.configuracion_tienda', [
             'nombre_tienda' => 'Tienda Actualizada',
             'color_primario' => '#111111',
             'activo' => true,
@@ -114,8 +115,7 @@ class ConfiguracionTiendaTest extends TestCase
 
     public function test_seed_inicial_permanece_correcto(): void
     {
-        $this->assertDatabaseHas('configuracion_tienda', [
-            'clave' => 'principal',
+        $this->assertDatabaseHas('tienda.configuracion_tienda', [
             'nombre_tienda' => 'Dulces Aesca',
             'color_primario' => '#8B5CF6',
             'color_secundario' => '#EC4899',
@@ -131,9 +131,8 @@ class ConfiguracionTiendaTest extends TestCase
 
         $this->seed(ConfiguracionTiendaSeeder::class);
 
-        $this->assertDatabaseCount('configuracion_tienda', 1);
-        $this->assertDatabaseHas('configuracion_tienda', [
-            'clave' => 'principal',
+        $this->assertDatabaseCount('tienda.configuracion_tienda', 1);
+        $this->assertDatabaseHas('tienda.configuracion_tienda', [
             'nombre_tienda' => 'Dulces Aesca',
         ]);
     }
@@ -143,6 +142,9 @@ class ConfiguracionTiendaTest extends TestCase
      */
     private function datosActualizacion(): array
     {
+        $this->archivoTienda('tienda/logo.png');
+        $this->archivoTienda('tienda/favicon.ico');
+
         return [
             'nombre_tienda' => 'Tienda Actualizada',
             'logo_url' => 'tienda/logo.png',
@@ -156,5 +158,12 @@ class ConfiguracionTiendaTest extends TestCase
             'correo' => 'hola@dulcesaesca.com',
             'direccion' => 'Manta, Manabi, Ecuador',
         ];
+    }
+
+    private function archivoTienda(string $ruta): void
+    {
+        if (! MultimediaModelo::query()->where('ruta_archivo', $ruta)->exists()) {
+            MultimediaModelo::factory()->state(['ruta_archivo' => $ruta, 'modulo' => 'TIENDA'])->create();
+        }
     }
 }

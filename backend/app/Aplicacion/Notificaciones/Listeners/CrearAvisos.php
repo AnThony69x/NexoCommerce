@@ -51,6 +51,7 @@ final readonly class CrearAvisos
             'EN_PREPARACION' => 'Pedido en preparacion',
             'LISTO' => 'Pedido listo',
             'ENTREGADO' => 'Pedido entregado',
+            'CANCELADO' => 'Pedido cancelado',
         ];
         $this->repositorio->guardar(
             $evento->usuarioId, $evento->pedidoId, null, 'PEDIDO_'.$evento->estado,

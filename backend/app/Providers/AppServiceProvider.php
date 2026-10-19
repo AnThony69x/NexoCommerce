@@ -26,6 +26,9 @@ use App\Dominio\Productos\Repositorios\ProductoRepositorioInterface;
 use App\Dominio\Publicaciones\Repositorios\PublicacionRepositorioInterface;
 use App\Dominio\Tienda\Repositorios\ConfiguracionTiendaRepositorioInterface;
 use App\Infraestructura\Almacenamiento\LocalAlmacenamientoArchivos;
+use App\Infraestructura\Almacenamiento\SftpAlmacenamientoArchivos;
+use App\Infraestructura\Persistencia\ContextoAuditoria;
+use App\Infraestructura\Persistencia\Eloquent\Modelos\TokenAccesoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CarritoRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\CategoriaRepositorioEloquent;
 use App\Infraestructura\Persistencia\Eloquent\Repositorios\ConfiguracionProduccionRepositorioEloquent;
@@ -43,6 +46,7 @@ use App\Infraestructura\Servicios\MailNotificacionService;
 use App\Infraestructura\Servicios\SanctumTokenService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,7 +61,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Fase 2: Multimedia
         $this->app->bind(MultimediaRepositorioInterface::class, MultimediaRepositorioEloquent::class);
-        $this->app->bind(AlmacenamientoArchivosInterface::class, LocalAlmacenamientoArchivos::class);
+        $this->app->bind(
+            AlmacenamientoArchivosInterface::class,
+            config('app.multimedia_disk') === 'sftp' ? SftpAlmacenamientoArchivos::class : LocalAlmacenamientoArchivos::class,
+        );
 
         // Fase 3: Configuracion de tienda
         $this->app->bind(ConfiguracionTiendaRepositorioInterface::class, ConfiguracionTiendaRepositorioEloquent::class);
@@ -89,6 +96,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Sanctum::usePersonalAccessTokenModel(TokenAccesoModelo::class);
+
+        ContextoAuditoria::registrar();
+
         Event::listen(PedidoCreado::class, [CrearAvisos::class, 'pedidoCreado']);
         Event::listen(PagoRegistrado::class, [CrearAvisos::class, 'pagoRegistrado']);
         Event::listen(PagoVerificado::class, [CrearAvisos::class, 'pagoVerificado']);

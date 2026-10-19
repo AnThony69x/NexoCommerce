@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Productos;
 
+use App\Http\Requests\ExisteEnTabla;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -19,7 +20,7 @@ class ActualizarProductoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'categoria_id' => ['sometimes', 'integer', 'exists:categorias,id'],
+            'categoria_id' => ['sometimes', 'integer', new ExisteEnTabla('catalogo.categorias', 'id')],
             'nombre' => ['sometimes', 'string', 'max:150'],
             'descripcion' => ['sometimes', 'nullable', 'string'],
             'precio_base' => ['sometimes', 'numeric', 'min:0'],
@@ -34,7 +35,7 @@ class ActualizarProductoRequest extends FormRequest
             'sublimacion' => ['sometimes', 'array'],
             'sublimacion.tipo_material' => ['sometimes', 'string', 'max:100'],
             'imagenes' => ['sometimes', 'array'],
-            'imagenes.*.multimedia_id' => ['required', 'integer', 'distinct', 'exists:multimedia,id'],
+            'imagenes.*.multimedia_id' => ['required', 'integer', 'distinct', new ExisteEnTabla('media.multimedia', 'id')],
             'imagenes.*.orden' => ['sometimes', 'integer', 'min:0'],
             'imagenes.*.es_principal' => ['sometimes', 'boolean'],
         ];
@@ -45,9 +46,9 @@ class ActualizarProductoRequest extends FormRequest
         return [function (Validator $validator): void {
             $productoId = (int) $this->route('id');
             $tipoActual = match (true) {
-                DB::table('tortas')->where('producto_id', $productoId)->exists() => 'torta',
-                DB::table('detalles')->where('producto_id', $productoId)->exists() => 'detalle',
-                DB::table('sublimaciones')->where('producto_id', $productoId)->exists() => 'sublimacion',
+                DB::table('catalogo.tortas')->where('producto_id', $productoId)->exists() => 'torta',
+                DB::table('catalogo.detalles')->where('producto_id', $productoId)->exists() => 'detalle',
+                DB::table('catalogo.sublimaciones')->where('producto_id', $productoId)->exists() => 'sublimacion',
                 default => null,
             };
 

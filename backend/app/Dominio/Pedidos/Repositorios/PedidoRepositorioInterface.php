@@ -9,8 +9,11 @@ use App\Dominio\Pedidos\Entidades\Pedido;
 
 interface PedidoRepositorioInterface
 {
-    /** @return Pedido|DominioException Rechazos de negocio se devuelven para confirmar el recálculo del carrito. */
-    public function crearDesdeCarrito(int $usuarioId, string $fechaEntrega, string $totalEsperado): Pedido|DominioException;
+    /**
+     * @param  array{tipo_entrega: string, direccion_entrega: ?string, telefono_contacto: ?string, hora_entrega: ?string}  $entrega
+     * @return Pedido|DominioException Rechazos de negocio se devuelven para confirmar el recálculo del carrito.
+     */
+    public function crearDesdeCarrito(int $usuarioId, string $fechaEntrega, string $totalEsperado, array $entrega): Pedido|DominioException;
 
     /** @return array{datos: list<Pedido>, pagina_actual: int, por_pagina: int, total: int, total_paginas: int} */
     public function listar(array $filtros, ?int $usuarioId): array;

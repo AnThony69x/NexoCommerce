@@ -10,7 +10,6 @@ class ConfiguracionTiendaSeeder extends Seeder
     public function run(): void
     {
         $payload = [
-            'clave' => 'principal',
             'nombre_tienda' => 'Dulces Aesca',
             'color_primario' => '#8B5CF6',
             'color_secundario' => '#EC4899',
@@ -20,8 +19,8 @@ class ConfiguracionTiendaSeeder extends Seeder
             'activo' => true,
         ];
 
-        DB::table('configuracion_tienda')->updateOrInsert(
-            ['clave' => 'principal'],
+        DB::table('tienda.configuracion_tienda')->updateOrInsert(
+            ['activo' => true],
             $payload,
         );
     }

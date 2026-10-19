@@ -359,6 +359,44 @@ Dependencias: Todas las anteriores
 
 ---
 
+## FASE 13: Alineacion con esquema v4.3.2 y almacenamiento SFTP
+
+Estado: En progreso
+Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
+
+- [x] Preparar BD de prueba aislada PostgreSQL 17 (`127.0.0.1:55432`, contenedor `nexo-test-db`) con `database/instalar.sql` y rol `nexo_backend` (Completado: 2026-10-18)
+- [x] Linea base: suite actual contra BD vacia `nexo_baseline`: 171 pruebas, 170 pasan, 1 omitida, 1028 aserciones (Completado: 2026-10-18)
+- [x] Migraciones: retiradas las 4 migraciones de negocio (`personal_access_tokens`, `nexocommerce_tables`, `oauth_solo_google`, `add_clave_to_configuracion_tienda`). Conservadas las tecnicas: `password_reset_tokens`/`sessions` (0001_01_01_000000, sin `users`), `cache` y `jobs`. El esquema se carga desde `database/instalar.sql` (Completado: 2026-10-18). `migrate` verificado sobre BD nueva con el esquema cargado. Con el rol `nexo_backend` falla sin `CREATE` en `public`: las tablas tecnicas las crea la cuenta dueña una vez. Permisos verificados en PostgreSQL 17.11 y 18.6 con `backend/tests/Sql/permisos_nexo_backend.sql` (9 de 9 rechazadas) (verificado en local 2026-10-18)
+- [x] Modelos Eloquent con schema (23 modelos, `$table` = `schema.tabla`) (Completado: 2026-10-18)
+- [x] Pruebas con esquema real: `DatabaseTransactions` sobre BD cargada con `instalar.sql` en lugar de `RefreshDatabase` (Completado: 2026-10-18). La BD de prueba debe recrearse antes de cada corrida: las pruebas concurrentes confirman datos
+- [x] Consultas, joins y reglas de validacion con schema: `ExisteEnTabla` y `UnicoEnTabla`, porque la regla `exists`/`unique` de Laravel interpreta el punto como conexion (Completado: 2026-10-18)
+- [x] Tokens Sanctum sobre `auth.personal_access_tokens` mediante `TokenAccesoModelo` (Completado: 2026-10-18)
+- [x] Seeder de roles por `nombre`, sin fijar `id` (identidad generada) (Completado: 2026-10-18)
+- [x] Productos: `tipo` persistido y coherente con la subtabla mediante FK compuesta; fabricas y pruebas con su tipo (Completado: 2026-10-18)
+- [x] Autenticacion: `verificaciones_correo` guarda `codigo_hash` (HMAC-SHA256 con `app.key`); la API no cambia (Completado: 2026-10-18)
+- [x] Tienda: `logo_id`/`favicon_id` con `media.multimedia`; la API conserva `logo_url`/`favicon_url` (URL calculada desde el archivo y validacion de que el archivo exista); `clave` retirada; seeder por `activo` (Completado: 2026-10-18)
+- [x] Diseños personalizados: se guardan con `producto_id`, `tipo_producto` SUBLIMACION, `estado_cotizacion` NO_REQUIERE y costo fijo de la sublimacion; la API conserva `sublimacion_id` (Completado: 2026-10-18)
+- [x] Publicaciones: la API conserva `activo`; internamente `estado` PUBLICADA/ARCHIVADA y `publicada_en`; orden de imagenes 0-based en la API y 1-based en BD (maximo 9 en la API) (Completado: 2026-10-18)
+- [x] Demo: productos con `tipo`, diseños y plantillas con imagen; seeder con helper de imagen de demo (Completado: 2026-10-18)
+- [x] Pedidos de produccion en pruebas: se crean PENDIENTE y avanzan con pago aprobado y transiciones validas (Completado: 2026-10-18)
+- [x] Suite con esquema real: 171 de 171 pasan (2026-10-18) en dos corridas. Principal: `--exclude-group concurrente` con base nueva. Concurrentes (`#[Group('concurrente')]`): base nueva propia. Las pruebas concurrentes no limpian porque el esquema impide borrar pagos y pedidos
+- [x] Publicaciones: la API conserva `activo`; internamente `estado` PUBLICADA/ARCHIVADA y `publicada_en`; orden 0-based en la API y 1-based en BD (maximo 9 en la API) (Completado: 2026-10-18)
+- [x] Tienda: `logo_id`/`favicon_id` con `media.multimedia`; la API conserva `logo_url`/`favicon_url` (archivo validado y URL calculada); `clave` retirada (Completado: 2026-10-18)
+- [x] Pedidos: campos de entrega, estado `CANCELADO` (restituye stock), `descuento`/`costo_envio` en 0, `catalogo.descontar_stock`, datos de entrega en el detalle; contrato `docs/04-api` spec 06 v1.2.0 y OpenAPI 1.2.0 (cambio de contrato). Verificado 2026-10-18 en PostgreSQL 17 local desechable con `instalar.sql`; la prueba `test_entrega_domicilio_exige_direccion_y_cancelar_restaura_stock` pasa. Incluye correccion: `CrearAvisos` no tenia titulo para `CANCELADO` (500 al cancelar)
+- [x] Productos: `tipo` persistido y coherente con la subtabla; diseños personalizados con `producto_id`/`tipo_producto` y costo fijo de sublimacion; imagen obligatoria en diseños de torta y plantillas (Completado: 2026-10-18)
+- [x] Pagos, multimedia y notificaciones: multimedia `modulo`/`checksum_sha256` persistidos y probados. Pagos (`moneda`) y notificaciones (`canal`, `estado_envio`, `intentos_envio`) usan los defaults del esquema; decision: no se setean explicitamente (Completado: 2026-10-18)
+- [x] Auditoria: `ContextoAuditoria` aplica `set_config` (`app.usuario_id`, `app.ip_origen`, `app.origen`, `app.solicitud_id`) en cada transaccion iniciada y en la autenticacion Sanctum; prueba de alta de categoria auditada (Completado: 2026-10-18)
+- [x] Instalar `league/flysystem-sftp-v3` (aprobado por el usuario el 2026-10-18; instalado 3.36.0 con phpseclib 3.0.57) (Completado: 2026-10-18)
+- [x] Disco `multimedia_sftp` y `SftpAlmacenamientoArchivos` con errores controlados 503 `MUL_ALMACENAMIENTO_NO_DISPONIBLE`; binding por `MULTIMEDIA_DISK` (por defecto local); sin `MULTIMEDIA_SFTP_HOST_FINGERPRINT` no arranca el adaptador; prueba con servidor inaccesible (Completado: 2026-10-18)
+- [~] Variables `MULTIMEDIA_SFTP_*` en `docker-compose.yml` (hecho 2026-10-18). Pendiente: `.env` local (no accesible desde el agente), clave privada como secreto y huella del host real
+- [~] Limites de subida: PHP en la imagen Docker (`upload_max_filesize=6M`, `post_max_size=8M`) hecho 2026-10-18. Pendiente: `client_max_body_size` de NGINX (carpeta `nginx/`, fuera del alcance acordado)
+- [x] Borrar el archivo remoto si falla el INSERT en `SubirArchivoMultimedia` (Completado: 2026-10-18; prueba unitaria)
+- [x] Pruebas contra el esquema real: `database/tests/reglas.sql` ejecutado en BD nueva con rollback, sin errores (Completado: 2026-10-18). Pendiente: casos de rechazo de `nexo_backend` en la BD de la VM
+- [ ] Prueba end-to-end contra file-server `100.88.4.113` (siete pasos de la guia)
+- [ ] Avisar a Nathalia y Emilio de los cambios de contrato antes de fusionar
+
+---
+
 ## Mapa rapido spec → fase
 
 | Spec | Fase |

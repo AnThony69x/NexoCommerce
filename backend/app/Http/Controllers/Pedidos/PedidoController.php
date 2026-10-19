@@ -33,7 +33,10 @@ class PedidoController extends Controller
     public function store(CrearPedidoRequest $request): JsonResponse
     {
         $datos = $request->validated();
-        $pedido = $this->crear->execute((int) $request->user()->id, new CrearPedidoDTO($datos['fecha_entrega'], $datos['total_esperado']));
+        $pedido = $this->crear->execute((int) $request->user()->id, new CrearPedidoDTO(
+            $datos['fecha_entrega'], $datos['total_esperado'], $datos['tipo_entrega'] ?? 'RETIRO',
+            $datos['direccion_entrega'] ?? null, $datos['telefono_contacto'] ?? null, $datos['hora_entrega'] ?? null,
+        ));
 
         return response()->json([
             'success' => true, 'message' => 'Pedido creado. Pendiente de pago.',

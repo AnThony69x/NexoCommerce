@@ -12,13 +12,13 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\ConfiguracionProduccionMod
 use App\Infraestructura\Persistencia\Eloquent\Modelos\ProductoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ProduccionTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -94,14 +94,15 @@ class ProduccionTest extends TestCase
             ->assertJsonPath('data.ocupado', 0)
             ->assertJsonPath('data.disponible', 15);
         $id = (int) $creada->json('data.id');
-        $this->assertDatabaseHas('configuracion_produccion', ['id' => $id, 'activo' => true]);
+        $this->assertDatabaseHas('produccion.configuracion_produccion', ['id' => $id, 'activo' => true]);
 
         $this->withToken($token)->postJson('/api/v1/admin/produccion', $payload)
             ->assertUnprocessable()
             ->assertJsonPath('codigo_error', 'PRD_CONFIG_DUPLICADA');
 
         $this->withToken($token)->postJson('/api/v1/admin/produccion', $payload + ['activo' => false])
-            ->assertCreated();
+            ->assertUnprocessable()
+            ->assertJsonPath('codigo_error', 'PRD_CONFIG_DUPLICADA');
     }
 
     public function test_put_conserva_omitidos_reactiva_si_no_hay_duplicado_y_delete_desactiva(): void
@@ -122,7 +123,7 @@ class ProduccionTest extends TestCase
 
         $this->withToken($token)->deleteJson("/api/v1/admin/produccion/{$configuracion->id}")
             ->assertOk();
-        $this->assertDatabaseHas('configuracion_produccion', [
+        $this->assertDatabaseHas('produccion.configuracion_produccion', [
             'id' => $configuracion->id,
             'activo' => false,
         ]);
@@ -130,15 +131,14 @@ class ProduccionTest extends TestCase
 
     public function test_reactivar_una_configuracion_duplicada_responde_422(): void
     {
-        $fecha = '2026-10-13';
-        ConfiguracionProduccionModelo::factory()->create(['fecha' => $fecha]);
-        $inactiva = ConfiguracionProduccionModelo::factory()->inactiva()->create(['fecha' => $fecha]);
+        ConfiguracionProduccionModelo::factory()->create(['fecha' => '2026-10-13']);
+        $inactiva = ConfiguracionProduccionModelo::factory()->inactiva()->create(['fecha' => '2026-10-14']);
 
         $this->withToken($this->tokenAdmin())
-            ->putJson("/api/v1/admin/produccion/{$inactiva->id}", ['activo' => true])
+            ->putJson("/api/v1/admin/produccion/{$inactiva->id}", ['fecha' => '2026-10-13', 'activo' => true])
             ->assertUnprocessable()
             ->assertJsonPath('codigo_error', 'PRD_CONFIG_DUPLICADA');
-        $this->assertDatabaseHas('configuracion_produccion', ['id' => $inactiva->id, 'activo' => false]);
+        $this->assertDatabaseHas('produccion.configuracion_produccion', ['id' => $inactiva->id, 'activo' => false]);
     }
 
     public function test_listado_admin_filtra_fecha_categoria_y_estado_con_ocupacion(): void
@@ -217,10 +217,11 @@ class ProduccionTest extends TestCase
     private function crearPedido(string $fecha, string $estado, array $items): int
     {
         $usuario = UsuarioModelo::factory()->verificado()->create();
-        $pedidoId = (int) DB::table('pedidos')->insertGetId([
+        $pedidoId = (int) DB::table('ventas.pedidos')->insertGetId([
             'usuario_id' => $usuario->id,
             'fecha_entrega' => $fecha,
-            'estado' => $estado,
+            'estado' => 'PENDIENTE',
+            'estado_pago' => 'PENDIENTE',
             'subtotal' => 0,
             'total' => 0,
             'creado_en' => now(),
@@ -228,7 +229,7 @@ class ProduccionTest extends TestCase
         ]);
 
         foreach ($items as [$productoId, $cantidad]) {
-            DB::table('detalles_pedido')->insert([
+            DB::table('ventas.detalles_pedido')->insert([
                 'pedido_id' => $pedidoId,
                 'producto_id' => $productoId,
                 'nombre_producto' => 'Producto de prueba',
@@ -238,6 +239,22 @@ class ProduccionTest extends TestCase
                 'costo_diseno' => 0,
                 'creado_en' => now(),
             ]);
+        }
+
+        $pasos = ['EN_PREPARACION', 'LISTO', 'ENTREGADO'];
+        if ($estado !== 'PENDIENTE') {
+            DB::table('pagos.pagos')->insert([
+                'pedido_id' => $pedidoId,
+                'metodo' => 'PASARELA',
+                'estado' => 'APROBADO',
+                'monto' => 1,
+                'moneda' => 'USD',
+                'referencia_pasarela' => 'REF-'.$pedidoId,
+                'creado_en' => now(),
+            ]);
+            foreach (array_slice($pasos, 0, array_search($estado, $pasos, true) + 1) as $paso) {
+                DB::table('ventas.pedidos')->where('id', $pedidoId)->update(['estado' => $paso]);
+            }
         }
 
         return $pedidoId;

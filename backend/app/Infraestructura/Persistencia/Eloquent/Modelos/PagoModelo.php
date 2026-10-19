@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PagoModelo extends Model
 {
-    protected $table = 'pagos';
+    protected $table = 'pagos.pagos';
 
     public const CREATED_AT = 'creado_en';
 
