@@ -506,6 +506,64 @@ No deben almacenarse credenciales o secretos dentro del código fuente.
 
 ---
 
+## Conexión con el Backend (Local o Remoto)
+
+`VITE_API_URL` define la dirección del backend. **`localhost` solo funciona si el
+backend y el frontend están en la misma máquina.**
+
+Si el backend corre en **otra laptop** (misma red), hay que usar su **IP LAN** en
+lugar de `localhost`:
+
+```env
+# Backend en esta misma máquina
+VITE_API_URL=http://localhost:8000/api/v1
+
+# Backend en otra laptop de la red
+VITE_API_URL=http://192.168.X.X:8000/api/v1
+```
+
+Requisitos para conectarse desde otra laptop:
+
+- **Laravel debe escuchar en `0.0.0.0`**, no en `127.0.0.1`:
+  ```bash
+  php artisan serve --host=0.0.0.0 --port=8000
+  ```
+  (con Docker/Nginx, verificar que el puerto esté publicado en `0.0.0.0`).
+- **Ambas laptops deben estar en la misma red** (misma Wi-Fi/router).
+- **El puerto del backend (8000) debe estar accesible** (sin firewall que lo bloquee).
+
+La IP **no se hardcodea** en componentes ni services: siempre se lee de
+`VITE_API_URL`. `.env` está fuera de Git (`.gitignore`); solo se versiona
+`.env.example` como plantilla.
+
+### Cómo probar la conexión
+
+1. **Obtener la IP del backend** (en la laptop del backend):
+   - Windows: `ipconfig` → IPv4 (ej. `192.168.1.50`).
+   - Linux/Mac: `ip addr` o `ifconfig`.
+2. **Probar el healthcheck** desde la laptop del frontend (PowerShell o navegador):
+   ```powershell
+   Invoke-WebRequest http://192.168.X.X:8000/api/v1/salud -UseBasicParsing
+   ```
+   Respuesta esperada: `{"success":true,"api":"NexoCommerce v1","estado":"activo"}`.
+3. **Actualizar `.env`** con esa IP (`VITE_API_URL=http://192.168.X.X:8000/api/v1`).
+4. **Reiniciar** el servidor de desarrollo: `npm run dev` (Vite lee `.env` al arrancar).
+5. **Probar el probe**: abrir `http://localhost:5173/dev/categorias` y pulsar
+   "Ejecutar petición".
+
+### Diagnóstico de errores
+
+| Señal | Causa probable |
+|---|---|
+| `status 0` / "No se pudo conectar con el servidor" | Backend caído, IP/puerto incorrectos, o red inaccesible. |
+| Error **CORS** en consola del navegador (cabecera `Origin` rechazada) | El frontend no está en `CORS_ALLOWED_ORIGINS` del backend, o Laravel no está escuchando en `0.0.0.0`. |
+| `404` en la respuesta | `VITE_API_URL` mal formada (revisa el prefijo `/api/v1`). |
+| `500` | Error interno del backend (revisar logs de Laravel). |
+| `401` / `403` | Ruta protegida o sin permisos (no aplica a `/categorias`, que es pública). |
+| Mensaje en consola: "Falta la variable de entorno VITE_API_URL" | Falta crear `.env` desde `.env.example`. |
+
+---
+
 ## Tailwind CSS
 
 Tailwind CSS está integrado mediante el plugin oficial para Vite:
