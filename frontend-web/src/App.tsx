@@ -1,11 +1,16 @@
-function App() {
+import AppRouter from './routes/AppRouter'
+import { AdminMockProvider } from './contexts/AdminMockContext'
+import { AuthProvider } from './contexts/AuthContext'
+import { CartProvider } from './contexts/CartProvider'
+
+export default function App() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-4xl font-bold">
-        NexoCommerce
-      </h1>
-    </main>
+    <AuthProvider>
+      <CartProvider>
+        <AdminMockProvider>
+          <AppRouter />
+        </AdminMockProvider>
+      </CartProvider>
+    </AuthProvider>
   )
 }
-
-export default App

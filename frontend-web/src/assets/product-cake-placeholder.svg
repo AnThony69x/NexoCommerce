@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Imagen temporal de torta</title>
+  <desc id="desc">Placeholder para un producto de repostería.</desc>
+  <rect width="640" height="480" fill="#ead8c8" />
+  <circle cx="320" cy="230" r="126" fill="#fff6ec" />
+  <path d="M188 250h264v64c0 42-34 76-76 76H264c-42 0-76-34-76-76z" fill="#c77c67" />
+  <path d="M218 242c12-82 192-82 204 0" fill="none" stroke="#fff6ec" stroke-width="26" />
+  <text x="320" y="438" fill="#6e4b41" font-family="Georgia, serif" font-size="27" text-anchor="middle">Torta temporal</text>
+</svg>

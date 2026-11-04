@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Imagen temporal de caja de dulces</title>
+  <desc id="desc">Placeholder para un producto de detalles personalizados.</desc>
+  <rect width="640" height="480" fill="#d8c6ac" />
+  <path d="M150 190 320 110l170 80-170 82z" fill="#f7ecdc" />
+  <path d="M150 190v150l170 86V272zM490 190v150l-170 86V272z" fill="#bd9779" />
+  <path d="M320 110v162M150 190l170 82 170-82" fill="none" stroke="#fff8ef" stroke-width="12" />
+  <text x="320" y="438" fill="#684d43" font-family="Georgia, serif" font-size="27" text-anchor="middle">Caja temporal</text>
+</svg>

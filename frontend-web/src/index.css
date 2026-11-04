@@ -1,1 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+/*
+ * Tokens de diseño "Dulces Aesca" (según maquetado Figma):
+ * - Fondo crema cálido, texto marrón espresso, acento rosa palo, franja sage.
+ * - Titulares en serif display (Playfair Display); cuerpo en Inter.
+ * - Se sobrescriben stone-50..300 a tonos cálidos para que las páginas aún no
+ *   reescritas compartan la misma atmósfera.
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Playfair Display", ui-serif, Georgia, "Times New Roman", serif;
+
+  --color-cream: #fcf7f1;
+  --color-cream-rose: #fdf3ed;
+  --color-cream-soft: #f7ede3;
+  --color-brown: #3e2c2c;
+  --color-brown-soft: #75615c;
+  --color-rose-brand: #c46a80;
+  --color-rose-brand-dark: #a8556b;
+  --color-rose-soft: #f7e3e8;
+  --color-sage: #d9e5d7;
+
+  --color-stone-50: #fcf7f1;
+  --color-stone-100: #f7ede3;
+  --color-stone-200: #eadfd3;
+  --color-stone-300: #ddd0c1;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-brown);
+    font-family: var(--font-sans);
+  }
+}

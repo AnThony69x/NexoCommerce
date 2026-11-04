@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Imagen temporal de taza</title>
+  <desc id="desc">Placeholder para un producto de sublimación.</desc>
+  <rect width="640" height="480" fill="#c6d2c9" />
+  <path d="M202 152h220v166c0 38-30 68-68 68h-84c-38 0-68-30-68-68z" fill="#fff9ef" />
+  <path d="M422 190h48c42 0 64 26 64 62s-22 62-64 62h-48" fill="none" stroke="#fff9ef" stroke-width="26" />
+  <circle cx="312" cy="235" r="48" fill="#d99278" />
+  <text x="320" y="438" fill="#40564b" font-family="Georgia, serif" font-size="27" text-anchor="middle">Taza temporal</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Imagen temporal de postre</title>
+  <desc id="desc">Placeholder para un producto dulce.</desc>
+  <rect width="640" height="480" fill="#dfc7b7" />
+  <ellipse cx="320" cy="342" rx="176" ry="34" fill="#a87868" opacity=".45" />
+  <path d="M194 190h252l-22 142c-6 38-38 66-76 66h-56c-38 0-70-28-76-66z" fill="#fff2e5" />
+  <path d="M214 218h212M232 272h176" stroke="#cf806a" stroke-width="16" />
+  <circle cx="280" cy="158" r="32" fill="#c87863" />
+  <circle cx="360" cy="150" r="28" fill="#f4dfbe" />
+  <text x="320" y="438" fill="#6e4b41" font-family="Georgia, serif" font-size="27" text-anchor="middle">Postre temporal</text>
+</svg>

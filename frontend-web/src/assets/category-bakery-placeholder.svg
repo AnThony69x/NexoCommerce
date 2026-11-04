@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" role="img" aria-labelledby="title desc">
+  <title id="title">Imagen temporal de repostería</title>
+  <desc id="desc">Placeholder para la categoría Repostería.</desc>
+  <rect width="800" height="560" fill="#d7b49e" />
+  <rect x="90" y="90" width="620" height="380" rx="28" fill="#8b5e4c" opacity=".55" />
+  <circle cx="400" cy="260" r="120" fill="#f5e4d4" />
+  <path d="M286 270h228c0 78-48 118-114 118s-114-40-114-118Z" fill="#c98268" />
+  <path d="M322 244c12-62 144-62 156 0" fill="none" stroke="#fff8ef" stroke-width="24" />
+  <text x="400" y="510" fill="#fff8ef" font-family="Georgia, serif" font-size="30" text-anchor="middle">Repostería</text>
+</svg>
