@@ -1,55 +1,146 @@
+/** Rangos de precio del sidebar (contrato entre la página y los filtros). */
+export type RangoPrecio = 'todos' | 'menos-20' | '20-40' | 'mas-40'
+
+const OPCIONES_PRECIO: Array<{ valor: RangoPrecio; etiqueta: string }> = [
+  { valor: 'todos', etiqueta: 'Cualquier precio' },
+  { valor: 'menos-20', etiqueta: 'Menos de $20' },
+  { valor: '20-40', etiqueta: '$20 – $40' },
+  { valor: 'mas-40', etiqueta: 'Más de $40' },
+]
+
 type CatalogFiltersProps = {
-  selectedCategory: string
-  onCategoryChange: (value: string) => void
-  onlyAvailable: boolean
-  onAvailabilityChange: (value: boolean) => void
+  /** Nombres de categorías (raíz del árbol) para la lista de checkboxes. */
+  categorias: string[]
+  /** Categorías marcadas (multi-selección; vacío = todas). */
+  categoriasSeleccionadas: string[]
+  onCategoriasChange: (nombres: string[]) => void
+  /** true mientras se cargan las categorías (checkboxes deshabilitados). */
+  categoriasCargando: boolean
+  /** Mensaje de error si falló la carga; null si no hay error. */
+  categoriasError: string | null
+  /** Reintenta la carga de categorías cuando hubo error. */
+  onReintentarCategorias: () => void
+  rangoPrecio: RangoPrecio
+  onRangoPrecioChange: (valor: RangoPrecio) => void
+  soloDisponible: boolean
+  onSoloDisponibleChange: (valor: boolean) => void
 }
 
 export default function CatalogFilters({
-  selectedCategory,
-  onCategoryChange,
-  onlyAvailable,
-  onAvailabilityChange,
+  categorias,
+  categoriasSeleccionadas,
+  onCategoriasChange,
+  categoriasCargando,
+  categoriasError,
+  onReintentarCategorias,
+  rangoPrecio,
+  onRangoPrecioChange,
+  soloDisponible,
+  onSoloDisponibleChange,
 }: CatalogFiltersProps) {
+  function alternarCategoria(nombre: string, marcada: boolean) {
+    onCategoriasChange(
+      marcada
+        ? [...categoriasSeleccionadas, nombre]
+        : categoriasSeleccionadas.filter((actual) => actual !== nombre),
+    )
+  }
+
   return (
-    <section className="rounded-xl border border-stone-200 bg-white p-5">
-      <h2 className="text-lg font-semibold text-stone-800">Filtros</h2>
+    <aside
+      aria-label="Filtros del catálogo"
+      className="h-fit rounded-2xl border border-stone-200 bg-white p-5"
+    >
+      {/* Categoría */}
+      <fieldset disabled={categoriasCargando}>
+        <legend className="text-sm font-semibold text-brown">Categoría</legend>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="flex flex-col gap-2 text-sm text-stone-600">
-          <span>Categoría</span>
-          <select
-            value={selectedCategory}
-            onChange={(event) => onCategoryChange(event.target.value)}
-            className="min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-stone-700"
+        <div className="mt-3 space-y-2">
+          {categorias.map((nombre) => (
+            <label
+              key={nombre}
+              className="flex cursor-pointer items-center gap-2.5 text-sm text-brown-soft"
+            >
+              <input
+                type="checkbox"
+                checked={categoriasSeleccionadas.includes(nombre)}
+                onChange={(event) =>
+                  alternarCategoria(nombre, event.target.checked)
+                }
+                className="h-4 w-4 rounded border-stone-300 accent-rose-brand"
+              />
+              <span>{nombre}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {categoriasCargando && (
+        <p role="status" aria-live="polite" className="mt-3 text-xs text-brown-soft">
+          Cargando categorías…
+        </p>
+      )}
+
+      {!categoriasCargando && categoriasError && (
+        <p role="alert" className="mt-3 text-xs text-rose-brand-dark">
+          {categoriasError}{' '}
+          <button
+            type="button"
+            onClick={onReintentarCategorias}
+            className="font-medium underline"
           >
-            <option>Todas las categorías</option>
-            <option>Repostería</option>
-            <option>Detalles personalizados</option>
-            <option>Sublimación</option>
-          </select>
-        </label>
+            Reintentar
+          </button>
+        </p>
+      )}
 
-        <label className="flex flex-col gap-2 text-sm text-stone-600">
-          <span>Rango de precio</span>
-          <select className="min-h-11 rounded-lg border border-stone-300 bg-white px-3 text-stone-700">
-            <option>Cualquier precio</option>
-            <option>Hasta $20</option>
-            <option>$20 - $40</option>
-            <option>Más de $40</option>
-          </select>
-        </label>
+      {!categoriasCargando && !categoriasError && categorias.length === 0 && (
+        <p className="mt-3 text-xs text-brown-soft">
+          No hay categorías disponibles.
+        </p>
+      )}
 
-        <label className="flex items-center gap-3 self-end text-sm text-stone-600 sm:col-span-2 lg:col-span-1">
+      <hr className="my-5 border-stone-200" />
+
+      {/* Precio */}
+      <fieldset>
+        <legend className="text-sm font-semibold text-brown">Precio</legend>
+        <div className="mt-3 space-y-2">
+          {OPCIONES_PRECIO.map((opcion) => (
+            <label
+              key={opcion.valor}
+              className="flex cursor-pointer items-center gap-2.5 text-sm text-brown-soft"
+            >
+              <input
+                type="radio"
+                name="filtro-precio"
+                checked={rangoPrecio === opcion.valor}
+                onChange={() => onRangoPrecioChange(opcion.valor)}
+                className="h-4 w-4 border-stone-300 accent-rose-brand"
+              />
+              <span>{opcion.etiqueta}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <hr className="my-5 border-stone-200" />
+
+      {/* Disponibilidad */}
+      <fieldset>
+        <legend className="text-sm font-semibold text-brown">
+          Disponibilidad
+        </legend>
+        <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-sm text-brown-soft">
           <input
             type="checkbox"
-            checked={onlyAvailable}
-            onChange={(event) => onAvailabilityChange(event.target.checked)}
-            className="h-4 w-4 rounded border-stone-300 accent-stone-800"
+            checked={soloDisponible}
+            onChange={(event) => onSoloDisponibleChange(event.target.checked)}
+            className="h-4 w-4 rounded border-stone-300 accent-rose-brand"
           />
-          <span>Disponible</span>
+          <span>Disponible ahora</span>
         </label>
-      </div>
-    </section>
+      </fieldset>
+    </aside>
   )
 }

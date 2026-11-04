@@ -1,37 +1,17 @@
 import { useState, type ReactNode } from 'react'
-import boxPlaceholder from '../assets/product-box-placeholder.svg'
-import cakePlaceholder from '../assets/product-cake-placeholder.svg'
 import { CartContext, type CartProduct } from './CartContext'
-
-const initialProducts: CartProduct[] = [
-  {
-    id: 'torta-jardin-de-rosas',
-    nombre: 'Torta Jardín de Rosas',
-    imagen: cakePlaceholder,
-    precioUnitario: 45,
-    categoría: 'Repostería',
-    cantidad: 1,
-  },
-  {
-    id: 'caja-dulce-celebracion',
-    nombre: 'Caja Dulce Celebración',
-    imagen: boxPlaceholder,
-    precioUnitario: 32,
-    categoría: 'Detalles personalizados',
-    cantidad: 1,
-  },
-]
+import { clampCantidad } from '../utils/validation'
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [productos, setProductos] = useState(initialProducts)
+  const [productos, setProductos] = useState<CartProduct[]>([])
 
   function agregarProducto(
     product: Omit<CartProduct, 'cantidad'>,
     cantidad: number,
   ) {
-    const safeQuantity = Number.isFinite(cantidad)
-      ? Math.max(1, Math.floor(cantidad))
-      : 1
+    if (product.stock <= 0) return
+    const safeQuantity = clampCantidad(cantidad, product.stock)
+    if (safeQuantity < 1) return
 
     setProductos((currentProducts) => {
       const existingProduct = currentProducts.some(
@@ -43,7 +23,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
           currentProduct.id === product.id
             ? {
                 ...currentProduct,
-                cantidad: currentProduct.cantidad + safeQuantity,
+                cantidad: clampCantidad(
+                  currentProduct.cantidad + safeQuantity,
+                  currentProduct.stock,
+                ),
               }
             : currentProduct,
         )
@@ -57,7 +40,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setProductos((currentProducts) =>
       currentProducts.map((product) =>
         product.id === id
-          ? { ...product, cantidad: product.cantidad + 1 }
+          ? {
+              ...product,
+              cantidad: clampCantidad(product.cantidad + 1, product.stock),
+            }
           : product,
       ),
     )
@@ -79,6 +65,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  function vaciarCarrito() {
+    setProductos([])
+  }
+
   const totalUnidades = productos.reduce(
     (total, product) => total + product.cantidad,
     0,
@@ -87,6 +77,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (total, product) => total + product.precioUnitario * product.cantidad,
     0,
   )
+  const costoEnvio = productos.length > 0 ? 5 : 0
+  const total = subtotal + costoEnvio
 
   return (
     <CartContext.Provider
@@ -94,10 +86,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
         productos,
         totalUnidades,
         subtotal,
+        costoEnvio,
+        total,
         agregarProducto,
         aumentarCantidad,
         disminuirCantidad,
         eliminarProducto,
+        vaciarCarrito,
       }}
     >
       {children}

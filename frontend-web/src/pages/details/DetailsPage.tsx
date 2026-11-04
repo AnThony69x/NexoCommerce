@@ -1,17 +1,23 @@
-import Footer from '../../components/common/Footer'
-import Header from '../../components/common/Header'
 import BackButton from '../../components/common/BackButton'
 import DetailsCategoryCard from '../../components/details/DetailsCategoryCard'
 import DetailsHero from '../../components/details/DetailsHero'
 import DetailsProductGrid from '../../components/details/DetailsProductGrid'
-import { detailsProducts } from '../../data/products.mock'
+import { ApiErrorState, LoadingState } from '../../components/common/RequestState'
+import { useAsync } from '../../hooks/useAsync'
+import {
+  CATEGORIA_DETALLES,
+  listarPorCategoria,
+} from '../../services/productsRepository'
 
 export default function DetailsPage() {
+  const {
+    data: productos,
+    loading,
+    error,
+    recargar,
+  } = useAsync(() => listarPorCategoria(CATEGORIA_DETALLES), [])
   return (
-    <>
-      <Header />
-
-      <main>
+    <main>
         <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
           <BackButton fallback="/" />
         </div>
@@ -39,10 +45,17 @@ export default function DetailsPage() {
           </div>
         </section>
 
-        <DetailsProductGrid products={detailsProducts} />
-      </main>
-
-      <Footer />
-    </>
+        {loading ? (
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+            <LoadingState mensaje="Cargando detalles…" />
+          </div>
+        ) : error ? (
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+            <ApiErrorState mensaje={error} onReintentar={recargar} />
+          </div>
+        ) : (
+          <DetailsProductGrid products={productos ?? []} />
+        )}
+    </main>
   )
 }

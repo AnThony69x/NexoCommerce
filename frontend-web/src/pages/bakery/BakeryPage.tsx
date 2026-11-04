@@ -1,17 +1,24 @@
-import Footer from '../../components/common/Footer'
-import Header from '../../components/common/Header'
 import BackButton from '../../components/common/BackButton'
 import BakeryCategoryCard from '../../components/bakery/BakeryCategoryCard'
 import BakeryHero from '../../components/bakery/BakeryHero'
 import BakeryProductGrid from '../../components/bakery/BakeryProductGrid'
-import { bakeryProducts } from '../../data/products.mock'
+import { ApiErrorState, LoadingState } from '../../components/common/RequestState'
+import { useAsync } from '../../hooks/useAsync'
+import {
+  CATEGORIA_REPOSTERIA,
+  listarPorCategoria,
+} from '../../services/productsRepository'
 
 export default function BakeryPage() {
-  return (
-    <>
-      <Header />
+  const {
+    data: productos,
+    loading,
+    error,
+    recargar,
+  } = useAsync(() => listarPorCategoria(CATEGORIA_REPOSTERIA), [])
 
-      <main>
+  return (
+    <main>
         <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
           <BackButton fallback="/" />
         </div>
@@ -39,10 +46,17 @@ export default function BakeryPage() {
           </div>
         </section>
 
-        <BakeryProductGrid products={bakeryProducts} />
-      </main>
-
-      <Footer />
-    </>
+        {loading ? (
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+            <LoadingState mensaje="Cargando repostería…" />
+          </div>
+        ) : error ? (
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+            <ApiErrorState mensaje={error} onReintentar={recargar} />
+          </div>
+        ) : (
+          <BakeryProductGrid products={productos ?? []} />
+        )}
+    </main>
   )
 }

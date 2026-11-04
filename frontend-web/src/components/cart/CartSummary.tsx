@@ -1,16 +1,12 @@
 import { Link } from 'react-router-dom'
-import { useContext } from 'react'
-import { CartContext } from '../../contexts/CartContext'
+import { useAuth } from '../../hooks/useAuth'
+import { useCart } from '../../hooks/useCart'
 
 export default function CartSummary() {
-  const cart = useContext(CartContext)
+  const { items, subtotal, total } = useCart()
+  const { isAuthenticated } = useAuth()
 
-  if (!cart) {
-    throw new Error('CartSummary debe renderizarse dentro de CartProvider')
-  }
-
-  const shippingCost = cart.productos.length > 0 ? 5 : 0
-  const total = cart.subtotal + shippingCost
+  const shippingCost = items.length > 0 ? total - subtotal : 0
 
   return (
     <section className="rounded-xl border border-stone-200 bg-white p-5 sm:p-6">
@@ -20,7 +16,7 @@ export default function CartSummary() {
       <div className="mt-5 space-y-3 border-b border-stone-200 pb-5 text-sm text-stone-600">
         <div className="flex justify-between gap-4">
           <span>Subtotal</span>
-          <span>${cart.subtotal.toFixed(2)}</span>
+          <span>${subtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between gap-4">
           <span>Envío</span>
@@ -33,7 +29,8 @@ export default function CartSummary() {
       </div>
 
       <Link
-        to="/checkout"
+        to={isAuthenticated ? '/checkout' : '/login'}
+        state={isAuthenticated ? undefined : { from: '/checkout' }}
         className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700"
       >
         Ir al checkout

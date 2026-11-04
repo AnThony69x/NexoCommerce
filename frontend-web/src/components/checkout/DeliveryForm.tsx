@@ -1,34 +1,19 @@
-import { useForm } from 'react-hook-form'
-
-type DeliveryFormData = {
-  nombreCompleto: string
-  telefono: string
-  direccion: string
-  referencia: string
-  fechaEntrega: string
-}
+import { useFormContext } from 'react-hook-form'
+import type { DeliveryFormData } from '../../types/checkout'
+import {
+  getMinimumDeliveryDate,
+  reglaTelefono,
+  validarFechaEntrega,
+} from '../../utils/validation'
 
 export default function DeliveryForm() {
   const {
     register,
-    handleSubmit,
     formState: { errors },
-  } = useForm<DeliveryFormData>({
-    defaultValues: {
-      nombreCompleto: '',
-      telefono: '',
-      direccion: '',
-      referencia: '',
-      fechaEntrega: '',
-    },
-  })
+  } = useFormContext<DeliveryFormData>()
 
   return (
-    <form
-      onSubmit={handleSubmit(() => undefined)}
-      className="space-y-6"
-      noValidate
-    >
+    <div className="space-y-6">
       <section className="rounded-xl border border-stone-200 bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-stone-800">
           Datos del cliente
@@ -56,9 +41,7 @@ export default function DeliveryForm() {
             <input
               type="tel"
               placeholder="Número de contacto"
-              {...register('telefono', {
-                required: 'El teléfono es obligatorio.',
-              })}
+              {...register('telefono', reglaTelefono())}
               className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 placeholder:text-stone-400"
             />
             {errors.telefono && (
@@ -93,20 +76,15 @@ export default function DeliveryForm() {
           </label>
 
           <label className="flex flex-col gap-2 text-sm text-stone-600 sm:col-span-2">
-            <span>Referencia de entrega</span>
+            <span>
+              Referencia de entrega <span className="text-stone-400">(opcional)</span>
+            </span>
             <input
               type="text"
               placeholder="Referencia de entrega"
-              {...register('referencia', {
-                required: 'La referencia de entrega es obligatoria.',
-              })}
+              {...register('referencia')}
               className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 placeholder:text-stone-400"
             />
-            {errors.referencia && (
-              <span className="text-xs text-rose-700">
-                {errors.referencia.message}
-              </span>
-            )}
           </label>
         </div>
       </section>
@@ -119,8 +97,9 @@ export default function DeliveryForm() {
           <span>Selecciona una fecha</span>
           <input
             type="date"
+            min={getMinimumDeliveryDate()}
             {...register('fechaEntrega', {
-              required: 'La fecha de entrega es obligatoria.',
+              validate: validarFechaEntrega,
             })}
             className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700"
           />
@@ -129,8 +108,11 @@ export default function DeliveryForm() {
               {errors.fechaEntrega.message}
             </span>
           )}
+          <span className="text-xs text-stone-400">
+            Los pedidos deben realizarse con mínimo 3 días de anticipación.
+          </span>
         </label>
       </section>
-    </form>
+    </div>
   )
 }

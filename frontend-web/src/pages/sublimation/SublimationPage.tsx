@@ -1,17 +1,23 @@
-import Footer from '../../components/common/Footer'
-import Header from '../../components/common/Header'
 import BackButton from '../../components/common/BackButton'
 import SublimationHero from '../../components/sublimation/SublimationHero'
 import SublimationOptionCard from '../../components/sublimation/SublimationOptionCard'
 import SublimationProductGrid from '../../components/sublimation/SublimationProductGrid'
-import { sublimationProducts } from '../../data/products.mock'
+import { ApiErrorState, LoadingState } from '../../components/common/RequestState'
+import { useAsync } from '../../hooks/useAsync'
+import {
+  CATEGORIA_SUBLIMACION,
+  listarPorCategoria,
+} from '../../services/productsRepository'
 
 export default function SublimationPage() {
+  const {
+    data: productos,
+    loading,
+    error,
+    recargar,
+  } = useAsync(() => listarPorCategoria(CATEGORIA_SUBLIMACION), [])
   return (
-    <>
-      <Header />
-
-      <main>
+    <main>
         <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
           <BackButton fallback="/" />
         </div>
@@ -35,10 +41,17 @@ export default function SublimationPage() {
           </div>
         </section>
 
-        <SublimationProductGrid products={sublimationProducts} />
-      </main>
-
-      <Footer />
-    </>
+        {loading ? (
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+            <LoadingState mensaje="Cargando sublimación…" />
+          </div>
+        ) : error ? (
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+            <ApiErrorState mensaje={error} onReintentar={recargar} />
+          </div>
+        ) : (
+          <SublimationProductGrid products={productos ?? []} />
+        )}
+    </main>
   )
 }

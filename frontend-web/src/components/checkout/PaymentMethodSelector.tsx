@@ -1,4 +1,6 @@
-export type PaymentMethod = 'PASARELA' | 'TRANSFERENCIA'
+import type { PaymentMethod } from '../../types/checkout'
+
+export type { PaymentMethod }
 
 type PaymentMethodSelectorProps = {
   paymentMethod: PaymentMethod

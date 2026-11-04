@@ -4,11 +4,16 @@ type CatalogPaginationProps = {
   onPageChange: (page: number) => void
 }
 
+const CLASE_CIRCULO =
+  'flex h-10 w-10 items-center justify-center rounded-full border text-sm transition-colors'
+
 export default function CatalogPagination({
   currentPage,
   totalPages,
   onPageChange,
 }: CatalogPaginationProps) {
+  if (totalPages <= 1) return null
+
   const pageNumbers = Array.from(
     { length: totalPages },
     (_, index) => index + 1,
@@ -17,15 +22,27 @@ export default function CatalogPagination({
   return (
     <nav
       aria-label="Paginación del catálogo"
-      className="flex flex-wrap items-center justify-center gap-2 text-sm text-stone-600"
+      className="flex items-center justify-center gap-2"
     >
       <button
         type="button"
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
-        className="rounded-lg border border-stone-300 px-4 py-2 text-stone-600 hover:border-stone-500 disabled:cursor-not-allowed disabled:text-stone-400"
+        aria-label="Página anterior"
+        className={`${CLASE_CIRCULO} border-stone-300 text-brown-soft hover:border-rose-brand hover:text-rose-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone-300 disabled:hover:text-brown-soft`}
       >
-        Anterior
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-4 w-4"
+        >
+          <path d="m14 6-6 6 6 6" />
+        </svg>
       </button>
 
       {pageNumbers.map((page) => (
@@ -33,11 +50,12 @@ export default function CatalogPagination({
           key={page}
           type="button"
           aria-current={page === currentPage ? 'page' : undefined}
+          aria-label={`Página ${page}`}
           onClick={() => onPageChange(page)}
           className={
             page === currentPage
-              ? 'rounded-lg bg-stone-800 px-4 py-2 font-medium text-white'
-              : 'rounded-lg border border-stone-300 px-4 py-2 hover:border-stone-500'
+              ? `${CLASE_CIRCULO} border-rose-brand bg-rose-brand font-medium text-white`
+              : `${CLASE_CIRCULO} border-stone-300 text-brown-soft hover:border-rose-brand hover:text-rose-brand`
           }
         >
           {page}
@@ -48,9 +66,21 @@ export default function CatalogPagination({
         type="button"
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        className="rounded-lg border border-stone-300 px-4 py-2 text-stone-600 hover:border-stone-500 disabled:cursor-not-allowed disabled:text-stone-400"
+        aria-label="Página siguiente"
+        className={`${CLASE_CIRCULO} border-stone-300 text-brown-soft hover:border-rose-brand hover:text-rose-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone-300 disabled:hover:text-brown-soft`}
       >
-        Siguiente
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-4 w-4"
+        >
+          <path d="m10 6 6 6-6 6" />
+        </svg>
       </button>
     </nav>
   )
