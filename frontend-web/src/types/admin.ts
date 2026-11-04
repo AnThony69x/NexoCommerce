@@ -28,6 +28,8 @@ export interface AdminProduct {
   tipo: ProductoTipo
   precio_base: number
   activo: boolean
+  /** Referencias a multimedia (urls o nombres de asset mock). La primera es la principal. */
+  imagenes: string[]
   tamano?: string
   porciones?: number
   sabor?: string
@@ -63,6 +65,9 @@ export interface AdminOrder {
   total: number
   estado: PedidoEstado
   detalles: AdminOrderDetail[]
+  direccion?: string
+  referencia?: string
+  metodo_pago?: PagoMetodo
 }
 
 export interface AdminPayment {

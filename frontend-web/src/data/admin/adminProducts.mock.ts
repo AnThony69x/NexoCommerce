@@ -10,6 +10,7 @@ export const adminProductsMock: AdminProduct[] = [
     tipo: 'TORTA',
     precio_base: 45,
     activo: true,
+    imagenes: ['product-cake-placeholder.svg'],
     tamano: 'Mediana',
     porciones: 20,
     sabor: 'Vainilla',
@@ -23,6 +24,7 @@ export const adminProductsMock: AdminProduct[] = [
     tipo: 'TORTA',
     precio_base: 38,
     activo: true,
+    imagenes: ['product-cake-placeholder.svg', 'product-dessert-placeholder.svg'],
     tamano: 'Pequeña',
     porciones: 12,
     sabor: 'Chocolate',
@@ -36,6 +38,7 @@ export const adminProductsMock: AdminProduct[] = [
     tipo: 'DETALLE',
     precio_base: 32,
     activo: true,
+    imagenes: ['product-box-placeholder.svg'],
     stock: 15,
   },
   {
@@ -47,6 +50,7 @@ export const adminProductsMock: AdminProduct[] = [
     tipo: 'DETALLE',
     precio_base: 28,
     activo: true,
+    imagenes: [],
     stock: 3,
   },
   {
@@ -58,6 +62,7 @@ export const adminProductsMock: AdminProduct[] = [
     tipo: 'SUBLIMACION',
     precio_base: 18,
     activo: true,
+    imagenes: ['product-mug-placeholder.svg'],
     tipo_material: 'Cerámica',
   },
   {
@@ -69,6 +74,7 @@ export const adminProductsMock: AdminProduct[] = [
     tipo: 'SUBLIMACION',
     precio_base: 22,
     activo: false,
+    imagenes: [],
     tipo_material: 'Poliéster',
   },
 ]

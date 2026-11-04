@@ -6,6 +6,7 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import { useAdminMock } from '../../contexts/AdminMockContext'
 import type { AdminFeedbackMessage } from '../../types/admin'
+import { resolverUrlMultimedia } from '../../utils/multimedia'
 
 export default function AdminMediaPage() {
   const { multimedia, agregarMultimedia, alternarMultimedia } = useAdminMock()
@@ -18,14 +19,15 @@ export default function AdminMediaPage() {
     if (!archivo) return
 
     const esImagen = archivo.type.startsWith('image/')
-    if (esImagen) {
-      setVistaPrevia(URL.createObjectURL(archivo))
+    const urlLocal = esImagen ? URL.createObjectURL(archivo) : null
+    if (urlLocal) {
+      setVistaPrevia(urlLocal)
     }
     agregarMultimedia({
       nombre: archivo.name,
       tipoMime: archivo.type === '' ? 'desconocido' : archivo.type,
       tamanoKb: Math.max(1, Math.round(archivo.size / 1024)),
-      url: esImagen ? 'vista previa local (mock)' : 'archivo mock, sin subida real',
+      url: urlLocal ?? 'archivo mock, sin subida real',
       destino: 'selección local',
       activo: true,
     })
@@ -79,8 +81,23 @@ export default function AdminMediaPage() {
           {multimedia.map((item) => (
             <article
               key={item.id}
-              className="rounded-2xl border border-stone-200 bg-white p-5"
+              className="overflow-hidden rounded-2xl border border-stone-200 bg-white"
             >
+              {(() => {
+                const src = resolverUrlMultimedia(item.url)
+                return src ? (
+                  <img
+                    src={src}
+                    alt={item.nombre}
+                    className="aspect-video w-full border-b border-stone-100 object-cover"
+                  />
+                ) : (
+                  <div className="flex aspect-video w-full items-center justify-center border-b border-stone-100 bg-stone-50 text-xs text-stone-400">
+                    {item.tipoMime === 'application/pdf' ? 'PDF' : 'Sin vista previa'}
+                  </div>
+                )
+              })()}
+              <div className="p-5">
               <h2 className="text-sm font-semibold text-stone-800">
                 {item.nombre}
               </h2>
@@ -121,6 +138,7 @@ export default function AdminMediaPage() {
                 >
                   {item.activo ? 'Desactivar' : 'Activar'}
                 </button>
+              </div>
               </div>
             </article>
           ))}

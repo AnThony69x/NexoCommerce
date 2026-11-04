@@ -30,6 +30,7 @@ export default function CategoryForm({
   )
   const {
     register,
+    getValues,
     handleSubmit,
     formState: { errors },
   } = useForm<CategoryFormValues>({
@@ -40,6 +41,26 @@ export default function CategoryForm({
       activo: inicial?.activo ?? true,
     },
   })
+
+  function validarNombreUnico(valor: string): true | string {
+    const padre = getValues('categoria_padre_id') ?? ''
+    const duplicado = categorias.some(
+      (item) =>
+        item.id !== inicial?.id &&
+        item.nombre.trim().toLowerCase() === valor.trim().toLowerCase() &&
+        (item.categoria_padre_id ?? '') === padre,
+    )
+    return duplicado
+      ? 'Ya existe una categoría con ese nombre en este nivel.'
+      : true
+  }
+
+  function validarPadre(valor: string): true | string {
+    if (inicial && valor !== '' && valor === inicial.id) {
+      return 'Una categoría no puede ser su propia categoría padre.'
+    }
+    return true
+  }
 
   function guardar(valores: CategoryFormValues) {
     onGuardar({
@@ -64,7 +85,10 @@ export default function CategoryForm({
           <input
             id="cat-nombre"
             className={claseInput}
-            {...register('nombre', { required: 'El nombre es obligatorio' })}
+            {...register('nombre', {
+              required: 'El nombre es obligatorio',
+              validate: validarNombreUnico,
+            })}
           />
           {errors.nombre && (
             <p className="mt-1 text-xs text-rose-700">{errors.nombre.message}</p>
@@ -74,7 +98,11 @@ export default function CategoryForm({
           <label htmlFor="cat-padre" className={claseLabel}>
             Categoría padre (vacío = principal)
           </label>
-          <select id="cat-padre" className={claseInput} {...register('categoria_padre_id')}>
+          <select
+            id="cat-padre"
+            className={claseInput}
+            {...register('categoria_padre_id', { validate: validarPadre })}
+          >
             <option value="">Sin padre (principal)</option>
             {padresDisponibles.map((item) => (
               <option key={item.id} value={item.id}>
@@ -82,6 +110,11 @@ export default function CategoryForm({
               </option>
             ))}
           </select>
+          {errors.categoria_padre_id && (
+            <p className="mt-1 text-xs text-rose-700">
+              {errors.categoria_padre_id.message}
+            </p>
+          )}
         </div>
       </div>
 

@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type { AdminCategory, AdminProduct, ProductoTipo } from '../../types/admin'
+import SelectorImagenesProducto from './SelectorImagenesProducto'
 
 export type ProductFormValues = {
   nombre: string
@@ -52,6 +54,7 @@ export default function ProductForm({
       tipo_material: inicial?.tipo_material ?? '',
     },
   })
+  const [imagenes, setImagenes] = useState<string[]>(inicial?.imagenes ?? [])
 
   const tipoSeleccionado = watch('tipo')
 
@@ -65,6 +68,7 @@ export default function ProductForm({
       tipo: valores.tipo,
       precio_base: Number(valores.precio_base),
       activo: valores.activo,
+      imagenes,
       tamano: valores.tipo === 'TORTA' ? valores.tamano.trim() : undefined,
       porciones:
         valores.tipo === 'TORTA' ? Number(valores.porciones) : undefined,
@@ -270,6 +274,8 @@ export default function ProductForm({
           )}
         </div>
       )}
+
+      <SelectorImagenesProducto seleccionadas={imagenes} onCambiar={setImagenes} />
 
       <div className="flex justify-end gap-2">
         <button

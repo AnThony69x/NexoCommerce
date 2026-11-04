@@ -23,11 +23,13 @@ const extraUsersMock: AdminUser[] = [
 ]
 
 export const adminUsersMock: AdminUser[] = [
+  // El módulo admin aún trabaja con ids string; se adapta cuando migre a su
+  // endpoint real (GET /admin/usuarios). Por ahora se deriva de los mocks.
   ...authUsersMock.map((user) => ({
-    id: user.id,
+    id: String(user.id),
     nombre_completo: user.nombre_completo,
     correo: user.correo,
-    telefono: user.telefono,
+    telefono: user.telefono ?? '',
     rol: user.role,
     correo_verificado: user.correo_verificado,
     activo: user.activo,
@@ -35,4 +37,4 @@ export const adminUsersMock: AdminUser[] = [
   ...extraUsersMock,
 ]
 
-export const ADMIN_PRINCIPAL_ID = 'user-admin-001'
+export const ADMIN_PRINCIPAL_ID = '1'

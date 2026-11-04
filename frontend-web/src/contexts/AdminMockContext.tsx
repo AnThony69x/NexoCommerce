@@ -1,4 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
+/**
+ * Adaptador mock del panel admin (único seam de datos administrativos).
+ * Las 10 páginas admin consumen solo este hook; al conectar el backend se
+ * reemplaza por services async (misma firma, ver src/services/) sin tocar páginas.
+ */
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {

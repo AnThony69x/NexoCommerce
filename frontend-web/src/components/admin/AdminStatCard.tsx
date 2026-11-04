@@ -10,7 +10,11 @@ export default function AdminStatCard({
   detalle,
 }: AdminStatCardProps) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white px-5 py-4">
+    <div className="relative overflow-hidden rounded-2xl border border-stone-200 bg-white px-5 py-4 shadow-sm">
+      <span
+        aria-hidden="true"
+        className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-rose-600 to-amber-500"
+      />
       <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
         {etiqueta}
       </p>
