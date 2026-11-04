@@ -1,8 +1,13 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
-import Footer from '../../components/common/Footer'
-import Header from '../../components/common/Header'
 import { useAuth } from '../../hooks/useAuth'
+import { ApiError } from '../../types/api'
+import {
+  reglaCorreoRequerido,
+  reglaPasswordRegistro,
+  reglaTelefono,
+} from '../../utils/validation'
 
 type RegisterFormData = {
   fullName: string
@@ -15,7 +20,9 @@ type RegisterFormData = {
 
 export default function RegisterPage() {
   const navigate = useNavigate()
-  const { registerMock } = useAuth()
+  const { registrar } = useAuth()
+  const [registerError, setRegisterError] = useState('')
+  const [enviando, setEnviando] = useState(false)
   const {
     register,
     getValues,
@@ -23,21 +30,32 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<RegisterFormData>()
 
-  function handleMockRegister(data: RegisterFormData) {
-    const user = registerMock(
-      data.fullName,
-      data.email,
-      data.phone,
-      data.password,
-    )
-    navigate(user.role === 'ADMIN' ? '/admin' : '/')
+  async function handleRegister(data: RegisterFormData) {
+    setEnviando(true)
+    try {
+      // El registro público siempre crea CLIENTE. El repositorio decide
+      // mock o API real según VITE_MOCK_MODE (términos/versione enviados allí).
+      await registrar({
+        nombre_completo: data.fullName,
+        correo: data.email,
+        telefono: data.phone.trim() || null,
+        password: data.password,
+      })
+      setRegisterError('')
+      navigate('/')
+    } catch (error) {
+      setRegisterError(
+        error instanceof ApiError
+          ? error.message
+          : 'No se pudo crear la cuenta. Intenta nuevamente.',
+      )
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
-    <>
-      <Header />
-
-      <main className="min-h-[calc(100vh-17rem)] bg-stone-50 px-4 py-12 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100vh-17rem)] bg-stone-50 px-4 py-12 sm:px-6 lg:px-8">
         <section className="mx-auto max-w-md rounded-xl border border-stone-200 bg-white p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">
             Únete a nosotros
@@ -50,7 +68,7 @@ export default function RegisterPage() {
           </p>
 
           <form
-            onSubmit={handleSubmit(handleMockRegister)}
+            onSubmit={handleSubmit(handleRegister)}
             className="mt-7 space-y-5"
             noValidate
           >
@@ -76,13 +94,7 @@ export default function RegisterPage() {
               <input
                 type="email"
                 placeholder="correo@ejemplo.com"
-                {...register('email', {
-                  required: 'El correo es obligatorio.',
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: 'Ingresa un correo válido.',
-                  },
-                })}
+                {...register('email', reglaCorreoRequerido())}
                 className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
               />
               {errors.email && (
@@ -97,9 +109,7 @@ export default function RegisterPage() {
               <input
                 type="tel"
                 placeholder="Número de contacto"
-                {...register('phone', {
-                  required: 'El teléfono es obligatorio.',
-                })}
+                {...register('phone', reglaTelefono())}
                 className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
               />
               {errors.phone && (
@@ -114,13 +124,7 @@ export default function RegisterPage() {
               <input
                 type="password"
                 placeholder="Mínimo 8 caracteres"
-                {...register('password', {
-                  required: 'La contraseña es obligatoria.',
-                  minLength: {
-                    value: 8,
-                    message: 'Debe tener al menos 8 caracteres.',
-                  },
-                })}
+                {...register('password', reglaPasswordRegistro())}
                 className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
               />
               {errors.password && (
@@ -168,10 +172,17 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700"
+              disabled={enviando}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Crear cuenta
+              {enviando ? 'Creando cuenta…' : 'Crear cuenta'}
             </button>
+
+            {registerError && (
+              <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
+                {registerError}
+              </p>
+            )}
 
           </form>
 
@@ -182,9 +193,6 @@ export default function RegisterPage() {
             </Link>
           </p>
         </section>
-      </main>
-
-      <Footer />
-    </>
+    </main>
   )
 }

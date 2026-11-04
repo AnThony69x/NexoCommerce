@@ -1,17 +1,40 @@
-import { createContext, useState, type ReactNode } from 'react'
-import { authUsersMock } from '../data/authUsers.mock'
-import type { AuthUser } from '../types/auth'
+import {
+  createContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react'
+import {
+  cerrarSesion,
+  iniciarSesion,
+  refrescarSesionInicial,
+  registrarCliente,
+  type DatosRegistro,
+} from '../services/authRepository'
+import {
+  cargarSesion,
+  guardarSesion,
+  limpiarSesion,
+} from '../storage/sessionStore'
+import {
+  cargarToken,
+  guardarToken,
+  limpiarToken,
+} from '../storage/tokenStore'
+import type { AuthUser, SesionAuth } from '../types/auth'
 
 type AuthContextValue = {
   user: AuthUser | null
+  token: string | null
   isAuthenticated: boolean
-  login: (email: string, password: string) => AuthUser | null
-  registerMock: (
-    nombre: string,
-    email: string,
-    telefono: string,
-    password: string,
-  ) => AuthUser
+  /**
+   * Inicia sesión (mock o API real según VITE_MOCK_MODE). Lanza ApiError si
+   * falla (401 credenciales inválidas, error de red, etc.) para que la página
+   * muestre el mensaje; nunca devuelve null silencioso.
+   */
+  login: (email: string, password: string) => Promise<AuthUser>
+  /** Registro público (siempre CLIENTE). Lanza ApiError si falla (422, etc.). */
+  registrar: (datos: DatosRegistro) => Promise<AuthUser>
   logout: () => void
 }
 
@@ -21,58 +44,75 @@ export const AuthContext = createContext<AuthContextValue | undefined>(
 )
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null)
+  // Sesión persistida (usuario en localStorage; token en tokenStore). Se
+  // restaura de forma síncrona para que rutas protegidas no parpadeen como
+  // invitadas al recargar; el refresh de abajo la valida en modo real.
+  const [user, setUser] = useState<AuthUser | null>(() => cargarSesion())
+  const [token, setToken] = useState<string | null>(() => cargarToken())
 
-  function login(email: string, password: string) {
-    const mockUser = authUsersMock.find(
-      (candidate) =>
-        candidate.correo.toLowerCase() === email.trim().toLowerCase() &&
-        candidate.passwordMock === password,
-    )
+  // Al montar: el repositorio resuelve la sesión inicial (mock = local,
+  // real = valida token contra /auth/perfil y lo descarta si ya no sirve).
+  useEffect(() => {
+    let cancelado = false
 
-    if (!mockUser || !mockUser.activo) {
-      setUser(null)
-      return null
+    refrescarSesionInicial()
+      .then((perfil) => {
+        if (cancelado) return
+        if (perfil) {
+          setUser(perfil)
+          guardarSesion(perfil)
+        } else {
+          limpiarSesion()
+          limpiarToken()
+        }
+      })
+      .catch(() => {
+        if (cancelado) return
+        limpiarSesion()
+        limpiarToken()
+      })
+
+    return () => {
+      cancelado = true
     }
+  }, [])
 
-    const { passwordMock, ...loggedUser } = mockUser
-    void passwordMock
-    setUser(loggedUser)
-    return loggedUser
+  function aplicarSesion(sesion: SesionAuth) {
+    setUser(sesion.usuario)
+    setToken(sesion.token)
+    guardarSesion(sesion.usuario)
+    guardarToken(sesion.token)
   }
 
-  function registerMock(
-    nombre: string,
-    email: string,
-    telefono: string,
-    password: string,
-  ) {
-    void password
-    const registeredUser: AuthUser = {
-      id: `mock-${email}`,
-      role: 'CLIENTE',
-      nombre_completo: nombre,
-      correo: email,
-      telefono,
-      correo_verificado: false,
-      activo: true,
-    }
+  async function login(email: string, password: string): Promise<AuthUser> {
+    const sesion = await iniciarSesion(email, password)
+    aplicarSesion(sesion)
+    return sesion.usuario
+  }
 
-    setUser(registeredUser)
-    return registeredUser
+  async function registrar(datos: DatosRegistro): Promise<AuthUser> {
+    const sesion = await registrarCliente(datos)
+    aplicarSesion(sesion)
+    return sesion.usuario
   }
 
   function logout() {
     setUser(null)
+    setToken(null)
+    limpiarSesion()
+    limpiarToken()
+    // Revoca el token en el backend (real); en mock es un no-op.
+    void cerrarSesion()
   }
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        token,
         isAuthenticated: user !== null,
         login,
-        registerMock,
+        registrar,
         logout,
       }}
     >

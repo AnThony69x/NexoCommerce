@@ -1,19 +1,28 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
-import Footer from '../../components/common/Footer'
-import Header from '../../components/common/Header'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { ApiError } from '../../types/api'
+import {
+  reglaCorreoRequerido,
+  reglaPasswordLogin,
+} from '../../utils/validation'
 
 type LoginFormData = {
   email: string
   password: string
 }
 
+type LoginLocationState = {
+  from?: string
+}
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [authError, setAuthError] = useState('')
+  const [enviando, setEnviando] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
   const {
     register,
@@ -21,23 +30,29 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>()
 
-  function handleMockLogin(data: LoginFormData) {
-    const user = login(data.email, data.password)
-
-    if (!user) {
-      setAuthError('Correo, contraseña o estado de usuario inválido.')
-      return
+  async function handleLogin(data: LoginFormData) {
+    setEnviando(true)
+    try {
+      // Mock o API real según VITE_MOCK_MODE; lanza ApiError si falla.
+      const user = await login(data.email, data.password)
+      setAuthError('')
+      const destino =
+        (location.state as LoginLocationState | null)?.from ??
+        (user.role === 'ADMIN' ? '/admin' : '/')
+      navigate(destino, { replace: true })
+    } catch (error) {
+      setAuthError(
+        error instanceof ApiError
+          ? error.message
+          : 'No se pudo iniciar sesión. Intenta nuevamente.',
+      )
+    } finally {
+      setEnviando(false)
     }
-
-    setAuthError('')
-    navigate(user.role === 'ADMIN' ? '/admin' : '/')
   }
 
   return (
-    <>
-      <Header />
-
-      <main className="min-h-[calc(100vh-17rem)] bg-stone-50 px-4 py-12 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100vh-17rem)] bg-stone-50 px-4 py-12 sm:px-6 lg:px-8">
         <section className="mx-auto max-w-md rounded-xl border border-stone-200 bg-white p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">
             Bienvenido de nuevo
@@ -50,7 +65,7 @@ export default function LoginPage() {
           </p>
 
           <form
-            onSubmit={handleSubmit(handleMockLogin)}
+            onSubmit={handleSubmit(handleLogin)}
             className="mt-7 space-y-5"
             noValidate
           >
@@ -59,13 +74,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 placeholder="correo@ejemplo.com"
-                {...register('email', {
-                  required: 'El correo es obligatorio.',
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: 'Ingresa un correo válido.',
-                  },
-                })}
+                {...register('email', reglaCorreoRequerido())}
                 className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
               />
               {errors.email && (
@@ -81,13 +90,7 @@ export default function LoginPage() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Ingresa tu contraseña"
-                  {...register('password', {
-                    required: 'La contraseña es obligatoria.',
-                    minLength: {
-                      value: 6,
-                      message: 'Debe tener al menos 6 caracteres.',
-                    },
-                  })}
+                  {...register('password', reglaPasswordLogin())}
                   className="min-h-11 min-w-0 flex-1 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
                 />
                 <button
@@ -107,9 +110,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700"
+              disabled={enviando}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Iniciar sesión
+              {enviando ? 'Iniciando sesión…' : 'Iniciar sesión'}
             </button>
 
             {authError && (
@@ -127,9 +131,6 @@ export default function LoginPage() {
             </Link>
           </p>
         </section>
-      </main>
-
-      <Footer />
-    </>
+    </main>
   )
 }

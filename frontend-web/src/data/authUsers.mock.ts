@@ -4,9 +4,15 @@ export type MockAuthUser = AuthUser & {
   passwordMock: string
 }
 
+/**
+ * Usuarios mock (solo VITE_MOCK_MODE=true). Ids numéricos alineados con el
+ * estilo del backend (seriales); las contraseñas son solo para el mock local.
+ * Datos de prueba usados por el equipo: admin@nexocommerce.test/admin123,
+ * cliente@nexocommerce.test/cliente123, inactivo@nexocommerce.test/inactivo123.
+ */
 export const authUsersMock: MockAuthUser[] = [
   {
-    id: 'user-admin-001',
+    id: 1,
     role: 'ADMIN',
     nombre_completo: 'Admin NexoCommerce',
     correo: 'admin@nexocommerce.test',
@@ -16,7 +22,7 @@ export const authUsersMock: MockAuthUser[] = [
     passwordMock: 'admin123',
   },
   {
-    id: 'user-cliente-001',
+    id: 2,
     role: 'CLIENTE',
     nombre_completo: 'Cliente NexoCommerce',
     correo: 'cliente@nexocommerce.test',
@@ -26,7 +32,7 @@ export const authUsersMock: MockAuthUser[] = [
     passwordMock: 'cliente123',
   },
   {
-    id: 'user-cliente-002',
+    id: 3,
     role: 'CLIENTE',
     nombre_completo: 'Cliente Inactivo',
     correo: 'inactivo@nexocommerce.test',
@@ -36,4 +42,3 @@ export const authUsersMock: MockAuthUser[] = [
     passwordMock: 'inactivo123',
   },
 ]
-
