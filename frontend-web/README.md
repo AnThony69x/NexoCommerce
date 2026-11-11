@@ -359,9 +359,9 @@ frontend-web/
 │   │   └── admin/
 │   │
 │   ├── layouts/
-│   │   ├── PublicLayout/
-│   │   ├── ClientLayout/
-│   │   └── AdminLayout/
+│   │   ├── PublicLayout.tsx
+│   │   ├── AdminLayout.tsx
+│   │   └── AdminArea.tsx        (layout admin + mocks del panel)
 │   │
 │   ├── pages/
 │   │   ├── auth/
@@ -372,7 +372,6 @@ frontend-web/
 │   │   ├── sublimation/
 │   │   ├── cart/
 │   │   ├── checkout/
-│   │   ├── payments/
 │   │   ├── orders/
 │   │   ├── notifications/
 │   │   └── admin/
@@ -536,6 +535,31 @@ La IP **no se hardcodea** en componentes ni services: siempre se lee de
 `VITE_API_URL`. `.env` está fuera de Git (`.gitignore`); solo se versiona
 `.env.example` como plantilla.
 
+### Backend remoto (otra red o máquina virtual)
+
+Cuando el backend no está en la misma red (por ejemplo, una máquina virtual
+de otro compañero expuesta con un túnel), en desarrollo se puede usar el
+proxy que Vite ya trae configurado:
+
+```env
+# .env (no se versiona)
+VITE_MOCK_MODE=false
+VITE_API_URL=/api/v1
+```
+
+```ts
+// vite.config.ts
+server: {
+  proxy: {
+    '/api': { target: 'https://<host-del-tunel>', changeOrigin: true },
+  },
+},
+```
+
+Con `VITE_API_URL=/api/v1` las peticiones salen del mismo origen (el proxy de
+Vite las reenvía al backend), así el desarrollo no depende de la
+configuración CORS del backend. Para producción se usa la URL completa.
+
 ### Cómo probar la conexión
 
 1. **Obtener la IP del backend** (en la laptop del backend):
@@ -548,8 +572,8 @@ La IP **no se hardcodea** en componentes ni services: siempre se lee de
    Respuesta esperada: `{"success":true,"api":"NexoCommerce v1","estado":"activo"}`.
 3. **Actualizar `.env`** con esa IP (`VITE_API_URL=http://192.168.X.X:8000/api/v1`).
 4. **Reiniciar** el servidor de desarrollo: `npm run dev` (Vite lee `.env` al arrancar).
-5. **Probar el probe**: abrir `http://localhost:5173/dev/categorias` y pulsar
-   "Ejecutar petición".
+5. **Probar desde el navegador**: abrir `http://localhost:5173/catalogo` y confirmar que
+   cargan los productos del backend (en modo real, `VITE_MOCK_MODE=false`).
 
 ### Diagnóstico de errores
 
@@ -603,10 +627,11 @@ Rutas protegidas del cliente
 Rutas protegidas del administrador
 ```
 
-Ejemplos de rutas previstas:
+Rutas implementadas en `src/routes/AppRouter.tsx`:
 
 ```text
-/
+Públicas
+├── /
 ├── /catalogo
 ├── /productos/:id
 ├── /reposteria
@@ -614,30 +639,35 @@ Ejemplos de rutas previstas:
 ├── /sublimacion
 ├── /login
 ├── /registro
-│
-├── /perfil
-├── /carrito
+└── /carrito
+
+Protegidas con ProtectedRoute (requieren sesión)
 ├── /checkout
+├── /perfil
 ├── /pedidos
 ├── /pedidos/:id
-├── /notificaciones
-│
+└── /notificaciones
+
+Administración con AdminRoute (requiere rol ADMIN)
 └── /admin
-    ├── /productos
-    ├── /categorias
-    ├── /tortas
-    ├── /disenos
-    ├── /sublimacion
-    ├── /plantillas
-    ├── /publicaciones
-    ├── /multimedia
-    ├── /pedidos
-    ├── /pagos
-    ├── /usuarios
-    └── /configuracion
+    ├── /admin/productos
+    ├── /admin/categorias
+    ├── /admin/pedidos
+    ├── /admin/pedidos/:id
+    ├── /admin/pagos
+    ├── /admin/usuarios
+    ├── /admin/publicaciones
+    ├── /admin/multimedia
+    ├── /admin/produccion
+    └── /admin/configuracion
 ```
 
-Estas rutas representan la estructura prevista del Frontend y se implementarán progresivamente.
+Pendientes (el backend ya tiene los contratos, falta la página en el web):
+`/admin/tortas`, `/admin/disenos`, `/admin/sublimacion` y `/admin/plantillas`.
+
+Las páginas se cargan de forma diferida (`React.lazy`): cada sección baja su
+propio archivo al visitarla y el panel admin solo se descarga al entrar a
+`/admin`.
 
 ---
 
@@ -686,6 +716,15 @@ El resultado de producción se genera en:
 dist/
 ```
 
+### 5. Ejecutar las pruebas
+
+```bash
+npm test
+```
+
+Las pruebas usan Vitest con entorno jsdom y Testing Library. Con
+`npm run test:watch` quedan en modo interactivo.
+
 ---
 
 ## Validación Inicial
@@ -695,6 +734,7 @@ La configuración inicial del proyecto fue comprobada mediante:
 ```bash
 npm run lint
 npm run build
+npm test
 ```
 
 Estado:
@@ -703,6 +743,7 @@ Estado:
 ESLint: OK
 TypeScript: OK
 Vite Build: OK
+Vitest: OK
 ```
 
 ---
@@ -828,15 +869,15 @@ feat(frontend): crear estructura inicial del proyecto web
 [x] Integración Tailwind + Vite
 [x] Validación ESLint
 [x] Build de producción
-[ ] Arquitectura completa de carpetas
-[ ] Sistema de rutas
-[ ] Capa de servicios
-[ ] Variables de entorno
-[ ] Sistema de autenticación
-[ ] Integración con API REST
-[ ] Módulos del cliente
-[ ] Panel administrativo
-[ ] Pruebas del Frontend
+[x] Arquitectura completa de carpetas
+[x] Sistema de rutas
+[x] Capa de servicios
+[x] Variables de entorno
+[x] Sistema de autenticación
+[x] Integración con API REST (el panel admin sigue con mocks)
+[x] Módulos del cliente
+[x] Panel administrativo
+[x] Pruebas del Frontend (Vitest + Testing Library)
 ```
 
 ---
