@@ -126,7 +126,11 @@ export default function LoginPage() {
 
           <p className="mt-6 text-center text-sm text-stone-600">
             ¿Aún no tienes una cuenta?{' '}
-            <Link to="/registro" className="font-medium text-rose-700 hover:text-rose-800">
+            <Link
+              to="/registro"
+              state={{ from: location.state }}
+              className="font-medium text-rose-700 hover:text-rose-800"
+            >
               Crear una cuenta
             </Link>
           </p>

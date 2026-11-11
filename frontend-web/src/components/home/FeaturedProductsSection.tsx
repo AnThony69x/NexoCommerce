@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import ProductCard from './ProductCard'
-import { LoadingState } from '../common/RequestState'
+import { ApiErrorState, LoadingState } from '../common/RequestState'
 import { useAsync } from '../../hooks/useAsync'
 import {
   CATEGORIA_SUBLIMACION,
@@ -28,14 +28,16 @@ function badgeDeProducto(
 }
 
 export default function FeaturedProductsSection() {
-  const { data: destacados, loading } = useAsync(
-    () => listarDestacados(destacadosIds),
-    [],
-  )
+  const {
+    data: destacados,
+    loading,
+    error,
+    recargar,
+  } = useAsync(() => listarDestacados(destacadosIds), [])
 
   return (
     <section className="bg-cream-rose px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="mb-3 inline-block rounded-full bg-rose-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-brand-dark">
@@ -55,6 +57,8 @@ export default function FeaturedProductsSection() {
 
         {loading ? (
           <LoadingState mensaje="Cargando destacados…" />
+        ) : error ? (
+          <ApiErrorState mensaje={error} onReintentar={recargar} />
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {(destacados ?? []).map((producto, indice) => (

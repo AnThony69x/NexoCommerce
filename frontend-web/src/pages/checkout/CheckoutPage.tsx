@@ -11,6 +11,7 @@ import type { PaymentMethod } from '../../types/checkout'
 import { useAuth } from '../../hooks/useAuth'
 import { useCart } from '../../hooks/useCart'
 import { crearPedido } from '../../services/ordersService'
+import { ApiError } from '../../types/api'
 import {
   deliveryFormDefaultValues,
   type DeliveryFormData,
@@ -23,6 +24,7 @@ export default function CheckoutPage() {
   const [pedidoConfirmado, setPedidoConfirmado] =
     useState<PedidoConfirmado | null>(null)
   const [creando, setCreando] = useState(false)
+  const [errorPedido, setErrorPedido] = useState<string | null>(null)
   const methods = useForm<DeliveryFormData>({
     defaultValues: deliveryFormDefaultValues,
   })
@@ -30,6 +32,7 @@ export default function CheckoutPage() {
   async function confirmarPedido(datos: DeliveryFormData) {
     if (!user || pedidoConfirmado || creando) return
     setCreando(true)
+    setErrorPedido(null)
     try {
       const envio = items.length > 0 ? total - subtotal : 0
       const pedido = await crearPedido({
@@ -58,6 +61,14 @@ export default function CheckoutPage() {
         envio,
         total,
       })
+    } catch (falla) {
+      // Sin este catch el fallo quedaba como promesa rechazada invisible:
+      // el usuario veía "Confirmando…" y nunca sabía qué pasó.
+      setErrorPedido(
+        falla instanceof ApiError
+          ? falla.message
+          : 'No se pudo confirmar el pedido. Intenta nuevamente.',
+      )
     } finally {
       setCreando(false)
     }
@@ -69,7 +80,7 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-8">
+      <div className="mx-auto space-y-8">
         <BackButton fallback="/carrito" />
         <section>
           <h1 className="text-3xl font-semibold text-stone-800">Checkout</h1>
@@ -91,6 +102,14 @@ export default function CheckoutPage() {
 
             <aside className="space-y-4">
               <CheckoutSummary />
+              {errorPedido && (
+                <p
+                  role="alert"
+                  className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700"
+                >
+                  {errorPedido}
+                </p>
+              )}
               <button
                 type="submit"
                 disabled={creando || items.length === 0}

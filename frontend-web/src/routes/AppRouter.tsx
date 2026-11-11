@@ -30,8 +30,6 @@ import AdminPublicationsPage from '../pages/admin/AdminPublicationsPage'
 import AdminMediaPage from '../pages/admin/AdminMediaPage'
 import AdminProductionPage from '../pages/admin/AdminProductionPage'
 import AdminStoreConfigPage from '../pages/admin/AdminStoreConfigPage'
-// ⚠️ TEMPORAL (probe de integración) — borrar esta línea y su <Route> al terminar.
-import CategoriesProbePage from '../pages/dev/CategoriesProbePage'
 
 export default function AppRouter() {
   return (
@@ -47,9 +45,6 @@ export default function AppRouter() {
           <Route path="/sublimacion" element={<SublimationPage />} />
           <Route path="/productos/:id" element={<ProductDetailPage />} />
           <Route path="/carrito" element={<CartPage />} />
-
-          {/* ⚠️ TEMPORAL (probe de integración) — borrar esta línea al terminar. */}
-          <Route path="/dev/categorias" element={<CategoriesProbePage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/checkout" element={<CheckoutPage />} />

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { ApiError } from '../../types/api'
 import {
@@ -20,6 +20,7 @@ type RegisterFormData = {
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { registrar } = useAuth()
   const [registerError, setRegisterError] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -42,7 +43,11 @@ export default function RegisterPage() {
         password: data.password,
       })
       setRegisterError('')
-      navigate('/')
+      // Conserva el destino original (ej. /checkout): quien llegó al registro
+      // bloqueado vuelve a su flujo en vez de caer siempre en el inicio.
+      const destino =
+        (location.state as { from?: string } | null)?.from ?? '/'
+      navigate(destino, { replace: true })
     } catch (error) {
       setRegisterError(
         error instanceof ApiError
