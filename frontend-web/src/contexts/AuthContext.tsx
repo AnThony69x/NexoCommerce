@@ -5,10 +5,13 @@ import {
   type ReactNode,
 } from 'react'
 import {
+  actualizarPerfil as actualizarPerfilRepository,
+  cambiarPassword as cambiarPasswordRepository,
   cerrarSesion,
   iniciarSesion,
   refrescarSesionInicial,
   registrarCliente,
+  reenviarVerificacion as reenviarVerificacionRepository,
   type DatosRegistro,
 } from '../services/authRepository'
 import {
@@ -43,6 +46,21 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<AuthUser>
   /** Registro público (siempre CLIENTE). Lanza ApiError si falla (422, etc.). */
   registrar: (datos: DatosRegistro) => Promise<AuthUser>
+  /**
+   * Actualiza los datos del perfil (nombre y telefono) y refresca la sesion
+   * visible. Lanza ApiError si el backend rechaza el cambio.
+   */
+  actualizarPerfil: (datos: {
+    nombre_completo: string
+    telefono: string | null
+  }) => Promise<AuthUser>
+  /** Cambia la contrasena de la sesion actual. */
+  cambiarPassword: (
+    passwordActual: string,
+    passwordNueva: string,
+  ) => Promise<void>
+  /** Reenvia el codigo de verificacion del correo. */
+  reenviarVerificacion: () => Promise<void>
   logout: () => void
 }
 
@@ -131,6 +149,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return sesion.usuario
   }
 
+  async function actualizarPerfil(datos: {
+    nombre_completo: string
+    telefono: string | null
+  }): Promise<AuthUser> {
+    const usuario = await actualizarPerfilRepository(datos)
+    setUser(usuario)
+    guardarSesion(usuario)
+    return usuario
+  }
+
+  async function cambiarPassword(
+    passwordActual: string,
+    passwordNueva: string,
+  ): Promise<void> {
+    await cambiarPasswordRepository(passwordActual, passwordNueva)
+  }
+
+  async function reenviarVerificacion(): Promise<void> {
+    await reenviarVerificacionRepository()
+  }
+
   function logout() {
     // La revocación remota inicia ANTES de borrar el token: el interceptor
     // de api.ts lo lee al enviar la petición; si se borra antes, el POST
@@ -152,6 +191,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         validando,
         login,
         registrar,
+        actualizarPerfil,
+        cambiarPassword,
+        reenviarVerificacion,
         logout,
       }}
     >

@@ -98,6 +98,14 @@ export async function cerrarSesion(): Promise<void> {
   await apiClient.post('/auth/logout')
 }
 
+/**
+ * POST /auth/reenviar-verificacion (Bearer): genera un nuevo codigo de
+ * verificacion de correo para el usuario autenticado.
+ */
+export async function reenviarVerificacion(): Promise<void> {
+  await apiClient.post('/auth/reenviar-verificacion')
+}
+
 /** GET /auth/perfil (Bearer): usuario completo; sirve para refrescar la sesión. */
 export async function obtenerPerfil(): Promise<AuthUser> {
   const { data } = await apiClient.get<ApiEnvelope<UsuarioPerfilApi>>(

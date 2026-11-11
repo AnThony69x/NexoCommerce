@@ -19,6 +19,7 @@ import {
   cargarClientesMock,
   cargarSesion,
   guardarClienteMock,
+  guardarSesion,
 } from '../storage/sessionStore'
 import {
   cargarToken,
@@ -138,6 +139,64 @@ export async function obtenerPerfil(): Promise<AuthUser> {
     throw new ApiError(401, 'No hay sesión activa.')
   }
   return sesion
+}
+
+/**
+ * PUT /usuarios/perfil (real) o actualización local (mock).
+ * Devuelve el usuario ya actualizado para que el contexto refresque la
+ * sesión visible.
+ */
+export async function actualizarPerfil(datos: {
+  nombre_completo: string
+  telefono: string | null
+}): Promise<AuthUser> {
+  if (!config.mockMode) {
+    return authService.actualizarPerfil(datos)
+  }
+
+  const usuario = cargarSesion()
+  if (!usuario) {
+    throw new ApiError(401, 'No hay sesión activa.')
+  }
+
+  const actualizado: AuthUser = {
+    ...usuario,
+    nombre_completo: datos.nombre_completo.trim(),
+    telefono: datos.telefono?.trim() || null,
+  }
+  guardarSesion(actualizado)
+  return actualizado
+}
+
+/**
+ * PUT /usuarios/cambiar-password (real). En mock no hay hash local: se
+ * validan las reglas que el backend exige (minimo y distinta de la actual).
+ */
+export async function cambiarPassword(
+  passwordActual: string,
+  passwordNueva: string,
+): Promise<void> {
+  if (!config.mockMode) {
+    await authService.cambiarPassword(passwordActual, passwordNueva)
+    return
+  }
+
+  if (passwordNueva.length < 8) {
+    throw new ApiError(422, 'La nueva contraseña debe tener al menos 8 caracteres.')
+  }
+  if (passwordActual === passwordNueva) {
+    throw new ApiError(422, 'La nueva contraseña debe ser distinta de la actual.')
+  }
+}
+
+/**
+ * POST /auth/reenviar-verificacion (real). En mock no hay nada que hacer:
+ * el codigo se generaria en el backend.
+ */
+export async function reenviarVerificacion(): Promise<void> {
+  if (!config.mockMode) {
+    await authService.reenviarVerificacion()
+  }
 }
 
 /**
