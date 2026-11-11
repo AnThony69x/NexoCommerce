@@ -1,4 +1,6 @@
+import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
+import CargandoPagina from '../components/common/CargandoPagina'
 import FloatingCartButton from '../components/common/FloatingCartButton'
 import Footer from '../components/common/Footer'
 import Header from '../components/common/Header'
@@ -17,7 +19,9 @@ export default function PublicLayout() {
       <Header />
 
       <div id="contenido" tabIndex={-1} className="outline-none">
-        <Outlet />
+        <Suspense fallback={<CargandoPagina />}>
+          <Outlet />
+        </Suspense>
       </div>
 
       <Footer />
