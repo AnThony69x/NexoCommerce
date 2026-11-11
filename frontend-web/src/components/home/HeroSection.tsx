@@ -6,7 +6,7 @@ export default function HeroSection() {
     <section className="bg-cream px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
       <div className="mx-auto grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
-          <p className="mb-5 inline-block rounded-full bg-rose-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-brand-dark">
+          <p className="mb-5 inline-block rounded-full bg-rose-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-brand-ink">
             Colección de repostería aesca
           </p>
           <h1 className="max-w-xl font-display text-4xl font-semibold leading-[1.08] tracking-tight text-brown sm:text-5xl lg:text-6xl">
@@ -19,7 +19,7 @@ export default function HeroSection() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               to="/reposteria"
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-rose-brand px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-rose-brand-dark"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-rose-brand-dark px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-rose-brand-ink"
             >
               Explorar repostería
             </Link>

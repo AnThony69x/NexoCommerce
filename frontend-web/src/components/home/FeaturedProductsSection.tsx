@@ -40,7 +40,7 @@ export default function FeaturedProductsSection() {
       <div className="mx-auto">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="mb-3 inline-block rounded-full bg-rose-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-brand-dark">
+            <p className="mb-3 inline-block rounded-full bg-rose-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-brand-ink">
               Favoritos de la semana
             </p>
             <h2 className="font-display text-3xl font-semibold tracking-tight text-brown sm:text-4xl">

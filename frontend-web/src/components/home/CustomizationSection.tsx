@@ -7,6 +7,7 @@ export default function CustomizationSection() {
       <div className="mx-auto grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div className="overflow-hidden rounded-3xl bg-cream-soft">
           <img
+            loading="lazy"
             src={customizationPlaceholder}
             alt="Detalle personalizado envuelto a mano"
             className="aspect-[4/3] w-full object-cover"
@@ -14,7 +15,7 @@ export default function CustomizationSection() {
         </div>
 
         <div className="max-w-xl">
-          <p className="mb-4 inline-block rounded-full bg-rose-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-brand-dark">
+          <p className="mb-4 inline-block rounded-full bg-rose-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-brand-ink">
             Taller a medida
           </p>
           <h2 className="font-display text-3xl font-semibold leading-tight tracking-tight text-brown sm:text-4xl">
@@ -26,7 +27,7 @@ export default function CustomizationSection() {
           </p>
           <Link
             to="/detalles"
-            className="mt-7 inline-flex min-h-11 items-center justify-center rounded-full bg-rose-brand px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-rose-brand-dark"
+            className="mt-7 inline-flex min-h-11 items-center justify-center rounded-full bg-rose-brand-dark px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-rose-brand-ink"
           >
             Conocer el taller
           </Link>

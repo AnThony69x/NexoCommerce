@@ -70,6 +70,7 @@ export default function ProductCard({
       <Link to={`/productos/${id}`} className="block">
         <div className="relative overflow-hidden rounded-2xl bg-cream-soft">
           <img
+            loading="lazy"
             src={imagen}
             alt={nombre}
             className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -77,7 +78,7 @@ export default function ProductCard({
           {badge && !agotado && (
             <span
               className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white ${
-                badge === 'Más pedido' ? 'bg-rose-brand' : 'bg-brown'
+                badge === 'Más pedido' ? 'bg-rose-brand-dark' : 'bg-brown'
               }`}
             >
               {badge}
@@ -107,7 +108,7 @@ export default function ProductCard({
           onClick={agregarAlCarrito}
           disabled={agotado}
           aria-label={`Agregar ${nombre} al carrito`}
-          className="mt-5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose-brand/50 text-rose-brand transition-colors hover:bg-rose-brand hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-rose-brand"
+          className="mt-5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose-brand/50 text-rose-brand transition-colors hover:bg-rose-brand-dark hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-rose-brand"
         >
           {ICONO_CARRITO}
         </button>

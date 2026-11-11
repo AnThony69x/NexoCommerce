@@ -15,7 +15,7 @@ export default function FloatingCartButton() {
     <Link
       to="/carrito"
       aria-label={`Ir al carrito, ${totalItems} productos`}
-      className="fixed bottom-6 right-6 z-20 flex h-12 items-center gap-2 rounded-full bg-stone-800 px-4 text-sm font-medium text-white shadow-xl transition-colors hover:bg-rose-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-brand/50 focus-visible:ring-offset-2"
+      className="fixed bottom-6 right-6 z-20 flex h-12 items-center gap-2 rounded-full bg-stone-800 px-4 text-sm font-medium text-white shadow-xl transition-colors hover:bg-rose-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-brand/50 focus-visible:ring-offset-2"
     >
       <svg
         aria-hidden="true"

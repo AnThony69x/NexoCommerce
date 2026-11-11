@@ -191,7 +191,7 @@ export default function CatalogPage() {
                 setCurrentPage(1)
               }}
               aria-label={`Quitar filtro ${nombre}`}
-              className="inline-flex items-center gap-2 rounded-full bg-rose-brand px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-rose-brand-dark"
+              className="inline-flex items-center gap-2 rounded-full bg-rose-brand-dark px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-rose-brand-ink"
             >
               {nombre}
               <span aria-hidden="true">×</span>

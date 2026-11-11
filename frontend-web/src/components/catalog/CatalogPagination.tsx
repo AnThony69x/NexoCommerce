@@ -29,7 +29,7 @@ export default function CatalogPagination({
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
         aria-label="Página anterior"
-        className={`${CLASE_CIRCULO} border-stone-300 text-brown-soft hover:border-rose-brand hover:text-rose-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone-300 disabled:hover:text-brown-soft`}
+        className={`${CLASE_CIRCULO} border-stone-300 text-brown-soft hover:border-rose-brand hover:text-rose-brand-dark disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone-300 disabled:hover:text-brown-soft`}
       >
         <svg
           aria-hidden="true"
@@ -54,7 +54,7 @@ export default function CatalogPagination({
           onClick={() => onPageChange(page)}
           className={
             page === currentPage
-              ? `${CLASE_CIRCULO} border-rose-brand bg-rose-brand font-medium text-white`
+              ? `${CLASE_CIRCULO} border-rose-brand-dark bg-rose-brand-dark font-medium text-white`
               : `${CLASE_CIRCULO} border-stone-300 text-brown-soft hover:border-rose-brand hover:text-rose-brand`
           }
         >
@@ -67,7 +67,7 @@ export default function CatalogPagination({
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
         aria-label="Página siguiente"
-        className={`${CLASE_CIRCULO} border-stone-300 text-brown-soft hover:border-rose-brand hover:text-rose-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone-300 disabled:hover:text-brown-soft`}
+        className={`${CLASE_CIRCULO} border-stone-300 text-brown-soft hover:border-rose-brand hover:text-rose-brand-dark disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone-300 disabled:hover:text-brown-soft`}
       >
         <svg
           aria-hidden="true"
