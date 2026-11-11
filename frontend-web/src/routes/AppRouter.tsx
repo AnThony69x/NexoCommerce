@@ -34,6 +34,49 @@ import AdminProductionPage from '../pages/admin/AdminProductionPage'
 import AdminStoreConfigPage from '../pages/admin/AdminStoreConfigPage'
 
 /**
+ * Título legible por ruta: se usa en document.title (y lo announces los
+ * lectores de pantalla al cambiar de página).
+ */
+const TITULOS_POR_RUTA: Record<string, string> = {
+  '/': 'Inicio',
+  '/catalogo': 'Catálogo',
+  '/reposteria': 'Repostería',
+  '/detalles': 'Detalles personalizados',
+  '/sublimacion': 'Sublimación',
+  '/login': 'Iniciar sesión',
+  '/registro': 'Crear cuenta',
+  '/carrito': 'Carrito de compras',
+  '/checkout': 'Finalizar compra',
+  '/perfil': 'Mi perfil',
+  '/pedidos': 'Mis pedidos',
+  '/notificaciones': 'Notificaciones',
+  '/admin': 'Panel de administración',
+}
+
+function tituloDeRuta(pathname: string): string {
+  if (TITULOS_POR_RUTA[pathname]) return TITULOS_POR_RUTA[pathname]
+  if (pathname.startsWith('/productos/')) return 'Detalle del producto'
+  if (pathname.startsWith('/pedidos/')) return 'Detalle del pedido'
+  if (pathname.startsWith('/admin/')) return 'Administración'
+  return 'Dulces Aesca'
+}
+
+/**
+ * Actualiza el título del documento y vuelve al inicio del scroll al cambiar
+ * de ruta (antes se conservaba la posición de la página anterior).
+ */
+function TituloYPosicion() {
+  const location = useLocation()
+
+  useEffect(() => {
+    document.title = `${tituloDeRuta(location.pathname)} · Dulces Aesca`
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [location.pathname])
+
+  return null
+}
+
+/**
  * Registra la primera entrada del historial (idempotente) para que Volver
  * sepa cuándo navigate(-1) es seguro. Debe vivir dentro del Router.
  */
@@ -51,6 +94,7 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <RegistrarEntradaInicial />
+      <TituloYPosicion />
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />

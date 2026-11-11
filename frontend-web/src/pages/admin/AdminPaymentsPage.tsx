@@ -1,3 +1,4 @@
+import { formatPrice } from '../../utils/formatPrice'
 import { useMemo, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
@@ -100,7 +101,7 @@ export default function AdminPaymentsPage() {
               </td>
               <td className="px-4 py-3 text-stone-600">{item.metodo}</td>
               <td className="px-4 py-3 text-stone-600">
-                ${item.monto.toFixed(2)}
+                {formatPrice(item.monto)}
               </td>
               <td className="px-4 py-3">
                 <AdminStatusBadge estado={item.estado} />

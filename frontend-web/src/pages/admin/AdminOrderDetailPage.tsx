@@ -1,3 +1,4 @@
+import { formatPrice } from '../../utils/formatPrice'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
@@ -82,7 +83,7 @@ export default function AdminOrderDetailPage() {
             Fecha: {pedido.fecha_entrega}
           </p>
           <p className="text-sm text-stone-700">
-            Total: ${pedido.total.toFixed(2)}
+            Total: {formatPrice(pedido.total)}
           </p>
           <div className="mt-2">
             <AdminStatusBadge estado={pedido.estado} />
@@ -120,13 +121,13 @@ export default function AdminOrderDetailPage() {
             </td>
             <td className="px-4 py-3 text-stone-600">{detalle.cantidad}</td>
             <td className="px-4 py-3 text-stone-600">
-              ${detalle.precio_unitario.toFixed(2)}
+              {formatPrice(detalle.precio_unitario)}
             </td>
             <td className="px-4 py-3 text-stone-600">
               {detalle.personalizacion ?? '—'}
             </td>
             <td className="px-4 py-3 text-stone-600">
-              ${detalle.subtotal.toFixed(2)}
+              {formatPrice(detalle.subtotal)}
             </td>
           </tr>
         ))}

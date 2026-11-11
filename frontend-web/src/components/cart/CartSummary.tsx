@@ -1,3 +1,4 @@
+import { formatPrice } from '../../utils/formatPrice'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useCart } from '../../hooks/useCart'
@@ -16,16 +17,16 @@ export default function CartSummary() {
       <div className="mt-5 space-y-3 border-b border-stone-200 pb-5 text-sm text-stone-600">
         <div className="flex justify-between gap-4">
           <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between gap-4">
           <span>Envío</span>
-          <span>${shippingCost.toFixed(2)}</span>
+          <span>{formatPrice(shippingCost)}</span>
         </div>
       </div>
       <div className="flex justify-between gap-4 pt-5 text-base font-semibold text-stone-800">
         <span>Total</span>
-        <span>${total.toFixed(2)}</span>
+        <span>{formatPrice(total)}</span>
       </div>
 
       <Link

@@ -1,3 +1,4 @@
+import { formatPrice } from '../../utils/formatPrice'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
@@ -80,9 +81,9 @@ export default function AdminOrdersPage() {
               <td className="px-4 py-3 text-stone-600">{item.clienteNombre}</td>
               <td className="px-4 py-3 text-stone-600">{item.fecha_entrega}</td>
               <td className="px-4 py-3 text-stone-600">
-                ${item.subtotal.toFixed(2)}
+                {formatPrice(item.subtotal)}
               </td>
-              <td className="px-4 py-3 text-stone-600">${item.total.toFixed(2)}</td>
+              <td className="px-4 py-3 text-stone-600">{formatPrice(item.total)}</td>
               <td className="px-4 py-3">
                 <AdminStatusBadge estado={item.estado} />
               </td>

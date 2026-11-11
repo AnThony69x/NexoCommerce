@@ -1,6 +1,12 @@
 import BackButton from '../../components/common/BackButton'
 import { useAuth } from '../../hooks/useAuth'
 
+/** Etiquetas legibles para el rol (el enum no se muestra crudo). */
+const ETIQUETA_ROL: Record<string, string> = {
+  ADMIN: 'Administrador',
+  CLIENTE: 'Cliente',
+}
+
 export default function PerfilPage() {
   const { user } = useAuth()
 
@@ -38,7 +44,9 @@ export default function PerfilPage() {
           </div>
           <div className="flex justify-between gap-4 border-b border-stone-100 py-3">
             <dt className="text-stone-500">Rol</dt>
-            <dd className="font-medium text-stone-800">{user.role}</dd>
+            <dd className="font-medium text-stone-800">
+              {ETIQUETA_ROL[user.role] ?? user.role}
+            </dd>
           </div>
           <div className="flex justify-between gap-4 py-3">
             <dt className="text-stone-500">Correo verificado</dt>
