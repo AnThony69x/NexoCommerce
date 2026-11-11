@@ -10,7 +10,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <div className="mx-auto space-y-8">
+        <div className="mx-auto max-w-6xl space-y-8">
           <BackButton fallback="/" />
           <section>
             <h1 className="text-3xl font-semibold text-stone-800">Carrito</h1>
@@ -37,7 +37,7 @@ export default function CartPage() {
 
   return (
     <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <div className="mx-auto space-y-8">
+      <div className="mx-auto max-w-6xl space-y-8">
         <BackButton fallback="/" />
         <section>
           <h1 className="text-3xl font-semibold text-stone-800">Carrito</h1>

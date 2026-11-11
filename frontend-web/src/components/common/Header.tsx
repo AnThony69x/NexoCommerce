@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useCart } from '../../hooks/useCart'
@@ -74,6 +74,33 @@ export default function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [menuAbierto, setMenuAbierto] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // El menú de cuenta se cierra al hacer clic fuera o al pulsar Escape:
+  // antes se quedaba abierto flotando sobre el contenido.
+  useEffect(() => {
+    if (!menuAbierto) return
+
+    function handlePointerDown(event: PointerEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuAbierto(false)
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setMenuAbierto(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [menuAbierto])
 
   function handleSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -96,7 +123,7 @@ export default function Header() {
 
   return (
     <header className="border-b border-stone-200 bg-cream px-4 py-3 sm:px-6 lg:px-8">
-      <div className="mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <Link to="/" className="inline-flex flex-col leading-none">
           <span className="font-display text-xl font-semibold text-brown">
             Dulces Aesca
@@ -106,7 +133,10 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav aria-label="Navegación principal">
+        <nav
+          aria-label="Navegación principal"
+          className="order-3 w-full lg:order-2 lg:w-auto"
+        >
           <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             {NAV_ITEMS.map((item) => (
               <li key={item.to}>
@@ -128,7 +158,7 @@ export default function Header() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-2 text-sm text-brown-soft">
+        <div className="order-2 flex items-center gap-2 text-sm text-brown-soft lg:order-3">
           <form onSubmit={handleSearch} className="flex items-center gap-2">
             <input
               type="search"
@@ -136,7 +166,7 @@ export default function Header() {
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Buscar"
               aria-label="Buscar productos"
-              className="h-10 w-32 rounded-full border border-stone-200 bg-white px-3.5 text-xs text-brown outline-none transition-colors placeholder:text-brown-soft/70 focus:border-rose-brand focus-visible:ring-2 focus-visible:ring-rose-brand/30 sm:w-44"
+              className="h-10 w-32 rounded-full border border-stone-200 bg-white px-3.5 text-xs text-brown outline-none transition-colors placeholder:text-brown-soft/70 focus:border-rose-brand focus-visible:ring-2 focus-visible:ring-rose-brand/30 md:w-44"
             />
             <button
               type="submit"
@@ -156,7 +186,7 @@ export default function Header() {
               {ICONO_USUARIO}
             </Link>
           ) : (
-            <div className="relative">
+            <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setMenuAbierto((actual) => !actual)}
@@ -222,7 +252,7 @@ export default function Header() {
           >
             {ICONO_CARRITO}
             {totalItems > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-brand px-1 text-[10px] font-semibold text-white">
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-brand-dark px-1 text-[10px] font-semibold text-white">
                 {totalItems}
               </span>
             )}
