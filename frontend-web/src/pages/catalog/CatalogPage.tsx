@@ -65,6 +65,18 @@ export default function CatalogPage() {
   const [orden, setOrden] = useState<OrdenCatalogo>('destacados')
   const [currentPage, setCurrentPage] = useState(1)
 
+  // Sincroniza la búsqueda que llega desde el header
+  // (navigate('/catalogo?search=x')) estando ya en el catálogo: sin esto la
+  // URL cambiaba pero los resultados no, y el paginador quedaba en una página
+  // sin productos. Patrón de React "adjust state during render".
+  const busquedaUrl = searchParams.get('search') ?? ''
+  const [busquedaPrevia, setBusquedaPrevia] = useState(busquedaUrl)
+  if (busquedaUrl !== busquedaPrevia) {
+    setBusquedaPrevia(busquedaUrl)
+    setSearchTerm(busquedaUrl)
+    setCurrentPage(1)
+  }
+
   const {
     data: productos,
     loading,

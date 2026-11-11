@@ -193,7 +193,11 @@ export default function RegisterPage() {
 
           <p className="mt-6 text-center text-sm text-stone-600">
             ¿Ya tienes una cuenta?{' '}
-            <Link to="/login" className="font-medium text-rose-700 hover:text-rose-800">
+            <Link
+              to="/login"
+              state={location.state ?? undefined}
+              className="font-medium text-rose-700 hover:text-rose-800"
+            >
               Volver a iniciar sesión
             </Link>
           </p>

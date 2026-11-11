@@ -132,12 +132,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function logout() {
+    // La revocación remota inicia ANTES de borrar el token: el interceptor
+    // de api.ts lo lee al enviar la petición; si se borra antes, el POST
+    // /auth/logout sale sin Authorization y el token nunca se revoca.
+    const revocacion = cerrarSesion()
     setUser(null)
     setToken(null)
     limpiarSesion()
     limpiarToken()
-    // Revoca el token en el backend (real); en mock es un no-op.
-    void cerrarSesion()
+    void revocacion
   }
 
   return (
