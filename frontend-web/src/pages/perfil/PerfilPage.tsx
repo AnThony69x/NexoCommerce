@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import AccountNav from '../../components/account/AccountNav'
 import BackButton from '../../components/common/BackButton'
+import PasswordInput from '../../components/common/PasswordInput'
 import { useAuth } from '../../hooks/useAuth'
 import { ApiError } from '../../types/api'
 import { reglaTelefono } from '../../utils/validation'
@@ -322,9 +323,9 @@ export default function PerfilPage() {
           >
             <label className="flex flex-col gap-2 text-sm text-stone-600">
               <span>Contraseña actual</span>
-              <input
+              <PasswordInput
                 id="perfil-clave-actual"
-                type="password"
+                placeholder="Contraseña actual"
                 autoComplete="current-password"
                 aria-invalid={!!erroresClave.passwordActual}
                 aria-describedby={
@@ -335,7 +336,6 @@ export default function PerfilPage() {
                 {...registerClave('passwordActual', {
                   required: 'Escribe tu contraseña actual.',
                 })}
-                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none focus:border-stone-500 aria-invalid:border-rose-700"
               />
               {erroresClave.passwordActual && (
                 <span
@@ -350,9 +350,9 @@ export default function PerfilPage() {
 
             <label className="flex flex-col gap-2 text-sm text-stone-600">
               <span>Nueva contraseña</span>
-              <input
+              <PasswordInput
                 id="perfil-clave-nueva"
-                type="password"
+                placeholder="Mínimo 8 caracteres"
                 autoComplete="new-password"
                 aria-invalid={!!erroresClave.passwordNueva}
                 aria-describedby={
@@ -370,7 +370,6 @@ export default function PerfilPage() {
                     valor !== getValoresClave('passwordActual') ||
                     'Debe ser distinta de la contraseña actual.',
                 })}
-                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none focus:border-stone-500 aria-invalid:border-rose-700"
               />
               {erroresClave.passwordNueva && (
                 <span
@@ -385,9 +384,9 @@ export default function PerfilPage() {
 
             <label className="flex flex-col gap-2 text-sm text-stone-600">
               <span>Repite la nueva contraseña</span>
-              <input
+              <PasswordInput
                 id="perfil-clave-confirmacion"
-                type="password"
+                placeholder="Repite la nueva contraseña"
                 autoComplete="new-password"
                 aria-invalid={!!erroresClave.passwordNuevaConfirmacion}
                 aria-describedby={
@@ -401,7 +400,6 @@ export default function PerfilPage() {
                     valor === getValoresClave('passwordNueva') ||
                     'Las contraseñas no coinciden.',
                 })}
-                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none focus:border-stone-500 aria-invalid:border-rose-700"
               />
               {erroresClave.passwordNuevaConfirmacion && (
                 <span

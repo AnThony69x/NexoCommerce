@@ -105,10 +105,12 @@ export default function AppRouter() {
       <RegistrarEntradaInicial />
       <TituloYPosicion />
       <Routes>
+        {/* Acceso a pantalla completa: sin header ni footer del sitio. */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/registro" element={<RegisterPage />} />
+
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/registro" element={<RegisterPage />} />
           <Route path="/catalogo" element={<CatalogPage />} />
           <Route path="/reposteria" element={<BakeryPage />} />
           <Route path="/detalles" element={<DetailsPage />} />
