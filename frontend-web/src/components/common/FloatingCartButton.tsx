@@ -5,7 +5,9 @@ export default function FloatingCartButton() {
   const location = useLocation()
   const { totalItems } = useCart()
 
-  if (location.pathname === '/carrito') {
+  // Oculto también en /checkout: a ancho completo el botón fijo quedaba
+  // encima del resumen y podía tapar "Confirmar pedido".
+  if (location.pathname === '/carrito' || location.pathname === '/checkout') {
     return null
   }
 

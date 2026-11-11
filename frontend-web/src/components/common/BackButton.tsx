@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { hayEntradaPreviaSpa } from '../../utils/historialSpa'
 
 type BackButtonProps = {
   fallback?: string
@@ -11,9 +12,13 @@ type BackButtonProps = {
  */
 export default function BackButton({ fallback = '/' }: BackButtonProps) {
   const navigate = useNavigate()
+  const location = useLocation()
 
   function handleBack() {
-    if (window.history.length > 1) {
+    // Solo retrocede si hay una entrada previa del SPA; si la app se abrió
+    // directamente en esta ruta (o desde un enlace externo), usar el
+    // fallback en vez de navigate(-1), que saldría de la aplicación.
+    if (hayEntradaPreviaSpa(location.key)) {
       navigate(-1)
       return
     }

@@ -1,4 +1,6 @@
-import { BrowserRouter, Route, Routes, Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Route, Routes, Link, useLocation } from 'react-router-dom'
+import { marcarEntradaInicial } from '../utils/historialSpa'
 import CartPage from '../pages/cart/CartPage'
 import BakeryPage from '../pages/bakery/BakeryPage'
 import CatalogPage from '../pages/catalog/CatalogPage'
@@ -31,9 +33,24 @@ import AdminMediaPage from '../pages/admin/AdminMediaPage'
 import AdminProductionPage from '../pages/admin/AdminProductionPage'
 import AdminStoreConfigPage from '../pages/admin/AdminStoreConfigPage'
 
+/**
+ * Registra la primera entrada del historial (idempotente) para que Volver
+ * sepa cuándo navigate(-1) es seguro. Debe vivir dentro del Router.
+ */
+function RegistrarEntradaInicial() {
+  const location = useLocation()
+
+  useEffect(() => {
+    marcarEntradaInicial(location.key)
+  }, [location.key])
+
+  return null
+}
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
+      <RegistrarEntradaInicial />
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />

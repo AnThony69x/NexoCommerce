@@ -31,6 +31,19 @@ export default function CheckoutPage() {
 
   async function confirmarPedido(datos: DeliveryFormData) {
     if (!user || pedidoConfirmado || creando) return
+
+    // Re-chequeo de stock al momento de confirmar: el stock se validó al
+    // agregar, pero pudo agotarse (o cambiar) mientras el carrito estaba abierto.
+    const sinStock = items.filter((item) => item.cantidad > item.stock)
+    if (sinStock.length > 0) {
+      setErrorPedido(
+        `Stock insuficiente para: ${sinStock
+          .map((item) => item.nombre)
+          .join(', ')}. Reduce la cantidad o quítalos del carrito.`,
+      )
+      return
+    }
+
     setCreando(true)
     setErrorPedido(null)
     try {
