@@ -28,17 +28,27 @@ export interface ApiErrorForma {
   success: false
   message: string
   errors?: Record<string, string[]>
+  /** Código de negocio del backend en errores 400 (spec: PED_PRECIO_CAMBIADO, CAR_SIN_STOCK, …). */
+  codigo_error?: string
 }
 
 export class ApiError extends Error {
   status: number
   errors?: Record<string, string[]>
+  /** Copia de ApiErrorForma.codigo_error para control de flujo en la UI. */
+  codigoError?: string
 
-  constructor(status: number, message: string, errors?: Record<string, string[]>) {
+  constructor(
+    status: number,
+    message: string,
+    errors?: Record<string, string[]>,
+    codigoError?: string,
+  ) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.errors = errors
+    this.codigoError = codigoError
   }
 }
 

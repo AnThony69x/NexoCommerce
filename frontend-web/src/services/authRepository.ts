@@ -144,9 +144,11 @@ export async function obtenerPerfil(): Promise<AuthUser> {
  * Arranque de sesión al cargar la app (lo consume el contexto, que no sabe
  * si es mock o real):
  *  - mock: devuelve la sesión local guardada (sin red).
- *  - real: si hay token guardado, lo valida contra GET /auth/perfil; si el
- *    backend lo rechaza (401) u otro error, descarta el token y devuelve
- *    null (la UI queda como invitada; sin fallback silencioso).
+ *  - real: si hay token guardado, lo valida contra GET /auth/perfil.
+ *    Solo un 401 (token rechazado por el backend) descarta la sesión y
+ *    devuelve null. Un fallo de red o un 5xx NO cierra la sesión local:
+ *    evita el "logout silencioso" con la red inestable; se conserva la
+ *    sesión y se revalida en el siguiente intento o petición.
  */
 export async function refrescarSesionInicial(): Promise<AuthUser | null> {
   if (config.mockMode) {
@@ -157,8 +159,12 @@ export async function refrescarSesionInicial(): Promise<AuthUser | null> {
 
   try {
     return await authService.obtenerPerfil()
-  } catch {
-    limpiarToken()
-    return null
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      limpiarToken()
+      return null
+    }
+    // Fallo transitorio (sin conexión, 5xx, etc.): conservar la sesión local.
+    return cargarSesion()
   }
 }
