@@ -29,7 +29,10 @@ const baseURL = config.apiUrl
 
 export const apiClient = axios.create({
   baseURL,
-  timeout: 15000,
+  // 30 s: el backend de desarrollo (Laravel artisan serve) puede tardar
+  // ~10 s en escribir y registrar un usuario; con 15 s el cliente cortaba
+  // la peticion aunque el servidor ya hubiera respondido.
+  timeout: 30000,
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',
