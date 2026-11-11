@@ -72,13 +72,20 @@ export default function LoginPage() {
             <label className="flex flex-col gap-2 text-sm text-stone-600">
               <span>Correo electrónico</span>
               <input
+                id="login-email"
                 type="email"
                 placeholder="correo@ejemplo.com"
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? 'login-error-email' : undefined}
                 {...register('email', reglaCorreoRequerido())}
-                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
+                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500 aria-invalid:border-rose-700"
               />
               {errors.email && (
-                <span className="text-xs text-rose-700">
+                <span
+                  id="login-error-email"
+                  role="alert"
+                  className="text-xs text-rose-700"
+                >
                   {errors.email.message}
                 </span>
               )}
@@ -88,10 +95,15 @@ export default function LoginPage() {
               <span>Contraseña</span>
               <div className="flex gap-2">
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Ingresa tu contraseña"
+                  aria-invalid={!!errors.password}
+                  aria-describedby={
+                    errors.password ? 'login-error-password' : undefined
+                  }
                   {...register('password', reglaPasswordLogin())}
-                  className="min-h-11 min-w-0 flex-1 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
+                  className="min-h-11 min-w-0 flex-1 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500 aria-invalid:border-rose-700"
                 />
                 <button
                   type="button"
@@ -102,7 +114,11 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <span className="text-xs text-rose-700">
+                <span
+                  id="login-error-password"
+                  role="alert"
+                  className="text-xs text-rose-700"
+                >
                   {errors.password.message}
                 </span>
               )}
@@ -117,7 +133,10 @@ export default function LoginPage() {
             </button>
 
             {authError && (
-              <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
+              <p
+                role="alert"
+                className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700"
+              >
                 {authError}
               </p>
             )}

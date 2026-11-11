@@ -80,15 +80,24 @@ export default function RegisterPage() {
             <label className="flex flex-col gap-2 text-sm text-stone-600">
               <span>Nombre completo</span>
               <input
+                id="register-fullname"
                 type="text"
                 placeholder="Nombre del cliente"
+                aria-invalid={!!errors.fullName}
+                aria-describedby={
+                  errors.fullName ? 'register-error-fullname' : undefined
+                }
                 {...register('fullName', {
                   required: 'El nombre completo es obligatorio.',
                 })}
-                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
+                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500 aria-invalid:border-rose-700"
               />
               {errors.fullName && (
-                <span className="text-xs text-rose-700">
+                <span
+                  id="register-error-fullname"
+                  role="alert"
+                  className="text-xs text-rose-700"
+                >
                   {errors.fullName.message}
                 </span>
               )}
@@ -97,13 +106,22 @@ export default function RegisterPage() {
             <label className="flex flex-col gap-2 text-sm text-stone-600">
               <span>Correo electrónico</span>
               <input
+                id="register-email"
                 type="email"
                 placeholder="correo@ejemplo.com"
+                aria-invalid={!!errors.email}
+                aria-describedby={
+                  errors.email ? 'register-error-email' : undefined
+                }
                 {...register('email', reglaCorreoRequerido())}
-                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
+                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500 aria-invalid:border-rose-700"
               />
               {errors.email && (
-                <span className="text-xs text-rose-700">
+                <span
+                  id="register-error-email"
+                  role="alert"
+                  className="text-xs text-rose-700"
+                >
                   {errors.email.message}
                 </span>
               )}
@@ -112,13 +130,22 @@ export default function RegisterPage() {
             <label className="flex flex-col gap-2 text-sm text-stone-600">
               <span>Teléfono</span>
               <input
+                id="register-phone"
                 type="tel"
                 placeholder="Número de contacto"
+                aria-invalid={!!errors.phone}
+                aria-describedby={
+                  errors.phone ? 'register-error-phone' : undefined
+                }
                 {...register('phone', reglaTelefono())}
-                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
+                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500 aria-invalid:border-rose-700"
               />
               {errors.phone && (
-                <span className="text-xs text-rose-700">
+                <span
+                  id="register-error-phone"
+                  role="alert"
+                  className="text-xs text-rose-700"
+                >
                   {errors.phone.message}
                 </span>
               )}
@@ -127,13 +154,22 @@ export default function RegisterPage() {
             <label className="flex flex-col gap-2 text-sm text-stone-600">
               <span>Contraseña</span>
               <input
+                id="register-password"
                 type="password"
                 placeholder="Mínimo 8 caracteres"
+                aria-invalid={!!errors.password}
+                aria-describedby={
+                  errors.password ? 'register-error-password' : undefined
+                }
                 {...register('password', reglaPasswordRegistro())}
-                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
+                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500 aria-invalid:border-rose-700"
               />
               {errors.password && (
-                <span className="text-xs text-rose-700">
+                <span
+                  id="register-error-password"
+                  role="alert"
+                  className="text-xs text-rose-700"
+                >
                   {errors.password.message}
                 </span>
               )}
@@ -142,18 +178,29 @@ export default function RegisterPage() {
             <label className="flex flex-col gap-2 text-sm text-stone-600">
               <span>Confirmar contraseña</span>
               <input
+                id="register-confirm-password"
                 type="password"
                 placeholder="Repite tu contraseña"
+                aria-invalid={!!errors.confirmPassword}
+                aria-describedby={
+                  errors.confirmPassword
+                    ? 'register-error-confirm-password'
+                    : undefined
+                }
                 {...register('confirmPassword', {
                   required: 'Confirma tu contraseña.',
                   validate: (value) =>
                     value === getValues('password') ||
                     'Las contraseñas no coinciden.',
                 })}
-                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500"
+                className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-500 aria-invalid:border-rose-700"
               />
               {errors.confirmPassword && (
-                <span className="text-xs text-rose-700">
+                <span
+                  id="register-error-confirm-password"
+                  role="alert"
+                  className="text-xs text-rose-700"
+                >
                   {errors.confirmPassword.message}
                 </span>
               )}
@@ -161,7 +208,12 @@ export default function RegisterPage() {
 
             <label className="flex items-start gap-3 text-sm text-stone-600">
               <input
+                id="register-terms"
                 type="checkbox"
+                aria-invalid={!!errors.termsAccepted}
+                aria-describedby={
+                  errors.termsAccepted ? 'register-error-terms' : undefined
+                }
                 {...register('termsAccepted', {
                   required: 'Debes aceptar los términos.',
                 })}
@@ -170,7 +222,11 @@ export default function RegisterPage() {
               <span>Acepto los términos y condiciones.</span>
             </label>
             {errors.termsAccepted && (
-              <span className="-mt-3 block text-xs text-rose-700">
+              <span
+                id="register-error-terms"
+                role="alert"
+                className="-mt-3 block text-xs text-rose-700"
+              >
                 {errors.termsAccepted.message}
               </span>
             )}
@@ -184,7 +240,10 @@ export default function RegisterPage() {
             </button>
 
             {registerError && (
-              <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
+              <p
+                role="alert"
+                className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700"
+              >
                 {registerError}
               </p>
             )}

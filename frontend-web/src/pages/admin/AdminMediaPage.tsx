@@ -64,6 +64,7 @@ export default function AdminMediaPage() {
             Previsualización local
           </h2>
           <img
+            loading="lazy"
             src={vistaPrevia}
             alt="Vista previa local del archivo seleccionado"
             className="mt-3 max-h-64 rounded-xl border border-stone-200 object-contain"
@@ -87,6 +88,7 @@ export default function AdminMediaPage() {
                 const src = resolverUrlMultimedia(item.url)
                 return src ? (
                   <img
+                    loading="lazy"
                     src={src}
                     alt={item.nombre}
                     className="aspect-video w-full border-b border-stone-100 object-cover"

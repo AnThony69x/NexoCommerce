@@ -1,3 +1,4 @@
+import { formatPrice } from '../../utils/formatPrice'
 import { useMemo, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
@@ -167,6 +168,7 @@ export default function AdminProductsPage() {
                       : null
                   return src ? (
                     <img
+                      loading="lazy"
                       src={src}
                       alt={`Imagen de ${item.nombre}`}
                       className="h-12 w-12 rounded-lg border border-stone-200 object-cover"
@@ -182,7 +184,7 @@ export default function AdminProductsPage() {
               <td className="px-4 py-3 text-stone-600">{item.tipo}</td>
               <td className="px-4 py-3 text-stone-600">{item.categoriaNombre}</td>
               <td className="px-4 py-3 text-stone-600">
-                ${item.precio_base.toFixed(2)}
+                {formatPrice(item.precio_base)}
               </td>
               <td className="px-4 py-3">
                 <AdminStatusBadge estado={item.activo ? 'ACTIVO' : 'INACTIVO'} />

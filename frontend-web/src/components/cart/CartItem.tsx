@@ -1,3 +1,4 @@
+import { formatPrice } from '../../utils/formatPrice'
 import type { CartProduct } from '../../contexts/CartContext'
 import { useCart } from '../../hooks/useCart'
 
@@ -14,6 +15,7 @@ export default function CartItem({ producto }: CartItemProps) {
   return (
     <article className="grid gap-4 rounded-xl border border-stone-200 bg-white p-4 sm:grid-cols-[112px_1fr_auto] sm:items-center">
       <img
+        loading="lazy"
         src={imagen}
         alt={nombre}
         className="aspect-square w-28 rounded-lg object-cover"
@@ -23,7 +25,7 @@ export default function CartItem({ producto }: CartItemProps) {
         <h3 className="font-semibold text-stone-800">{nombre}</h3>
         <p className="mt-1 text-sm text-stone-500">{categoría}</p>
         <p className="mt-3 text-sm text-stone-600">
-          Precio unitario: ${precioUnitario.toFixed(2)}
+          Precio unitario: {formatPrice(precioUnitario)}
         </p>
         <p className="mt-1 text-xs text-stone-500">
           Disponibles: {stock}
@@ -54,7 +56,7 @@ export default function CartItem({ producto }: CartItemProps) {
           </button>
         </div>
         <p className="mt-3 text-sm font-semibold text-stone-800">
-          Subtotal: ${subtotal.toFixed(2)}
+          Subtotal: {formatPrice(subtotal)}
         </p>
         <button
           type="button"
