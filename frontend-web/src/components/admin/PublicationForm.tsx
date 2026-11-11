@@ -81,7 +81,7 @@ export default function PublicationForm({
           {...register('titulo', { required: 'El título es obligatorio' })}
         />
         {errors.titulo && (
-          <p className="mt-1 text-xs text-rose-700">{errors.titulo.message}</p>
+          <p role="alert" className="mt-1 text-xs text-rose-700">{errors.titulo.message}</p>
         )}
       </div>
 
@@ -98,7 +98,7 @@ export default function PublicationForm({
           })}
         />
         {errors.descripcion && (
-          <p className="mt-1 text-xs text-rose-700">
+          <p role="alert" className="mt-1 text-xs text-rose-700">
             {errors.descripcion.message}
           </p>
         )}

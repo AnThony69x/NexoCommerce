@@ -91,7 +91,7 @@ export default function CategoryForm({
             })}
           />
           {errors.nombre && (
-            <p className="mt-1 text-xs text-rose-700">{errors.nombre.message}</p>
+            <p role="alert" className="mt-1 text-xs text-rose-700">{errors.nombre.message}</p>
           )}
         </div>
         <div>
@@ -111,7 +111,7 @@ export default function CategoryForm({
             ))}
           </select>
           {errors.categoria_padre_id && (
-            <p className="mt-1 text-xs text-rose-700">
+            <p role="alert" className="mt-1 text-xs text-rose-700">
               {errors.categoria_padre_id.message}
             </p>
           )}
@@ -131,7 +131,7 @@ export default function CategoryForm({
           })}
         />
         {errors.descripcion && (
-          <p className="mt-1 text-xs text-rose-700">
+          <p role="alert" className="mt-1 text-xs text-rose-700">
             {errors.descripcion.message}
           </p>
         )}
