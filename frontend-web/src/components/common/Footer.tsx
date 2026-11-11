@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 export default function Footer() {
   return (
     <footer className="bg-brown px-4 py-12 text-stone-300 sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-7xl gap-10 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mx-auto grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
         {/* Marca */}
         <div>
           <Link to="/" className="font-display text-xl font-semibold text-white">
@@ -104,7 +104,7 @@ export default function Footer() {
       </div>
 
       {/* Copyright */}
-      <div className="mx-auto mt-10 max-w-7xl border-t border-white/10 pt-5 text-xs text-stone-500">
+      <div className="mx-auto mt-10 border-t border-white/10 pt-5 text-xs text-stone-500">
         © 2026 Dulces Aesca. Todos los derechos reservados. Privacidad ·
         Términos
       </div>

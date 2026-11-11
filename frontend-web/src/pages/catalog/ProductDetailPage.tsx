@@ -25,7 +25,7 @@ export default function ProductDetailPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-8">
+        <div className="mx-auto space-y-8">
           <BackButton fallback="/catalogo" />
           <LoadingState mensaje="Cargando producto…" />
         </div>
@@ -36,7 +36,7 @@ export default function ProductDetailPage() {
   if (error) {
     return (
       <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-8">
+        <div className="mx-auto space-y-8">
           <BackButton fallback="/catalogo" />
           <ApiErrorState mensaje={error} onReintentar={recargar} />
         </div>
@@ -47,7 +47,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-8">
+        <div className="mx-auto space-y-8">
           <BackButton fallback="/catalogo" />
           <section className="rounded-xl border border-stone-200 bg-white p-6 sm:p-8">
             <h1 className="text-3xl font-semibold text-stone-800">
@@ -76,7 +76,7 @@ export default function ProductDetailPage() {
 
   return (
     <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-10">
+      <div className="mx-auto space-y-10">
         <BackButton fallback="/catalogo" />
         <section className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           <ProductGallery images={imagenesGaleria} />

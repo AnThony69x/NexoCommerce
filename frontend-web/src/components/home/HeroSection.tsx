@@ -4,7 +4,7 @@ import heroPlaceholder from '../../assets/hero-placeholder.svg'
 export default function HeroSection() {
   return (
     <section className="bg-cream px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-      <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="mx-auto grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
           <p className="mb-5 inline-block rounded-full bg-rose-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-brand-dark">
             Colección de repostería aesca
