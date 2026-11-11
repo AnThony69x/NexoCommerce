@@ -1,7 +1,23 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useCart } from '../../hooks/useCart'
+
+/**
+ * Estilo compartido por los botones circulares del header (buscar, cuenta,
+ * carrito): tamaño táctil cómodo, hover con acento y foco visible para
+ * teclado.
+ */
+const BOTON_ICONO =
+  'flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white text-brown transition-colors hover:border-rose-brand hover:bg-rose-50 hover:text-rose-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-brand/40'
+
+const NAV_ITEMS = [
+  { to: '/', label: 'Inicio' },
+  { to: '/catalogo', label: 'Catálogo' },
+  { to: '/reposteria', label: 'Repostería' },
+  { to: '/detalles', label: 'Detalles personalizados' },
+  { to: '/sublimacion', label: 'Sublimación' },
+]
 
 const ICONO_BUSCAR = (
   <svg
@@ -46,8 +62,9 @@ const ICONO_CARRITO = (
     strokeLinejoin="round"
     className="h-4 w-4"
   >
-    <path d="M6 8h12l-1 12H7L6 8Z" />
-    <path d="M9 8a3 3 0 0 1 6 0" />
+    <circle cx="9" cy="20" r="1.4" />
+    <circle cx="18" cy="20" r="1.4" />
+    <path d="M2 3h2.3l2.5 12.1a1.8 1.8 0 0 0 1.8 1.4h8.3a1.8 1.8 0 0 0 1.8-1.4L21 7H5.2" />
   </svg>
 )
 
@@ -79,7 +96,7 @@ export default function Header() {
 
   return (
     <header className="border-b border-stone-200 bg-cream px-4 py-3 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link to="/" className="inline-flex flex-col leading-none">
           <span className="font-display text-xl font-semibold text-brown">
             Dulces Aesca
@@ -90,39 +107,24 @@ export default function Header() {
         </Link>
 
         <nav aria-label="Navegación principal">
-          <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-brown-soft">
-            <li>
-              <Link
-                to="/"
-                className="transition-colors hover:text-rose-brand-dark"
-              >
-                Inicio
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/reposteria"
-                className="transition-colors hover:text-rose-brand-dark"
-              >
-                Repostería
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/detalles"
-                className="transition-colors hover:text-rose-brand-dark"
-              >
-                Detalles personalizados
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/sublimacion"
-                className="transition-colors hover:text-rose-brand-dark"
-              >
-                Sublimación
-              </Link>
-            </li>
+          <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            {NAV_ITEMS.map((item) => (
+              <li key={item.to}>
+                <NavLink
+                  to={item.to}
+                  end={item.to === '/'}
+                  className={({ isActive }) =>
+                    `inline-block border-b-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-brand/40 ${
+                      isActive
+                        ? 'border-rose-brand font-semibold text-rose-brand-dark'
+                        : 'border-transparent text-brown-soft hover:border-stone-300 hover:text-rose-brand-dark'
+                    }`
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              </li>
+            ))}
           </ul>
         </nav>
 
@@ -134,12 +136,12 @@ export default function Header() {
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Buscar"
               aria-label="Buscar productos"
-              className="h-9 w-28 rounded-full border border-stone-300 bg-white px-3 text-xs text-brown outline-none placeholder:text-brown-soft/70 focus:border-rose-brand sm:w-36"
+              className="h-10 w-32 rounded-full border border-stone-200 bg-white px-3.5 text-xs text-brown outline-none transition-colors placeholder:text-brown-soft/70 focus:border-rose-brand focus-visible:ring-2 focus-visible:ring-rose-brand/30 sm:w-44"
             />
             <button
               type="submit"
               aria-label="Buscar"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-300 bg-white text-brown transition-colors hover:border-rose-brand hover:text-rose-brand"
+              className={BOTON_ICONO}
             >
               {ICONO_BUSCAR}
             </button>
@@ -149,7 +151,7 @@ export default function Header() {
             <Link
               to="/login"
               aria-label="Iniciar sesión"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-300 bg-white text-brown transition-colors hover:border-rose-brand hover:text-rose-brand"
+              className={BOTON_ICONO}
             >
               {ICONO_USUARIO}
             </Link>
@@ -160,7 +162,7 @@ export default function Header() {
                 onClick={() => setMenuAbierto((actual) => !actual)}
                 aria-expanded={menuAbierto}
                 aria-label={`Cuenta de ${user.nombre_completo}`}
-                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-stone-300 bg-white text-brown transition-colors hover:border-rose-brand hover:text-rose-brand"
+                className={`relative ${BOTON_ICONO}`}
               >
                 {ICONO_USUARIO}
                 <span className="sr-only">{inicial}</span>
@@ -216,7 +218,7 @@ export default function Header() {
           <Link
             to="/carrito"
             aria-label={`Carrito, ${totalItems} productos`}
-            className="relative flex h-9 w-9 items-center justify-center rounded-full border border-stone-300 bg-white text-brown transition-colors hover:border-rose-brand hover:text-rose-brand"
+            className={`relative ${BOTON_ICONO}`}
           >
             {ICONO_CARRITO}
             {totalItems > 0 && (
