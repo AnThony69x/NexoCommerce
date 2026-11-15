@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" role="img" aria-labelledby="title desc">
+  <title id="title">Imagen temporal de detalles personalizados</title>
+  <desc id="desc">Placeholder para la categoría Detalles personalizados.</desc>
+  <rect width="800" height="560" fill="#d9c8ae" />
+  <rect x="130" y="130" width="540" height="300" rx="18" fill="#f6eee2" />
+  <path d="M130 180h540v250H130z" fill="#c79f82" />
+  <path d="M400 130v300M130 180h540" fill="none" stroke="#fff8ef" stroke-width="18" />
+  <path d="M318 130c0-42 36-74 82-74s82 32 82 74" fill="none" stroke="#fff8ef" stroke-width="18" />
+  <text x="400" y="510" fill="#684d43" font-family="Georgia, serif" font-size="30" text-anchor="middle">Detalles personalizados</text>
+</svg>

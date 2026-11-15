@@ -1,0 +1,36 @@
+.gradle/
+.kotlin/
+.idea/
+local.properties
+**/build/
+*.iml
+*.jks
+*.keystore
+
+# Configuracion privada (IP del backend, VPN, tokens y secretos).
+local.properties.*
+!local.properties.example
+.env
+.env.*
+!.env.example
+secrets.properties
+secrets.properties.*
+!secrets.properties.example
+credentials.properties
+credentials.properties.*
+!credentials.properties.example
+
+# Firma de distribucion y claves privadas.
+key.properties
+keystore.properties
+signing.properties
+*.p12
+*.pfx
+*.pem
+*.key
+
+# Configuracion de servicios y archivos generados con datos locales.
+google-services.json
+*.apk
+*.aab
+*.log
