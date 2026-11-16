@@ -19,6 +19,7 @@ import {
   cargarClientesMock,
   cargarSesion,
   guardarClienteMock,
+  guardarSesion,
 } from '../storage/sessionStore'
 import {
   cargarToken,
@@ -141,12 +142,72 @@ export async function obtenerPerfil(): Promise<AuthUser> {
 }
 
 /**
+ * PUT /usuarios/perfil (real) o actualización local (mock).
+ * Devuelve el usuario ya actualizado para que el contexto refresque la
+ * sesión visible.
+ */
+export async function actualizarPerfil(datos: {
+  nombre_completo: string
+  telefono: string | null
+}): Promise<AuthUser> {
+  if (!config.mockMode) {
+    return authService.actualizarPerfil(datos)
+  }
+
+  const usuario = cargarSesion()
+  if (!usuario) {
+    throw new ApiError(401, 'No hay sesión activa.')
+  }
+
+  const actualizado: AuthUser = {
+    ...usuario,
+    nombre_completo: datos.nombre_completo.trim(),
+    telefono: datos.telefono?.trim() || null,
+  }
+  guardarSesion(actualizado)
+  return actualizado
+}
+
+/**
+ * PUT /usuarios/cambiar-password (real). En mock no hay hash local: se
+ * validan las reglas que el backend exige (minimo y distinta de la actual).
+ */
+export async function cambiarPassword(
+  passwordActual: string,
+  passwordNueva: string,
+): Promise<void> {
+  if (!config.mockMode) {
+    await authService.cambiarPassword(passwordActual, passwordNueva)
+    return
+  }
+
+  if (passwordNueva.length < 8) {
+    throw new ApiError(422, 'La nueva contraseña debe tener al menos 8 caracteres.')
+  }
+  if (passwordActual === passwordNueva) {
+    throw new ApiError(422, 'La nueva contraseña debe ser distinta de la actual.')
+  }
+}
+
+/**
+ * POST /auth/reenviar-verificacion (real). En mock no hay nada que hacer:
+ * el codigo se generaria en el backend.
+ */
+export async function reenviarVerificacion(): Promise<void> {
+  if (!config.mockMode) {
+    await authService.reenviarVerificacion()
+  }
+}
+
+/**
  * Arranque de sesión al cargar la app (lo consume el contexto, que no sabe
  * si es mock o real):
  *  - mock: devuelve la sesión local guardada (sin red).
- *  - real: si hay token guardado, lo valida contra GET /auth/perfil; si el
- *    backend lo rechaza (401) u otro error, descarta el token y devuelve
- *    null (la UI queda como invitada; sin fallback silencioso).
+ *  - real: si hay token guardado, lo valida contra GET /auth/perfil.
+ *    Solo un 401 (token rechazado por el backend) descarta la sesión y
+ *    devuelve null. Un fallo de red o un 5xx NO cierra la sesión local:
+ *    evita el "logout silencioso" con la red inestable; se conserva la
+ *    sesión y se revalida en el siguiente intento o petición.
  */
 export async function refrescarSesionInicial(): Promise<AuthUser | null> {
   if (config.mockMode) {
@@ -157,8 +218,12 @@ export async function refrescarSesionInicial(): Promise<AuthUser | null> {
 
   try {
     return await authService.obtenerPerfil()
-  } catch {
-    limpiarToken()
-    return null
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      limpiarToken()
+      return null
+    }
+    // Fallo transitorio (sin conexión, 5xx, etc.): conservar la sesión local.
+    return cargarSesion()
   }
 }

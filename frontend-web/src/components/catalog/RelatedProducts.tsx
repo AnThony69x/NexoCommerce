@@ -1,5 +1,5 @@
 import CatalogProductCard from './CatalogProductCard'
-import { LoadingState } from '../common/RequestState'
+import { ApiErrorState, LoadingState } from '../common/RequestState'
 import { useAsync } from '../../hooks/useAsync'
 import { listarRelacionados } from '../../services/productsRepository'
 
@@ -14,10 +14,15 @@ export default function RelatedProducts({
   categoriaId,
   excluirId,
 }: RelatedProductsProps) {
-  const { data: relacionados, loading } = useAsync(
-    () => listarRelacionados(categoriaId, excluirId, 3),
-    [categoriaId, excluirId],
-  )
+  const {
+    data: relacionados,
+    loading,
+    error,
+    recargar,
+  } = useAsync(() => listarRelacionados(categoriaId, excluirId, 3), [
+    categoriaId,
+    excluirId,
+  ])
 
   return (
     <section>
@@ -28,6 +33,10 @@ export default function RelatedProducts({
       {loading ? (
         <div className="mt-4">
           <LoadingState mensaje="Cargando relacionados…" />
+        </div>
+      ) : error ? (
+        <div className="mt-4">
+          <ApiErrorState mensaje={error} onReintentar={recargar} />
         </div>
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

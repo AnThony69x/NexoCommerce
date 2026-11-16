@@ -33,10 +33,16 @@ export default function StoreConfigForm({
           <input
             id="tienda-nombre"
             className={claseInput}
+            aria-invalid={!!errors.nombre_tienda}
+            aria-describedby={
+              errors.nombre_tienda ? 'tienda-error-nombre' : undefined
+            }
             {...register('nombre_tienda', { required: 'Obligatorio' })}
           />
           {errors.nombre_tienda && (
-            <p className="mt-1 text-xs text-rose-700">Obligatorio</p>
+            <p id="tienda-error-nombre" role="alert" className="mt-1 text-xs text-rose-700">
+              {errors.nombre_tienda.message}
+            </p>
           )}
         </div>
         <div>
@@ -46,8 +52,17 @@ export default function StoreConfigForm({
           <input
             id="tienda-telefono"
             className={claseInput}
+            aria-invalid={!!errors.telefono}
+            aria-describedby={
+              errors.telefono ? 'tienda-error-telefono' : undefined
+            }
             {...register('telefono', { required: 'Obligatorio' })}
           />
+          {errors.telefono && (
+            <p id="tienda-error-telefono" role="alert" className="mt-1 text-xs text-rose-700">
+              {errors.telefono.message}
+            </p>
+          )}
         </div>
       </div>
 
@@ -60,8 +75,20 @@ export default function StoreConfigForm({
             id="tienda-correo"
             type="email"
             className={claseInput}
-            {...register('correo', { required: 'Obligatorio' })}
+            aria-invalid={!!errors.correo}
+            aria-describedby={
+              errors.correo ? 'tienda-error-correo' : undefined
+            }
+            {...register('correo', {
+              required: 'Obligatorio',
+              pattern: { value: /.+@.+\..+/, message: 'Correo no válido' },
+            })}
           />
+          {errors.correo && (
+            <p id="tienda-error-correo" role="alert" className="mt-1 text-xs text-rose-700">
+              {errors.correo.message}
+            </p>
+          )}
         </div>
         <div>
           <label htmlFor="tienda-direccion" className={claseLabel}>
@@ -70,21 +97,30 @@ export default function StoreConfigForm({
           <input
             id="tienda-direccion"
             className={claseInput}
+            aria-invalid={!!errors.direccion}
+            aria-describedby={
+              errors.direccion ? 'tienda-error-direccion' : undefined
+            }
             {...register('direccion', { required: 'Obligatorio' })}
           />
+          {errors.direccion && (
+            <p id="tienda-error-direccion" role="alert" className="mt-1 text-xs text-rose-700">
+              {errors.direccion.message}
+            </p>
+          )}
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="tienda-logo" className={claseLabel}>
-            Logo mock
+            Logo (URL)
           </label>
           <input id="tienda-logo" className={claseInput} {...register('logoUrl')} />
         </div>
         <div>
           <label htmlFor="tienda-favicon" className={claseLabel}>
-            Favicon mock
+            Favicon (URL)
           </label>
           <input
             id="tienda-favicon"
@@ -157,7 +193,7 @@ export default function StoreConfigForm({
           type="submit"
           className="inline-flex min-h-10 items-center rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700"
         >
-          Guardar cambios (mock)
+          Guardar cambios
         </button>
       </div>
     </form>

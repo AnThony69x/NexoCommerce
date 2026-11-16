@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Suspense } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
+import CargandoPagina from '../components/common/CargandoPagina'
 import {
   IconoCategoria,
   IconoConfiguracion,
@@ -150,7 +152,9 @@ export default function AdminLayout() {
         )}
 
         <main className="min-w-0 flex-1">
-          <Outlet />
+          <Suspense fallback={<CargandoPagina />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

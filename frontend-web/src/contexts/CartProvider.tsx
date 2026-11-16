@@ -1,9 +1,19 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { CartContext, type CartProduct } from './CartContext'
+import { cargarCarrito, guardarCarrito } from '../storage/cartStore'
 import { clampCantidad } from '../utils/validation'
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [productos, setProductos] = useState<CartProduct[]>([])
+  // Restaurada de localStorage al montar: recargar la página ya no vacía
+  // el carrito.
+  const [productos, setProductos] = useState<CartProduct[]>(() =>
+    cargarCarrito(),
+  )
+
+  // Se persiste en cada cambio (agregar, cantidades, eliminar, vaciar).
+  useEffect(() => {
+    guardarCarrito(productos)
+  }, [productos])
 
   function agregarProducto(
     product: Omit<CartProduct, 'cantidad'>,

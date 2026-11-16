@@ -26,7 +26,6 @@ export default function NotFoundPage() {
             >
               Volver al inicio
             </Link>
-            <BackButton fallback="/" />
           </div>
         </section>
       </div>

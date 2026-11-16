@@ -19,6 +19,7 @@ export default function CategoryCard({
       className="group relative block overflow-hidden rounded-3xl bg-stone-200"
     >
       <img
+        loading="lazy"
         src={image}
         alt={title}
         className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"

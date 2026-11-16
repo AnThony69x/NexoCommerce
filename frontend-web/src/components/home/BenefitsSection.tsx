@@ -84,7 +84,7 @@ const ICONO_PAGO = (
 export default function BenefitsSection() {
   return (
     <section className="bg-sage px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <div className="mx-auto grid max-w-7xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Beneficio
           icono={ICONO_HECHO_MANO}
           titulo="Hecho a mano"

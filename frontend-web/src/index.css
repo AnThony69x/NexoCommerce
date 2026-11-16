@@ -19,6 +19,8 @@
   --color-brown-soft: #75615c;
   --color-rose-brand: #c46a80;
   --color-rose-brand-dark: #a8556b;
+  /* Tinta oscura para texto pequeño sobre fondos claros: 5.6:1 con rose-soft. */
+  --color-rose-brand-ink: #8f4157;
   --color-rose-soft: #f7e3e8;
   --color-sage: #d9e5d7;
 
@@ -38,5 +40,17 @@
     background-color: var(--color-cream);
     color: var(--color-brown);
     font-family: var(--font-sans);
+  }
+}
+
+/* Respeta la preferencia del sistema de reducir animaciones. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

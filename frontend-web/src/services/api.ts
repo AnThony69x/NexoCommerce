@@ -29,7 +29,10 @@ const baseURL = config.apiUrl
 
 export const apiClient = axios.create({
   baseURL,
-  timeout: 15000,
+  // 30 s: el backend de desarrollo (Laravel artisan serve) puede tardar
+  // ~10 s en escribir y registrar un usuario; con 15 s el cliente cortaba
+  // la peticion aunque el servidor ya hubiera respondido.
+  timeout: 30000,
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',
@@ -45,6 +48,9 @@ apiClient.interceptors.request.use((request) => {
   }
   return request
 })
+
+/** Nombre del evento global que anuncia "la sesión ya no es válida". */
+export const SESION_EXPIRADA_EVENTO = 'nexo:sesion-expirada'
 
 /** Mensaje global por código HTTP. Solo normalización, sin UI. */
 function mensajePorEstado(status: number): string {
@@ -72,14 +78,24 @@ apiClient.interceptors.response.use(
       // 401 = token inválido/expirado: se limpia para forzar re-login.
       if (status === 401) {
         limpiarToken()
+        // El token solo no basta: la UI (AuthContext) seguiría viendo usuario.
+        // Se anuncia el evento para que cierre también la sesión visible.
+        window.dispatchEvent(new Event(SESION_EXPIRADA_EVENTO))
       }
 
       // Prioriza el mensaje del backend; si no existe, usa el genérico del estado.
       const message =
         axiosError.response?.data?.message ?? mensajePorEstado(status)
 
-      // En 422 el backend además envía `errors` (validación campo a campo).
-      throw new ApiError(status, message, axiosError.response?.data?.errors)
+      // En 422 el backend además envía `errors` (validación campo a campo);
+      // en 400 puede enviar `codigo_error` (regla de negocio, p. ej.
+      // PED_PRECIO_CAMBIADO) que la UI necesita para reaccionar.
+      throw new ApiError(
+        status,
+        message,
+        axiosError.response?.data?.errors,
+        axiosError.response?.data?.codigo_error,
+      )
     }
 
     // Sin respuesta del servidor (red caída, timeout, CORS bloqueado, etc.).

@@ -75,6 +75,7 @@ export default function SelectorImagenesProducto({
               >
                 {src ? (
                   <img
+                    loading="lazy"
                     src={src}
                     alt={`Imagen ${indice + 1} del producto`}
                     className="aspect-square w-full object-cover"
@@ -144,6 +145,7 @@ export default function SelectorImagenesProducto({
                   >
                     {src && (
                       <img
+                        loading="lazy"
                         src={src}
                         alt={item.nombre}
                         className="aspect-square w-full object-cover"

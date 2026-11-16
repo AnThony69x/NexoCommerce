@@ -72,7 +72,7 @@ export default function ProductionForm({
             {...register('fecha', { required: 'La fecha es obligatoria' })}
           />
           {errors.fecha && (
-            <p className="mt-1 text-xs text-rose-700">{errors.fecha.message}</p>
+            <p role="alert" className="mt-1 text-xs text-rose-700">{errors.fecha.message}</p>
           )}
         </div>
         <div>
@@ -82,7 +82,13 @@ export default function ProductionForm({
           <select
             id="cap-categoria"
             className={claseInput}
-            {...register('categoriaId', { required: true })}
+            aria-invalid={!!errors.categoriaId}
+            aria-describedby={
+              errors.categoriaId ? 'cap-error-categoria' : undefined
+            }
+            {...register('categoriaId', {
+              required: 'Selecciona una categoría.',
+            })}
           >
             {categorias.map((item) => (
               <option key={item.id} value={item.id}>
@@ -90,6 +96,15 @@ export default function ProductionForm({
               </option>
             ))}
           </select>
+          {errors.categoriaId && (
+            <p
+              id="cap-error-categoria"
+              role="alert"
+              className="mt-1 text-xs text-rose-700"
+            >
+              {errors.categoriaId.message}
+            </p>
+          )}
         </div>
       </div>
 
@@ -109,7 +124,7 @@ export default function ProductionForm({
             })}
           />
           {errors.capacidad_maxima && (
-            <p className="mt-1 text-xs text-rose-700">
+            <p role="alert" className="mt-1 text-xs text-rose-700">
               {errors.capacidad_maxima.message}
             </p>
           )}
@@ -129,7 +144,7 @@ export default function ProductionForm({
             })}
           />
           {errors.capacidad_ocupada && (
-            <p className="mt-1 text-xs text-rose-700">
+            <p role="alert" className="mt-1 text-xs text-rose-700">
               {errors.capacidad_ocupada.message}
             </p>
           )}

@@ -30,6 +30,10 @@ export function useAsync<T>(operacion: () => Promise<T>, deps: unknown[] = []): 
       .then((resultado) => {
         if (!cancelado) {
           setData(resultado)
+          // Limpia un error previo: sin esto, si una corrida anterior falló,
+          // el error quedaba "pegado" aunque esta carga fuera exitosa
+          // (p. ej. al navegar de un id fallido a otro válido).
+          setError(null)
           setLoading(false)
         }
       })

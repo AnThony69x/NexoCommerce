@@ -34,7 +34,7 @@ export default function CategoriesSection() {
 
   return (
     <section className="bg-white px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto">
         <h2 className="mb-8 font-display text-3xl font-semibold tracking-tight text-brown sm:text-4xl">
           Elige cómo quieres celebrar
         </h2>

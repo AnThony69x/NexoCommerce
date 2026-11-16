@@ -1,55 +1,122 @@
-import { BrowserRouter, Route, Routes, Link } from 'react-router-dom'
-import CartPage from '../pages/cart/CartPage'
-import BakeryPage from '../pages/bakery/BakeryPage'
-import CatalogPage from '../pages/catalog/CatalogPage'
-import CheckoutPage from '../pages/checkout/CheckoutPage'
-import DetailsPage from '../pages/details/DetailsPage'
-import ProductDetailPage from '../pages/catalog/ProductDetailPage'
-import HomePage from '../pages/home/HomePage'
-import LoginPage from '../pages/auth/LoginPage'
-import RegisterPage from '../pages/auth/RegisterPage'
-import NotFoundPage from '../pages/NotFoundPage'
-import PerfilPage from '../pages/perfil/PerfilPage'
-import MisPedidosPage from '../pages/orders/MisPedidosPage'
-import MiPedidoDetallePage from '../pages/orders/MiPedidoDetallePage'
-import NotificacionesPage from '../pages/notifications/NotificacionesPage'
-import SublimationPage from '../pages/sublimation/SublimationPage'
+import { Suspense, lazy, useEffect } from 'react'
+import { BrowserRouter, Route, Routes, Link, useLocation } from 'react-router-dom'
+import { marcarEntradaInicial } from '../utils/historialSpa'
+import CargandoPagina from '../components/common/CargandoPagina'
 import AdminEmptyState from '../components/admin/AdminEmptyState'
 import AdminRoute from '../components/auth/AdminRoute'
 import ProtectedRoute from '../components/auth/ProtectedRoute'
-import AdminLayout from '../layouts/AdminLayout'
 import PublicLayout from '../layouts/PublicLayout'
-import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
-import AdminProductsPage from '../pages/admin/AdminProductsPage'
-import AdminCategoriesPage from '../pages/admin/AdminCategoriesPage'
-import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
-import AdminOrderDetailPage from '../pages/admin/AdminOrderDetailPage'
-import AdminPaymentsPage from '../pages/admin/AdminPaymentsPage'
-import AdminUsersPage from '../pages/admin/AdminUsersPage'
-import AdminPublicationsPage from '../pages/admin/AdminPublicationsPage'
-import AdminMediaPage from '../pages/admin/AdminMediaPage'
-import AdminProductionPage from '../pages/admin/AdminProductionPage'
-import AdminStoreConfigPage from '../pages/admin/AdminStoreConfigPage'
-// ⚠️ TEMPORAL (probe de integración) — borrar esta línea y su <Route> al terminar.
-import CategoriesProbePage from '../pages/dev/CategoriesProbePage'
+
+/**
+ * Carga diferida de paginas: el bundle inicial solo trae lo necesario para
+ * pintar la primera pantalla y cada seccion (catalogo, cuenta, panel admin)
+ * baja su propio archivo al visitarla. Los guards y los layouts se quedan
+ * en el bundle inicial porque hacen falta en el primer render.
+ */
+const HomePage = lazy(() => import('../pages/home/HomePage'))
+const CatalogPage = lazy(() => import('../pages/catalog/CatalogPage'))
+const ProductDetailPage = lazy(() => import('../pages/catalog/ProductDetailPage'))
+const BakeryPage = lazy(() => import('../pages/bakery/BakeryPage'))
+const DetailsPage = lazy(() => import('../pages/details/DetailsPage'))
+const SublimationPage = lazy(() => import('../pages/sublimation/SublimationPage'))
+const CartPage = lazy(() => import('../pages/cart/CartPage'))
+const CheckoutPage = lazy(() => import('../pages/checkout/CheckoutPage'))
+const LoginPage = lazy(() => import('../pages/auth/LoginPage'))
+const RegisterPage = lazy(() => import('../pages/auth/RegisterPage'))
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
+const PerfilPage = lazy(() => import('../pages/perfil/PerfilPage'))
+const MisPedidosPage = lazy(() => import('../pages/orders/MisPedidosPage'))
+const MiPedidoDetallePage = lazy(() => import('../pages/orders/MiPedidoDetallePage'))
+const NotificacionesPage = lazy(() => import('../pages/notifications/NotificacionesPage'))
+/** Area admin: trae el layout y los mocks administrativos en un solo trozo. */
+const AdminArea = lazy(() => import('../layouts/AdminArea'))
+const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'))
+const AdminProductsPage = lazy(() => import('../pages/admin/AdminProductsPage'))
+const AdminCategoriesPage = lazy(() => import('../pages/admin/AdminCategoriesPage'))
+const AdminOrdersPage = lazy(() => import('../pages/admin/AdminOrdersPage'))
+const AdminOrderDetailPage = lazy(() => import('../pages/admin/AdminOrderDetailPage'))
+const AdminPaymentsPage = lazy(() => import('../pages/admin/AdminPaymentsPage'))
+const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage'))
+const AdminPublicationsPage = lazy(() => import('../pages/admin/AdminPublicationsPage'))
+const AdminMediaPage = lazy(() => import('../pages/admin/AdminMediaPage'))
+const AdminProductionPage = lazy(() => import('../pages/admin/AdminProductionPage'))
+const AdminStoreConfigPage = lazy(() => import('../pages/admin/AdminStoreConfigPage'))
+
+/**
+ * Título legible por ruta: se usa en document.title (y lo anuncian los
+ * lectores de pantalla al cambiar de página).
+ */
+const TITULOS_POR_RUTA: Record<string, string> = {
+  '/': 'Inicio',
+  '/catalogo': 'Catálogo',
+  '/reposteria': 'Repostería',
+  '/detalles': 'Detalles personalizados',
+  '/sublimacion': 'Sublimación',
+  '/login': 'Iniciar sesión',
+  '/registro': 'Crear cuenta',
+  '/carrito': 'Carrito de compras',
+  '/checkout': 'Finalizar compra',
+  '/perfil': 'Mi perfil',
+  '/pedidos': 'Mis pedidos',
+  '/notificaciones': 'Notificaciones',
+  '/admin': 'Panel de administración',
+}
+
+function tituloDeRuta(pathname: string): string {
+  if (TITULOS_POR_RUTA[pathname]) return TITULOS_POR_RUTA[pathname]
+  if (pathname.startsWith('/productos/')) return 'Detalle del producto'
+  if (pathname.startsWith('/pedidos/')) return 'Detalle del pedido'
+  if (pathname.startsWith('/admin/')) return 'Administración'
+  return 'Dulces Aesca'
+}
+
+/**
+ * Actualiza el título del documento y vuelve al inicio del scroll al cambiar
+ * de ruta (antes se conservaba la posición de la página anterior).
+ */
+function TituloYPosicion() {
+  const location = useLocation()
+
+  useEffect(() => {
+    document.title = `${tituloDeRuta(location.pathname)} · Dulces Aesca`
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [location.pathname])
+
+  return null
+}
+
+/**
+ * Registra la primera entrada del historial (idempotente) para que Volver
+ * sepa cuándo navigate(-1) es seguro. Debe vivir dentro del Router.
+ */
+function RegistrarEntradaInicial() {
+  const location = useLocation()
+
+  useEffect(() => {
+    marcarEntradaInicial(location.key)
+  }, [location.key])
+
+  return null
+}
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
+      <RegistrarEntradaInicial />
+      <TituloYPosicion />
       <Routes>
+        {/* Acceso a pantalla completa: sin header ni footer del sitio. */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/registro" element={<RegisterPage />} />
+
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/registro" element={<RegisterPage />} />
           <Route path="/catalogo" element={<CatalogPage />} />
           <Route path="/reposteria" element={<BakeryPage />} />
           <Route path="/detalles" element={<DetailsPage />} />
           <Route path="/sublimacion" element={<SublimationPage />} />
           <Route path="/productos/:id" element={<ProductDetailPage />} />
           <Route path="/carrito" element={<CartPage />} />
-
-          {/* ⚠️ TEMPORAL (probe de integración) — borrar esta línea al terminar. */}
-          <Route path="/dev/categorias" element={<CategoriesProbePage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/checkout" element={<CheckoutPage />} />
@@ -63,7 +130,14 @@ export default function AppRouter() {
         </Route>
 
         <Route element={<AdminRoute />}>
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={
+              <Suspense fallback={<CargandoPagina />}>
+                <AdminArea />
+              </Suspense>
+            }
+          >
             <Route index element={<AdminDashboardPage />} />
             <Route path="productos" element={<AdminProductsPage />} />
             <Route path="categorias" element={<AdminCategoriesPage />} />

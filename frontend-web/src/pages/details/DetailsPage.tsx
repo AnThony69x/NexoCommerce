@@ -1,4 +1,3 @@
-import BackButton from '../../components/common/BackButton'
 import DetailsCategoryCard from '../../components/details/DetailsCategoryCard'
 import DetailsHero from '../../components/details/DetailsHero'
 import DetailsProductGrid from '../../components/details/DetailsProductGrid'
@@ -18,13 +17,10 @@ export default function DetailsPage() {
   } = useAsync(() => listarPorCategoria(CATEGORIA_DETALLES), [])
   return (
     <main>
-        <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
-          <BackButton fallback="/" />
-        </div>
         <DetailsHero />
 
         <section className="border-b border-stone-200 bg-white px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-          <div className="mx-auto max-w-6xl">
+          <div className="mx-auto">
             <h2 className="mb-6 text-2xl font-semibold tracking-tight text-stone-800 sm:text-3xl">
               Elige un detalle especial
             </h2>
@@ -46,11 +42,11 @@ export default function DetailsPage() {
         </section>
 
         {loading ? (
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mx-auto px-4 py-10 sm:px-6 lg:px-8">
             <LoadingState mensaje="Cargando detalles…" />
           </div>
         ) : error ? (
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mx-auto px-4 py-10 sm:px-6 lg:px-8">
             <ApiErrorState mensaje={error} onReintentar={recargar} />
           </div>
         ) : (

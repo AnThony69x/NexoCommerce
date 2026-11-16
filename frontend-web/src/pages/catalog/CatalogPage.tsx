@@ -65,6 +65,18 @@ export default function CatalogPage() {
   const [orden, setOrden] = useState<OrdenCatalogo>('destacados')
   const [currentPage, setCurrentPage] = useState(1)
 
+  // Sincroniza la búsqueda que llega desde el header
+  // (navigate('/catalogo?search=x')) estando ya en el catálogo: sin esto la
+  // URL cambiaba pero los resultados no, y el paginador quedaba en una página
+  // sin productos. Patrón de React "adjust state during render".
+  const busquedaUrl = searchParams.get('search') ?? ''
+  const [busquedaPrevia, setBusquedaPrevia] = useState(busquedaUrl)
+  if (busquedaUrl !== busquedaPrevia) {
+    setBusquedaPrevia(busquedaUrl)
+    setSearchTerm(busquedaUrl)
+    setCurrentPage(1)
+  }
+
   const {
     data: productos,
     loading,
@@ -124,7 +136,7 @@ export default function CatalogPage() {
 
   return (
     <main className="min-h-screen bg-cream px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="mx-auto space-y-8">
         <section>
           <h1 className="font-display text-4xl font-semibold text-brown sm:text-5xl">
             Tienda
@@ -179,7 +191,7 @@ export default function CatalogPage() {
                 setCurrentPage(1)
               }}
               aria-label={`Quitar filtro ${nombre}`}
-              className="inline-flex items-center gap-2 rounded-full bg-rose-brand px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-rose-brand-dark"
+              className="inline-flex items-center gap-2 rounded-full bg-rose-brand-dark px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-rose-brand-ink"
             >
               {nombre}
               <span aria-hidden="true">×</span>

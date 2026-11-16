@@ -97,7 +97,7 @@ export default function ProductForm({
             {...register('nombre', { required: 'El nombre es obligatorio' })}
           />
           {errors.nombre && (
-            <p className="mt-1 text-xs text-rose-700">{errors.nombre.message}</p>
+            <p role="alert" className="mt-1 text-xs text-rose-700">{errors.nombre.message}</p>
           )}
         </div>
         <div>
@@ -107,7 +107,13 @@ export default function ProductForm({
           <select
             id="prod-categoria"
             className={claseInput}
-            {...register('categoriaId', { required: true })}
+            aria-invalid={!!errors.categoriaId}
+            aria-describedby={
+              errors.categoriaId ? 'prod-error-categoria' : undefined
+            }
+            {...register('categoriaId', {
+              required: 'Selecciona una categoría.',
+            })}
           >
             {categorias.map((item) => (
               <option key={item.id} value={item.id}>
@@ -115,6 +121,15 @@ export default function ProductForm({
               </option>
             ))}
           </select>
+          {errors.categoriaId && (
+            <p
+              id="prod-error-categoria"
+              role="alert"
+              className="mt-1 text-xs text-rose-700"
+            >
+              {errors.categoriaId.message}
+            </p>
+          )}
         </div>
       </div>
 
@@ -131,7 +146,7 @@ export default function ProductForm({
           })}
         />
         {errors.descripcion && (
-          <p className="mt-1 text-xs text-rose-700">
+          <p role="alert" className="mt-1 text-xs text-rose-700">
             {errors.descripcion.message}
           </p>
         )}
@@ -164,7 +179,7 @@ export default function ProductForm({
             })}
           />
           {errors.precio_base && (
-            <p className="mt-1 text-xs text-rose-700">
+            <p role="alert" className="mt-1 text-xs text-rose-700">
               {errors.precio_base.message}
             </p>
           )}
@@ -191,7 +206,7 @@ export default function ProductForm({
               })}
             />
             {errors.tamano && (
-              <p className="mt-1 text-xs text-rose-700">
+              <p role="alert" className="mt-1 text-xs text-rose-700">
                 {errors.tamano.message}
               </p>
             )}
@@ -211,7 +226,7 @@ export default function ProductForm({
               })}
             />
             {errors.porciones && (
-              <p className="mt-1 text-xs text-rose-700">
+              <p role="alert" className="mt-1 text-xs text-rose-700">
                 {errors.porciones.message}
               </p>
             )}
@@ -228,7 +243,7 @@ export default function ProductForm({
               })}
             />
             {errors.sabor && (
-              <p className="mt-1 text-xs text-rose-700">{errors.sabor.message}</p>
+              <p role="alert" className="mt-1 text-xs text-rose-700">{errors.sabor.message}</p>
             )}
           </div>
         </div>
@@ -250,7 +265,7 @@ export default function ProductForm({
             })}
           />
           {errors.stock && (
-            <p className="mt-1 text-xs text-rose-700">{errors.stock.message}</p>
+            <p role="alert" className="mt-1 text-xs text-rose-700">{errors.stock.message}</p>
           )}
         </div>
       )}
@@ -268,7 +283,7 @@ export default function ProductForm({
             })}
           />
           {errors.tipo_material && (
-            <p className="mt-1 text-xs text-rose-700">
+            <p role="alert" className="mt-1 text-xs text-rose-700">
               {errors.tipo_material.message}
             </p>
           )}
