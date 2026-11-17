@@ -10,15 +10,14 @@ use App\Dominio\Compartido\Excepciones\DominioException;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\PedidoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 use Throwable;
 
+#[Group('concurrente')]
 class PagosConcurrentesTest extends TestCase
 {
-    use DatabaseMigrations;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -38,7 +37,7 @@ class PagosConcurrentesTest extends TestCase
 
         sort($resultados);
         $this->assertSame(['OK', 'PAG_PAGO_ACTIVO'], $resultados);
-        $this->assertDatabaseCount('pagos', 1);
+        $this->assertSame(1, DB::table('pagos.pagos')->where('pedido_id', $pedido->id)->count());
     }
 
     public function test_una_referencia_simultanea_no_se_asocia_a_dos_pedidos(): void
@@ -55,7 +54,7 @@ class PagosConcurrentesTest extends TestCase
 
         sort($resultados);
         $this->assertSame(['OK', 'PAG_REFERENCIA_DUPLICADA'], $resultados);
-        $this->assertDatabaseCount('pagos', 1);
+        $this->assertSame(1, DB::table('pagos.pagos')->where('referencia_pasarela', 'REF-COMPARTIDA')->count());
     }
 
     private function requiereFork(): void

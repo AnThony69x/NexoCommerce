@@ -15,7 +15,7 @@ class PlantillaDisenoModelo extends Model
     /** @use HasFactory<PlantillaDisenoModeloFactory> */
     use HasFactory;
 
-    protected $table = 'plantillas_diseno';
+    protected $table = 'catalogo.plantillas_diseno';
 
     public const CREATED_AT = 'creado_en';
 

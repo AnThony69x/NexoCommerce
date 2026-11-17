@@ -15,7 +15,7 @@ class ConfiguracionProduccionModelo extends Model
     /** @use HasFactory<ConfiguracionProduccionModeloFactory> */
     use HasFactory;
 
-    protected $table = 'configuracion_produccion';
+    protected $table = 'produccion.configuracion_produccion';
 
     public const CREATED_AT = 'creado_en';
 

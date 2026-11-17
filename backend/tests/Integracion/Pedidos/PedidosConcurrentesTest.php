@@ -14,15 +14,14 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\ProductoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\TortaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 use Throwable;
 
+#[Group('concurrente')]
 class PedidosConcurrentesTest extends TestCase
 {
-    use DatabaseMigrations;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -32,7 +31,7 @@ class PedidosConcurrentesTest extends TestCase
     public function test_dos_pedidos_simultaneos_no_venden_el_mismo_stock(): void
     {
         $this->requiereFork();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 1]);
         $usuarios = $this->dosCarritos($producto->id, '5.00');
 
@@ -40,15 +39,15 @@ class PedidosConcurrentesTest extends TestCase
 
         sort($resultados);
         $this->assertSame(['OK', 'PED_SIN_STOCK'], $resultados);
-        $this->assertDatabaseHas('detalles', ['producto_id' => $producto->id, 'stock' => 0]);
-        $this->assertDatabaseCount('pedidos', 1);
-        $this->assertDatabaseCount('detalles_carrito', 1);
+        $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 0]);
+        $this->assertSame(1, DB::table('ventas.pedidos')->whereIn('usuario_id', $usuarios)->count());
+        $this->assertSame(1, DB::table('ventas.detalles_carrito')->whereIn('carrito_id', DB::table('ventas.carritos')->whereIn('usuario_id', $usuarios)->pluck('id'))->count());
     }
 
     public function test_dos_pedidos_simultaneos_no_superan_el_cupo(): void
     {
         $this->requiereFork();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'TORTA', 'precio_base' => '5.00']);
         TortaModelo::factory()->create(['producto_id' => $producto->id]);
         $fecha = now()->addDay()->toDateString();
         ConfiguracionProduccionModelo::factory()->create(['fecha' => $fecha, 'categoria_id' => $producto->categoria_id, 'capacidad_maxima' => 1]);
@@ -58,8 +57,8 @@ class PedidosConcurrentesTest extends TestCase
 
         sort($resultados);
         $this->assertSame(['OK', 'PED_SIN_CAPACIDAD'], $resultados);
-        $this->assertDatabaseCount('pedidos', 1);
-        $this->assertDatabaseCount('detalles_carrito', 1);
+        $this->assertSame(1, DB::table('ventas.pedidos')->whereIn('usuario_id', $usuarios)->count());
+        $this->assertSame(1, DB::table('ventas.detalles_carrito')->whereIn('carrito_id', DB::table('ventas.carritos')->whereIn('usuario_id', $usuarios)->pluck('id'))->count());
     }
 
     private function requiereFork(): void

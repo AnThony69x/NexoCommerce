@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Productos;
 
+use App\Http\Requests\ExisteEnTabla;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -18,7 +19,7 @@ class ListarProductosRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'categoria_id' => ['sometimes', 'integer', 'exists:categorias,id'],
+            'categoria_id' => ['sometimes', 'integer', new ExisteEnTabla('catalogo.categorias', 'id')],
             'tipo' => ['sometimes', Rule::in(['TORTA', 'DETALLE', 'SUBLIMACION'])],
             'buscar' => ['sometimes', 'string', 'max:150'],
             'precio_min' => ['sometimes', 'numeric', 'min:0'],

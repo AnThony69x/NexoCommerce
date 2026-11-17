@@ -1,0 +1,164 @@
+{
+  "info": {
+    "_postman_id": "8f3c2a10-4d1e-4b7a-9c55-nexo-auth-0001",
+    "name": "NexoCommerce - Autenticacion",
+    "description": "Registro, duplicado, login, perfil y contrasena incorrecta. Correo aleatorio en cada corrida. Ejecutar con: npx newman run docs/04-api/postman/NexoCommerce_Auth.postman_collection.json --env-var base_url=http://127.0.0.1:8001/api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.schema.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8001/api/v1" },
+    { "key": "correo", "value": "" },
+    { "key": "password", "value": "Clave12345" },
+    { "key": "token", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('correo')) {",
+          "  pm.collectionVariables.set('correo', pm.variables.replaceIn('{{$randomEmail}}'));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Registro de cliente",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre_completo\": \"Usuario Prueba\",\n  \"correo\": \"{{correo}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"telefono\": \"0991234567\",\n  \"terminos_aceptados\": true,\n  \"version_terminos\": \"1.0\"\n}"
+        },
+        "url": "{{base_url}}/auth/registro"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Registro responde 201', () => pm.response.to.have.status(201));",
+              "pm.test('Respuesta indica exito', () => pm.expect(pm.response.json().success).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Registro con correo repetido",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre_completo\": \"Usuario Repetido\",\n  \"correo\": \"{{correo}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\",\n  \"terminos_aceptados\": true,\n  \"version_terminos\": \"1.0\"\n}"
+        },
+        "url": "{{base_url}}/auth/registro"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Correo repetido responde 422', () => pm.response.to.have.status(422));",
+              "pm.test('El error apunta al campo correo', () => pm.expect(pm.response.json().errors).to.have.property('correo'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": "{{base_url}}/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Login devuelve token', () => {",
+              "  const token = pm.response.json().data.token;",
+              "  pm.expect(token).to.be.a('string').and.not.empty;",
+              "  pm.collectionVariables.set('token', token);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Perfil con token",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{base_url}}/auth/perfil"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Perfil responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Perfil corresponde al correo registrado', () => pm.expect(JSON.stringify(pm.response.json())).to.include(pm.collectionVariables.get('correo').toLowerCase()));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Login con contrasena incorrecta",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"password\": \"ClaveIncorrecta999\"\n}"
+        },
+        "url": "{{base_url}}/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Contrasena incorrecta no inicia sesion', () => pm.expect(pm.response.code).to.be.oneOf([401, 422]));",
+              "pm.test('La respuesta no trae token', () => pm.expect(JSON.stringify(pm.response.json())).to.not.include('\"token\"'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

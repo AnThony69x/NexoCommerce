@@ -88,10 +88,8 @@ final class ConfiguracionProduccionRepositorioEloquent implements ConfiguracionP
     public function crear(array $datos): ConfiguracionProduccion
     {
         $id = DB::transaction(function () use ($datos): int {
-            if ($datos['activo']) {
-                $this->bloquearClaves([[$datos['fecha'], $datos['categoria_id']]]);
-                $this->validarUnicaActiva($datos['fecha'], $datos['categoria_id']);
-            }
+            $this->bloquearClaves([[$datos['fecha'], $datos['categoria_id']]]);
+            $this->validarUnica($datos['fecha'], $datos['categoria_id']);
 
             return (int) ConfiguracionProduccionModelo::create($datos)->id;
         });
@@ -114,15 +112,8 @@ final class ConfiguracionProduccionRepositorioEloquent implements ConfiguracionP
                 : $modelo->categoria_id;
             $activo = (bool) ($datos['activo'] ?? $modelo->activo);
 
-            $claves = [[$modelo->fecha->format('Y-m-d'), $modelo->categoria_id]];
-            if ($activo) {
-                $claves[] = [$fecha, $categoriaId];
-            }
-            $this->bloquearClaves($claves);
-
-            if ($activo) {
-                $this->validarUnicaActiva($fecha, $categoriaId, $id);
-            }
+            $this->bloquearClaves([[$modelo->fecha->format('Y-m-d'), $modelo->categoria_id], [$fecha, $categoriaId]]);
+            $this->validarUnica($fecha, $categoriaId, $id);
 
             $modelo->update($datos);
         });
@@ -169,11 +160,10 @@ final class ConfiguracionProduccionRepositorioEloquent implements ConfiguracionP
         )->all();
     }
 
-    private function validarUnicaActiva(string $fecha, ?int $categoriaId, ?int $ignorarId = null): void
+    private function validarUnica(string $fecha, ?int $categoriaId, ?int $ignorarId = null): void
     {
         $query = ConfiguracionProduccionModelo::query()
             ->whereDate('fecha', $fecha)
-            ->where('activo', true)
             ->when(
                 $categoriaId === null,
                 static fn (Builder $consulta): Builder => $consulta->whereNull('categoria_id'),
@@ -210,9 +200,9 @@ final class ConfiguracionProduccionRepositorioEloquent implements ConfiguracionP
             return [];
         }
 
-        $filas = DB::table('detalles_pedido')
-            ->join('pedidos', 'pedidos.id', '=', 'detalles_pedido.pedido_id')
-            ->join('productos', 'productos.id', '=', 'detalles_pedido.producto_id')
+        $filas = DB::table('ventas.detalles_pedido')
+            ->join('ventas.pedidos', 'pedidos.id', '=', 'detalles_pedido.pedido_id')
+            ->join('catalogo.productos', 'productos.id', '=', 'detalles_pedido.producto_id')
             ->whereIn('pedidos.fecha_entrega', $fechas)
             ->where('pedidos.estado', '<>', 'ENTREGADO')
             ->groupBy('pedidos.fecha_entrega', 'productos.categoria_id')

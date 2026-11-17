@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CuentaOAuthModelo extends Model
 {
-    protected $table = 'cuentas_oauth';
+    protected $table = 'auth.cuentas_oauth';
 
     protected $primaryKey = 'id';
 

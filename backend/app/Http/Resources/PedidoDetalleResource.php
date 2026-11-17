@@ -24,6 +24,7 @@ class PedidoDetalleResource extends JsonResource
 
         return [
             ...(new PedidoResumenResource($pedido))->toArray($request),
+            ...($pedido->entrega ?? []),
             'items' => array_map(static fn (DetallePedido $item): array => [
                 'id' => $item->id, 'producto_id' => $item->producto_id,
                 'nombre_producto' => $item->nombre_producto, 'cantidad' => $item->cantidad,

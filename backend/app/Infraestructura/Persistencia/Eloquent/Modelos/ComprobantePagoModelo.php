@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ComprobantePagoModelo extends Model
 {
-    protected $table = 'comprobantes_pago';
+    protected $table = 'pagos.comprobantes_pago';
 
     public $timestamps = false;
 

@@ -57,6 +57,7 @@ return [
     // URL base para archivos multimedia publicos (Fase 2)
     // Ejemplo: http://127.0.0.1:8001/api/v1/multimedia/publico
     'multimedia_public_base_url' => env('MULTIMEDIA_PUBLIC_BASE_URL', ''),
+    'multimedia_disk' => env('MULTIMEDIA_DISK', 'local'),
 
     /*
     |--------------------------------------------------------------------------

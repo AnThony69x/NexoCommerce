@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Carrito;
 
+use App\Http\Requests\ExisteEnTabla;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -17,12 +18,12 @@ class AgregarItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'producto_id' => ['required', 'integer', 'exists:productos,id'],
+            'producto_id' => ['required', 'integer', new ExisteEnTabla('catalogo.productos', 'id')],
             'cantidad' => ['required', 'integer', 'min:1'],
             'comentario' => ['nullable', 'string'],
-            'diseno_torta_id' => ['nullable', 'integer', 'exists:disenos_torta,id'],
-            'plantilla_diseno_id' => ['nullable', 'integer', 'exists:plantillas_diseno,id'],
-            'diseno_personalizado_id' => ['nullable', 'integer', 'exists:disenos_personalizados,id'],
+            'diseno_torta_id' => ['nullable', 'integer', new ExisteEnTabla('catalogo.disenos_torta', 'id')],
+            'plantilla_diseno_id' => ['nullable', 'integer', new ExisteEnTabla('catalogo.plantillas_diseno', 'id')],
+            'diseno_personalizado_id' => ['nullable', 'integer', new ExisteEnTabla('ventas.disenos_personalizados', 'id')],
         ];
     }
 

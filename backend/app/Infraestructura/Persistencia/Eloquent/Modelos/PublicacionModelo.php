@@ -16,7 +16,7 @@ class PublicacionModelo extends Model
     /** @use HasFactory<PublicacionModeloFactory> */
     use HasFactory;
 
-    protected $table = 'publicaciones';
+    protected $table = 'publicaciones.publicaciones';
 
     public const CREATED_AT = 'creado_en';
 
@@ -28,7 +28,8 @@ class PublicacionModelo extends Model
         'producto_id',
         'titulo',
         'descripcion',
-        'activo',
+        'estado',
+        'publicada_en',
     ];
 
     protected function casts(): array
@@ -37,7 +38,7 @@ class PublicacionModelo extends Model
             'usuario_id' => 'integer',
             'categoria_id' => 'integer',
             'producto_id' => 'integer',
-            'activo' => 'boolean',
+            'publicada_en' => 'datetime',
             'creado_en' => 'datetime',
             'actualizado_en' => 'datetime',
         ];
@@ -62,7 +63,7 @@ class PublicacionModelo extends Model
     {
         return $this->belongsToMany(
             MultimediaModelo::class,
-            'publicacion_multimedia',
+            'publicaciones.publicacion_multimedia',
             'publicacion_id',
             'multimedia_id',
         )->withPivot('orden');

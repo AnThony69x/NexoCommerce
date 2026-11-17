@@ -149,7 +149,7 @@ Documentar IPs, puertos, versiones, configuración de servicios, respaldos y res
 
 ## Referencias
 
-* [Bases del proyecto integrador](../docs/00-proyecto/enunciado-proyecto-integrador.md).
+* [Bases del proyecto integrador](../docs/00-enunciado-proyecto/enunciado-proyecto-integrador.md).
 * [Arquitectura general](../README.md).
 * [Contrato de multimedia](../docs/04-api/specs/08-multimedia.spec.md).
 * [Esquema SQL](../database/database.sql): tabla `multimedia` con nombre, ruta, MIME, tamaño y usuario.

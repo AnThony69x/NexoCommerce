@@ -19,5 +19,7 @@ final readonly class Pedido
         public DateTimeImmutable $creado_en,
         public array $items = [],
         public ?array $pago = null,
+        /** @var array{tipo_entrega: string, direccion_entrega: ?string, telefono_contacto: ?string, hora_entrega: ?string}|null */
+        public ?array $entrega = null,
     ) {}
 }

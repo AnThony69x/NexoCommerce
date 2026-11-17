@@ -6,12 +6,15 @@ namespace App\Dominio\Pedidos\Servicios;
 
 final class EstadosPedido
 {
-    private const SECUENCIA = ['PENDIENTE', 'EN_PREPARACION', 'LISTO', 'ENTREGADO'];
+    /** Coincide con ventas.fn_validar_estado_pedido del esquema. */
+    private const TRANSICIONES = [
+        'PENDIENTE' => ['EN_PREPARACION', 'CANCELADO'],
+        'EN_PREPARACION' => ['LISTO', 'CANCELADO'],
+        'LISTO' => ['ENTREGADO'],
+    ];
 
     public static function admite(string $actual, string $siguiente): bool
     {
-        $indice = array_search($actual, self::SECUENCIA, true);
-
-        return $indice !== false && (self::SECUENCIA[$indice + 1] ?? null) === $siguiente;
+        return in_array($siguiente, self::TRANSICIONES[$actual] ?? [], true);
     }
 }

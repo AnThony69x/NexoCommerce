@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DetalleCarritoModelo extends Model
 {
-    protected $table = 'detalles_carrito';
+    protected $table = 'ventas.detalles_carrito';
 
     public const CREATED_AT = 'creado_en';
 

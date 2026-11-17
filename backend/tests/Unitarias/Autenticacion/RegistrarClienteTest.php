@@ -135,7 +135,7 @@ class RegistrarClienteTest extends TestCase
         return new VerificacionCorreo(
             id: 1,
             usuario_id: $usuario_id,
-            codigo: '123456',
+            codigo_hash: '123456',
             expira_en: new DateTimeImmutable('+24 hours'),
             usado_en: null,
             creado_en: new DateTimeImmutable,

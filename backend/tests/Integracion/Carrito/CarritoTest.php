@@ -14,13 +14,13 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\SublimacionModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\TortaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class CarritoTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -47,7 +47,7 @@ class CarritoTest extends TestCase
     {
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $this->withToken($cliente->createToken('test')->plainTextToken);
-        $producto = ProductoModelo::factory()->create(['precio_base' => '10.05']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '10.05']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 5]);
         $url = '/api/v1/carrito/items';
 
@@ -66,23 +66,23 @@ class CarritoTest extends TestCase
             ->assertOk()->assertJsonPath('data.items.0.cantidad', 3);
         $this->deleteJson($url.'/'.$items[1]['id'])->assertOk()->assertJsonCount(1, 'data.items');
         $this->deleteJson('/api/v1/carrito')->assertOk()->assertJsonCount(0, 'data.items');
-        $this->assertDatabaseCount('detalles_carrito', 0);
-        $this->assertDatabaseHas('carritos', ['usuario_id' => $cliente->id, 'activo' => true]);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 0);
+        $this->assertDatabaseHas('ventas.carritos', ['usuario_id' => $cliente->id, 'activo' => true]);
     }
 
     public function test_configuracion_por_tipo_y_propiedad_de_diseno(): void
     {
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $this->withToken($cliente->createToken('test')->plainTextToken);
-        $torta = ProductoModelo::factory()->create(['precio_base' => '12.35']);
+        $torta = ProductoModelo::factory()->create(['tipo' => 'TORTA', 'precio_base' => '12.35']);
         TortaModelo::factory()->create(['producto_id' => $torta->id]);
         $diseno = DisenoTortaModelo::factory()->create(['torta_id' => $torta->id, 'costo_adicional' => '1.50']);
         $otroDiseno = DisenoTortaModelo::factory()->create();
-        $sublimacion = ProductoModelo::factory()->create(['precio_base' => '8.10']);
+        $sublimacion = ProductoModelo::factory()->create(['tipo' => 'SUBLIMACION', 'precio_base' => '8.10']);
         SublimacionModelo::factory()->create(['producto_id' => $sublimacion->id]);
         $plantilla = PlantillaDisenoModelo::factory()->create(['sublimacion_id' => $sublimacion->id, 'costo_adicional' => '0.20']);
-        $personalizado = DisenoPersonalizadoModelo::factory()->create(['usuario_id' => $cliente->id, 'sublimacion_id' => $sublimacion->id]);
-        $ajeno = DisenoPersonalizadoModelo::factory()->create(['sublimacion_id' => $sublimacion->id]);
+        $personalizado = DisenoPersonalizadoModelo::factory()->create(['usuario_id' => $cliente->id, 'producto_id' => $sublimacion->id]);
+        $ajeno = DisenoPersonalizadoModelo::factory()->create(['producto_id' => $sublimacion->id]);
         $url = '/api/v1/carrito/items';
 
         $this->postJson($url, ['producto_id' => $sublimacion->id, 'cantidad' => 1])->assertBadRequest();
@@ -95,14 +95,14 @@ class CarritoTest extends TestCase
             ->assertCreated()->assertJsonPath('data.items.1.precio_unitario', 8.3);
         $this->postJson($url, ['producto_id' => $sublimacion->id, 'cantidad' => 1, 'diseno_personalizado_id' => $personalizado->id])
             ->assertCreated()->assertJsonPath('data.items.2.precio_unitario', 8.1);
-        $this->assertDatabaseCount('detalles_carrito', 3);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 3);
     }
 
     public function test_precio_vigente_avisos_y_aislamiento_entre_usuarios(): void
     {
         $primero = UsuarioModelo::factory()->verificado()->create();
         $segundo = UsuarioModelo::factory()->admin()->create();
-        $producto = ProductoModelo::factory()->create(['precio_base' => '10.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '10.00']);
         $detalle = DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 3]);
         $this->withToken($primero->createToken('test')->plainTextToken);
         $creado = $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2])->assertCreated();
@@ -115,7 +115,7 @@ class CarritoTest extends TestCase
             ->assertJsonPath('data.precios_actualizados.0', $id)
             ->assertJsonPath('data.items.0.avisos.0', 'STOCK_INSUFICIENTE')
             ->assertJsonPath('data.total', 22.5);
-        $this->assertDatabaseHas('detalles_carrito', ['id' => $id, 'precio_unitario' => '11.25', 'cantidad' => 2]);
+        $this->assertDatabaseHas('ventas.detalles_carrito', ['id' => $id, 'precio_unitario' => '11.25', 'cantidad' => 2]);
         Auth::forgetGuards();
         $this->withToken($segundo->createToken('test')->plainTextToken)
             ->putJson('/api/v1/carrito/items/'.$id, ['cantidad' => 1])->assertForbidden();
@@ -125,14 +125,14 @@ class CarritoTest extends TestCase
         Auth::forgetGuards();
         $this->withToken($primero->createToken('test-2')->plainTextToken)
             ->getJson('/api/v1/carrito')->assertOk()->assertJsonPath('data.items.0.avisos.0', 'PRODUCTO_INACTIVO');
-        $this->assertDatabaseHas('detalles_carrito', ['id' => $id]);
+        $this->assertDatabaseHas('ventas.detalles_carrito', ['id' => $id]);
     }
 
     public function test_plantilla_desactivada_permanece_visible_y_update_informa_cambio_de_precio(): void
     {
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $this->withToken($cliente->createToken('test')->plainTextToken);
-        $producto = ProductoModelo::factory()->create(['precio_base' => '9.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'SUBLIMACION', 'precio_base' => '9.00']);
         SublimacionModelo::factory()->create(['producto_id' => $producto->id]);
         $plantilla = PlantillaDisenoModelo::factory()->create(['sublimacion_id' => $producto->id, 'costo_adicional' => '1.00']);
         $creado = $this->postJson('/api/v1/carrito/items', [
@@ -150,18 +150,18 @@ class CarritoTest extends TestCase
             ->assertJsonPath('data.items.0.disponible', false)
             ->assertJsonPath('data.items.0.avisos.0', 'PLANTILLA_NO_DISPONIBLE');
         $this->putJson('/api/v1/carrito/items/'.$id, ['cantidad' => 3])->assertBadRequest();
-        $this->assertDatabaseHas('detalles_carrito', ['id' => $id, 'cantidad' => 2]);
+        $this->assertDatabaseHas('ventas.detalles_carrito', ['id' => $id, 'cantidad' => 2]);
     }
 
     public function test_error_no_persiste_cambios_parciales_y_cantidad_debe_ser_positiva(): void
     {
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $this->withToken($cliente->createToken('test')->plainTextToken);
-        $producto = ProductoModelo::factory()->create(['precio_base' => '5.00']);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 1]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 0])->assertUnprocessable();
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2])->assertBadRequest();
-        $this->assertDatabaseCount('detalles_carrito', 0);
-        $this->assertDatabaseCount('carritos', 0);
+        $this->assertDatabaseCount('ventas.detalles_carrito', 0);
+        $this->assertDatabaseCount('ventas.carritos', 0);
     }
 }

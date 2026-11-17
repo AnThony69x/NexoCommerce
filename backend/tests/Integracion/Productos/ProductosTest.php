@@ -17,13 +17,13 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\TortaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ProductosTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -37,6 +37,7 @@ class ProductosTest extends TestCase
         foreach (range(1, 13) as $numero) {
             $producto = ProductoModelo::factory()->create([
                 'categoria_id' => $categoria->id,
+                'tipo' => 'TORTA',
                 'nombre' => "Torta Chocolate {$numero}",
                 'precio_base' => $numero,
             ]);
@@ -69,7 +70,7 @@ class ProductosTest extends TestCase
     public function test_detalle_publico_devuelve_especializacion_diseno_e_imagen_sin_campos_inexistentes(): void
     {
         config(['app.multimedia_public_base_url' => 'https://files.example.test/multimedia']);
-        $producto = ProductoModelo::factory()->create();
+        $producto = ProductoModelo::factory()->create(['tipo' => 'TORTA']);
         $torta = TortaModelo::factory()->create(['producto_id' => $producto->id]);
         $imagen = MultimediaModelo::factory()->create(['ruta_archivo' => 'productos/torta.webp']);
         $producto->multimedia()->attach($imagen->id, ['orden' => 0, 'es_principal' => true]);
@@ -123,9 +124,9 @@ class ProductosTest extends TestCase
             ->assertJsonPath('data.imagenes.0.es_principal', true);
 
         $productoId = (int) $response->json('data.id');
-        $this->assertDatabaseHas('productos', ['id' => $productoId, 'nombre' => 'Torta Chocolate']);
-        $this->assertDatabaseHas('tortas', ['producto_id' => $productoId, 'sabor' => 'Chocolate']);
-        $this->assertDatabaseHas('producto_multimedia', [
+        $this->assertDatabaseHas('catalogo.productos', ['id' => $productoId, 'nombre' => 'Torta Chocolate']);
+        $this->assertDatabaseHas('catalogo.tortas', ['producto_id' => $productoId, 'sabor' => 'Chocolate']);
+        $this->assertDatabaseHas('catalogo.producto_multimedia', [
             'producto_id' => $productoId,
             'multimedia_id' => $imagen->id,
             'es_principal' => true,
@@ -178,7 +179,7 @@ class ProductosTest extends TestCase
             ],
         ])->assertUnprocessable()->assertJsonStructure(['errors' => ['imagenes']]);
 
-        $this->assertDatabaseMissing('productos', ['nombre' => 'Producto invalido']);
+        $this->assertDatabaseMissing('catalogo.productos', ['nombre' => 'Producto invalido']);
     }
 
     public function test_repositorio_revierte_alta_completa_si_falla_una_asociacion(): void
@@ -201,14 +202,14 @@ class ProductosTest extends TestCase
             ]);
             $this->fail('Se esperaba una violacion de llave foranea.');
         } catch (QueryException) {
-            $this->assertDatabaseMissing('productos', ['nombre' => 'Debe revertirse']);
-            $this->assertSame(0, DB::table('detalles')->count());
+            $this->assertDatabaseMissing('catalogo.productos', ['nombre' => 'Debe revertirse']);
+            $this->assertSame(0, DB::table('catalogo.detalles')->count());
         }
     }
 
     public function test_put_conserva_omitidos_reemplaza_imagenes_y_tipo_es_inmutable(): void
     {
-        $producto = ProductoModelo::factory()->create(['descripcion' => 'Conservar', 'precio_base' => 20]);
+        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'descripcion' => 'Conservar', 'precio_base' => 20]);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 8]);
         $anterior = MultimediaModelo::factory()->create();
         $nueva = MultimediaModelo::factory()->create(['ruta_archivo' => 'productos/nueva.png']);
@@ -226,7 +227,7 @@ class ProductosTest extends TestCase
         $this->withToken($token)->putJson("/api/v1/admin/productos/{$producto->id}", [
             'imagenes' => [['multimedia_id' => $nueva->id, 'orden' => 2, 'es_principal' => true]],
         ])->assertOk()->assertJsonPath('data.imagenes.0.id', $nueva->id);
-        $this->assertDatabaseMissing('producto_multimedia', ['producto_id' => $producto->id, 'multimedia_id' => $anterior->id]);
+        $this->assertDatabaseMissing('catalogo.producto_multimedia', ['producto_id' => $producto->id, 'multimedia_id' => $anterior->id]);
 
         $this->withToken($token)->putJson("/api/v1/admin/productos/{$producto->id}", ['imagenes' => []])
             ->assertOk()->assertJsonCount(0, 'data.imagenes');
@@ -277,7 +278,7 @@ class ProductosTest extends TestCase
         $this->withToken($token)->postJson('/api/v1/admin/productos', $payload + ['activo' => true])
             ->assertBadRequest()
             ->assertJsonPath('codigo_error', 'PROD_SUBLIMACION_SIN_PLANTILLA');
-        $this->assertDatabaseMissing('productos', ['nombre' => 'Taza borrador']);
+        $this->assertDatabaseMissing('catalogo.productos', ['nombre' => 'Taza borrador']);
 
         $creada = $this->withToken($token)->postJson('/api/v1/admin/productos', $payload)
             ->assertCreated()
@@ -289,7 +290,10 @@ class ProductosTest extends TestCase
             ->assertJsonPath('codigo_error', 'PROD_SUBLIMACION_SIN_PLANTILLA');
 
         $plantilla = $this->withToken($token)
-            ->postJson("/api/v1/admin/sublimaciones/{$productoId}/plantillas", ['nombre' => 'Logo'])
+            ->postJson("/api/v1/admin/sublimaciones/{$productoId}/plantillas", [
+                'nombre' => 'Logo',
+                'multimedia_id' => MultimediaModelo::factory()->state(['modulo' => 'PLANTILLA', 'ancho' => 1000, 'alto' => 1000])->create()->id,
+            ])
             ->assertCreated();
         $plantillaId = (int) $plantilla->json('data.id');
 
@@ -299,7 +303,7 @@ class ProductosTest extends TestCase
         $this->withToken($token)->deleteJson("/api/v1/admin/plantillas-diseno/{$plantillaId}")
             ->assertBadRequest()
             ->assertJsonPath('codigo_error', 'PROD_SUBLIMACION_SIN_PLANTILLA');
-        $this->assertDatabaseHas('plantillas_diseno', ['id' => $plantillaId, 'activo' => true]);
+        $this->assertDatabaseHas('catalogo.plantillas_diseno', ['id' => $plantillaId, 'activo' => true]);
 
         $segunda = PlantillaDisenoModelo::factory()->create(['sublimacion_id' => $productoId]);
         $this->withToken($token)->putJson("/api/v1/admin/plantillas-diseno/{$segunda->id}", [
@@ -311,7 +315,7 @@ class ProductosTest extends TestCase
 
     public function test_crud_logico_de_diseno_torta_conserva_campos_omitidos(): void
     {
-        $producto = ProductoModelo::factory()->create();
+        $producto = ProductoModelo::factory()->create(['tipo' => 'TORTA']);
         TortaModelo::factory()->create(['producto_id' => $producto->id]);
         $token = $this->tokenAdmin();
 
@@ -320,6 +324,7 @@ class ProductosTest extends TestCase
                 'nombre' => 'Flores',
                 'descripcion' => 'Original',
                 'costo_adicional' => 5,
+                'multimedia_id' => MultimediaModelo::factory()->state(['modulo' => 'DISENO_TORTA', 'ancho' => 1000, 'alto' => 1000])->create()->id,
             ])->assertCreated();
         $id = (int) $creado->json('data.id');
 
@@ -329,7 +334,7 @@ class ProductosTest extends TestCase
             ->assertJsonPath('data.descripcion', 'Original')
             ->assertJsonPath('data.costo_adicional', 5);
         $this->withToken($token)->deleteJson("/api/v1/admin/disenos-torta/{$id}")->assertOk();
-        $this->assertDatabaseHas('disenos_torta', ['id' => $id, 'activo' => false]);
+        $this->assertDatabaseHas('catalogo.disenos_torta', ['id' => $id, 'activo' => false]);
     }
 
     public function test_diseno_personalizado_asigna_usuario_valida_multimedia_y_aisla_listado(): void
@@ -337,11 +342,11 @@ class ProductosTest extends TestCase
         $cliente = UsuarioModelo::factory()->verificado()->create();
         $otro = UsuarioModelo::factory()->verificado()->create();
         $sublimacion = $this->crearSublimacion();
-        $propia = MultimediaModelo::factory()->create(['subido_por_id' => $cliente->id]);
-        $ajena = MultimediaModelo::factory()->create(['subido_por_id' => $otro->id]);
+        $propia = MultimediaModelo::factory()->create(['subido_por_id' => $cliente->id, 'ancho' => 1000, 'alto' => 1000]);
+        $ajena = MultimediaModelo::factory()->create(['subido_por_id' => $otro->id, 'ancho' => 1000, 'alto' => 1000]);
         DisenoPersonalizadoModelo::factory()->create([
             'usuario_id' => $otro->id,
-            'sublimacion_id' => $sublimacion->producto_id,
+            'producto_id' => $sublimacion->producto_id,
             'multimedia_id' => $ajena->id,
         ]);
         $token = $cliente->createToken('test')->plainTextToken;
@@ -358,7 +363,7 @@ class ProductosTest extends TestCase
             'usuario_id' => $otro->id,
         ])->assertCreated()
             ->assertJsonPath('data.usuario_id', $cliente->id);
-        $this->assertDatabaseHas('disenos_personalizados', [
+        $this->assertDatabaseHas('ventas.disenos_personalizados', [
             'id' => $creado->json('data.id'),
             'usuario_id' => $cliente->id,
             'multimedia_id' => $propia->id,
@@ -389,7 +394,7 @@ class ProductosTest extends TestCase
 
     private function crearSublimacion(): SublimacionModelo
     {
-        $producto = ProductoModelo::factory()->create();
+        $producto = ProductoModelo::factory()->create(['tipo' => 'SUBLIMACION']);
 
         return SublimacionModelo::factory()->create(['producto_id' => $producto->id]);
     }

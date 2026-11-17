@@ -4,7 +4,7 @@ info:
   description: >
     API REST v1 alineada a database/database.sql (25 tablas PostgreSQL).
     Los nombres JSON coinciden con las columnas SQL. Roles: ADMIN, CLIENTE.
-  version: 1.1.0
+  version: 1.2.0
 servers:
   - url: http://localhost:8001/api/v1
     description: Desarrollo local
@@ -485,7 +485,7 @@ paths:
       tags: [Pedidos]
       security: [{ bearerAuth: [] }]
       parameters:
-        - { name: estado, in: query, schema: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO] } }
+        - { name: estado, in: query, schema: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO, CANCELADO] } }
         - { name: page, in: query, schema: { type: integer } }
       responses:
         '200': { description: Pedidos del CLIENTE, paginados de 15 en 15 }
@@ -503,10 +503,14 @@ paths:
               properties:
                 fecha_entrega: { type: string, format: date }
                 total_esperado: { type: string, pattern: '^(?:0|[1-9][0-9]{0,7})\.[0-9]{2}$', example: '35.00' }
+                tipo_entrega: { type: string, enum: [RETIRO, DOMICILIO], default: RETIRO }
+                direccion_entrega: { type: string, maxLength: 255, description: Obligatoria si tipo_entrega es DOMICILIO }
+                telefono_contacto: { type: string, maxLength: 20 }
+                hora_entrega: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$', example: '15:30' }
       responses:
-        '201': { description: Pedido PENDIENTE }
+        '201': { description: Pedido PENDIENTE con descuento y costo_envio en 0 }
         '400': { description: 'Carrito vacio, item no disponible, stock, precio cambiado o capacidad; el carrito conserva los precios vigentes' }
-        '422': { description: fecha_entrega o total_esperado invalido }
+        '422': { description: fecha_entrega, total_esperado, direccion_entrega (si DOMICILIO) u hora_entrega invalidos }
 
   /pedidos/{id}:
     get:
@@ -515,7 +519,7 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Pedido con snapshot de detalles y pago mas reciente o null; CLIENTE propio o ADMIN cualquiera }
+        '200': { description: 'Pedido con snapshot de detalles, datos de entrega (tipo_entrega, direccion_entrega, telefono_contacto, hora_entrega) y pago mas reciente o null; CLIENTE propio o ADMIN cualquiera' }
         '403': { description: Pedido de otro CLIENTE }
 
   /admin/pedidos:
@@ -523,7 +527,7 @@ paths:
       tags: [Pedidos]
       security: [{ bearerAuth: [] }]
       parameters:
-        - { name: estado, in: query, schema: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO] } }
+        - { name: estado, in: query, schema: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO, CANCELADO] } }
         - { name: fecha_entrega, in: query, schema: { type: string, format: date } }
         - { name: usuario_id, in: query, schema: { type: integer } }
         - { name: page, in: query, schema: { type: integer } }
@@ -543,10 +547,10 @@ paths:
               type: object
               required: [estado]
               properties:
-                estado: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO] }
+                estado: { type: string, enum: [PENDIENTE, EN_PREPARACION, LISTO, ENTREGADO, CANCELADO] }
       responses:
         '200': { description: Estado actualizado }
-        '400': { description: Salto, retroceso, repeticion de estado o pago no aprobado }
+        '400': { description: 'Transicion invalida (PED_ESTADO_INVALIDO) o pago no aprobado (PED_PAGO_NO_APROBADO). CANCELADO solo desde PENDIENTE o EN_PREPARACION; al cancelar se devuelve el stock' }
 
   /pagos:
     post:

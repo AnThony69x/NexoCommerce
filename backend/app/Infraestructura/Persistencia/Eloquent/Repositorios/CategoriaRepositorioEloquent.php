@@ -84,7 +84,7 @@ class CategoriaRepositorioEloquent implements CategoriaRepositorioInterface
 
     public function tieneProductosActivos(int $id): bool
     {
-        return DB::table('productos')
+        return DB::table('catalogo.productos')
             ->where('categoria_id', $id)
             ->where('activo', true)
             ->exists();

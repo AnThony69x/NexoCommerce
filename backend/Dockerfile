@@ -29,6 +29,7 @@ RUN apt-get update \
 
 WORKDIR /app
 
+RUN printf 'upload_max_filesize=6M\npost_max_size=8M\n' > /usr/local/etc/php/conf.d/nexocommerce-uploads.ini
 COPY --from=vendor /app /app
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh \

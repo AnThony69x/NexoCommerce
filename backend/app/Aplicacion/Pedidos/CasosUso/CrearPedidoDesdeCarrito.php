@@ -15,7 +15,11 @@ final readonly class CrearPedidoDesdeCarrito
 
     public function execute(int $usuarioId, CrearPedidoDTO $datos): Pedido
     {
-        $resultado = $this->repositorio->crearDesdeCarrito($usuarioId, $datos->fecha_entrega, $datos->total_esperado);
+        $entrega = [
+            'tipo_entrega' => $datos->tipo_entrega, 'direccion_entrega' => $datos->direccion_entrega,
+            'telefono_contacto' => $datos->telefono_contacto, 'hora_entrega' => $datos->hora_entrega,
+        ];
+        $resultado = $this->repositorio->crearDesdeCarrito($usuarioId, $datos->fecha_entrega, $datos->total_esperado, $entrega);
         if ($resultado instanceof DominioException) {
             throw $resultado;
         }

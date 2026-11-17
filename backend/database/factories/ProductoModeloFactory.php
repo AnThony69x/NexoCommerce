@@ -17,6 +17,7 @@ class ProductoModeloFactory extends Factory
     {
         return [
             'categoria_id' => CategoriaModelo::factory(),
+            'tipo' => 'DETALLE',
             'nombre' => fake()->words(3, true),
             'descripcion' => fake()->optional()->sentence(),
             'precio_base' => fake()->randomFloat(2, 1, 100),

@@ -15,7 +15,7 @@ class VerificacionCorreoRepositorioEloquent implements VerificacionCorreoReposit
     {
         $modelo = VerificacionCorreoModelo::create([
             'usuario_id' => $usuario_id,
-            'codigo' => $codigo,
+            'codigo_hash' => $this->hashearCodigo($codigo),
             'expira_en' => $expira_en->format('Y-m-d H:i:s'),
         ]);
 
@@ -25,7 +25,7 @@ class VerificacionCorreoRepositorioEloquent implements VerificacionCorreoReposit
     public function buscarCodigoActivo(int $usuario_id, string $codigo): ?VerificacionCorreo
     {
         $modelo = VerificacionCorreoModelo::where('usuario_id', $usuario_id)
-            ->where('codigo', $codigo)
+            ->where('codigo_hash', $this->hashearCodigo($codigo))
             ->whereNull('usado_en')
             ->where('expira_en', '>', now())
             ->first();
@@ -40,12 +40,17 @@ class VerificacionCorreoRepositorioEloquent implements VerificacionCorreoReposit
 
     // -------------------------------------------------------------------------
 
+    private function hashearCodigo(string $codigo): string
+    {
+        return hash_hmac('sha256', $codigo, (string) config('app.key'));
+    }
+
     private function mapearAEntidad(VerificacionCorreoModelo $modelo): VerificacionCorreo
     {
         return new VerificacionCorreo(
             id: $modelo->id,
             usuario_id: $modelo->usuario_id,
-            codigo: $modelo->codigo,
+            codigo_hash: $modelo->codigo_hash,
             expira_en: new DateTimeImmutable($modelo->expira_en->toDateTimeString()),
             usado_en: $modelo->usado_en
                 ? new DateTimeImmutable($modelo->usado_en->toDateTimeString())

@@ -1,71 +1,42 @@
 # Documentación — NexoCommerce
 
-En esta carpeta se almacena toda la documentación oficial del proyecto.
+En esta carpeta se almacena la documentación oficial del proyecto integrador de NexoCommerce, plataforma de comercio electrónico para Aesca (repostería, detalles y sublimación, Montecristi, Manabí).
 
 ## Estructura
 
 ```text
 docs/
 │
-├── 00-proyecto/
-├── 01-requisitos/
-├── 02-arquitectura/
+├── 00-enunciado-proyecto/   Definición del proyecto, problemática, requisitos y arquitectura de la solución
+├── 01-requisitos/           Requisitos funcionales y no funcionales
+├── 02-arquitectura/         Arquitectura física V1 y pruebas de conectividad (diagrama incluido)
 ├── 03-base-datos/
-├── 04-api/
+├── 04-api/                  Contratos de la API (SDD), organización de controladores en Laravel y guía de integración
 ├── 05-despliegue/
 ├── 06-pruebas/
 ├── 07-manuales/
-├── 08-proyecto
+├── 08-proyecto/
 ├── 09-bitacora/
+├── 10-migraciones/
+├── postman/
 └── README.md
 ```
 
-## Contenido
+## Documentos del proyecto
 
-### requisitos/
+Cada documento está en su carpeta en dos formatos: el PDF original y la transcripción completa en Markdown.
 
-* Requisitos funcionales.
-* Requisitos no funcionales.
-* Casos de uso.
+| Documento | Carpeta | Markdown (contenido completo) | PDF original | Fecha de entrega |
+|---|---|---|---|---|
+| Definición del Proyecto de Aula: Problemática, Requerimientos y Arquitectura de la Solución | `00-enunciado-proyecto/` | [Markdown](<00-enunciado-proyecto/Definición del Proyecto de Aula Problemática, Requerimientos y Arquitectura de la Solución.md>) | [PDF](<00-enunciado-proyecto/Definición del Proyecto de Aula Problemática, Requerimientos y Arquitectura de la Solución.pdf>) | 25/09/2026 |
+| Arquitectura Física V1 y Pruebas de Conectividad del Proyecto Integrador | `02-arquitectura/` | [Markdown](<02-arquitectura/Arquitectura Física V1 y Pruebas de Conectividad del Proyecto Integrador.md>) | [PDF](<02-arquitectura/Arquitectura Física V1 y Pruebas de Conectividad del Proyecto Integrador.pdf>) | 29/09/2026 |
+| Organización de la lógica de la API mediante controladores en Laravel | `04-api/` | [Markdown](<04-api/Organización de la lógica de la API mediante controladores en Laravel.md>) | [PDF](<04-api/Organización de la lógica de la API mediante controladores en Laravel.pdf>) | No consta en el documento |
 
-### arquitectura/
+Asignatura: Integración e Implementación de Software · Docente: Ing. Junior Zamora · Periodo 2026-A.
 
-* Arquitectura lógica.
-* Arquitectura física.
-* Diagrama de red.
-* SAD.
+## Planes de trabajo
 
-### base-datos/
-
-* Modelo ER.
-* Diccionario de datos.
-
-### api/
-
-* Endpoints.
-* Parámetros.
-* Respuestas.
-* Autenticación.
-
-### despliegue/
-
-* Instalación.
-* Configuración de red.
-* Docker.
-* NGINX.
-
-### pruebas/
-
-* Pruebas de integración.
-* Pruebas E2E.
-* Pruebas de rendimiento.
-* Pruebas de tolerancia a fallos.
-
-### bitacora/
-
-* Cambios.
-* Correcciones.
-* Decisiones importantes.
+- [Plan de alineación del backend con el esquema de BD y prueba con el servidor de archivos](04-api/plan-alineacion-backend.md)
 
 ## Regla
 

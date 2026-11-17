@@ -14,6 +14,13 @@ services:
     environment:
       APP_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}
       MULTIMEDIA_PUBLIC_BASE_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}/api/v1/multimedia/publico
+      MULTIMEDIA_DISK: ${MULTIMEDIA_DISK:-local}
+      MULTIMEDIA_SFTP_HOST: ${MULTIMEDIA_SFTP_HOST:-}
+      MULTIMEDIA_SFTP_PORT: ${MULTIMEDIA_SFTP_PORT:-22}
+      MULTIMEDIA_SFTP_USER: ${MULTIMEDIA_SFTP_USER:-}
+      MULTIMEDIA_SFTP_KEY: ${MULTIMEDIA_SFTP_KEY:-}
+      MULTIMEDIA_SFTP_HOST_FINGERPRINT: ${MULTIMEDIA_SFTP_HOST_FINGERPRINT:-}
+      MULTIMEDIA_SFTP_ROOT: ${MULTIMEDIA_SFTP_ROOT:-/srv/nexocommerce}
       PORT: "8000"
     volumes:
       - multimedia-data:/app/storage/app/multimedia
@@ -42,6 +49,13 @@ services:
     environment:
       APP_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}
       MULTIMEDIA_PUBLIC_BASE_URL: ${API_PUBLIC_ORIGIN:-http://localhost:8001}/api/v1/multimedia/publico
+      MULTIMEDIA_DISK: ${MULTIMEDIA_DISK:-local}
+      MULTIMEDIA_SFTP_HOST: ${MULTIMEDIA_SFTP_HOST:-}
+      MULTIMEDIA_SFTP_PORT: ${MULTIMEDIA_SFTP_PORT:-22}
+      MULTIMEDIA_SFTP_USER: ${MULTIMEDIA_SFTP_USER:-}
+      MULTIMEDIA_SFTP_KEY: ${MULTIMEDIA_SFTP_KEY:-}
+      MULTIMEDIA_SFTP_HOST_FINGERPRINT: ${MULTIMEDIA_SFTP_HOST_FINGERPRINT:-}
+      MULTIMEDIA_SFTP_ROOT: ${MULTIMEDIA_SFTP_ROOT:-/srv/nexocommerce}
       PORT: "8000"
     volumes:
       - multimedia-data:/app/storage/app/multimedia

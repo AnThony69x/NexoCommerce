@@ -32,9 +32,9 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
 {
     public function __construct(private VerificarCapacidadProduccion $verificarCapacidad) {}
 
-    public function crearDesdeCarrito(int $usuarioId, string $fechaEntrega, string $totalEsperado): Pedido|DominioException
+    public function crearDesdeCarrito(int $usuarioId, string $fechaEntrega, string $totalEsperado, array $entrega): Pedido|DominioException
     {
-        return DB::transaction(function () use ($usuarioId, $fechaEntrega, $totalEsperado): Pedido|DominioException {
+        return DB::transaction(function () use ($usuarioId, $fechaEntrega, $totalEsperado, $entrega): Pedido|DominioException {
             UsuarioModelo::query()->whereKey($usuarioId)->lockForUpdate()->firstOrFail();
             $carrito = CarritoModelo::query()->where('usuario_id', $usuarioId)->where('activo', true)->first();
             $items = $carrito?->items()->orderBy('id')->get();
@@ -72,7 +72,7 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
                 $configuracionValida = ReglasCarrito::configuracionValida($tipo, $item->diseno_torta_id, $item->plantilla_diseno_id, $item->diseno_personalizado_id)
                     && ($item->diseno_torta_id === null || ($diseno !== null && $diseno->activo && $diseno->torta_id === $producto->id))
                     && ($item->plantilla_diseno_id === null || ($plantilla !== null && $plantilla->activo && $plantilla->sublimacion_id === $producto->id))
-                    && ($item->diseno_personalizado_id === null || ($personalizado !== null && $personalizado->usuario_id === $usuarioId && $personalizado->sublimacion_id === $producto->id));
+                    && ($item->diseno_personalizado_id === null || ($personalizado !== null && $personalizado->usuario_id === $usuarioId && $personalizado->producto_id === $producto->id));
                 if (! $producto->activo || ($tipo === 'SUBLIMACION' && $producto->sublimacion === null) || ! $configuracionValida) {
                     $error ??= $this->error('Item no disponible.', 'PED_ITEM_NO_DISPONIBLE');
                 }
@@ -127,11 +127,14 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
             $pedido = PedidoModelo::create([
                 'usuario_id' => $usuarioId, 'fecha_entrega' => $fechaEntrega,
                 'estado' => 'PENDIENTE', 'subtotal' => $total, 'total' => $total,
+                'descuento' => '0.00', 'costo_envio' => '0.00',
+                'tipo_entrega' => $entrega['tipo_entrega'], 'direccion_entrega' => $entrega['direccion_entrega'],
+                'telefono_contacto' => $entrega['telefono_contacto'], 'hora_entrega' => $entrega['hora_entrega'],
             ]);
             $pedido->items()->createMany($filas);
             foreach ($cantidadesPorProducto as $productoId => $cantidad) {
-                if ($stocks->has($productoId)) {
-                    $stocks->get($productoId)->decrement('stock', $cantidad);
+                if ($stocks->has($productoId) && ! DB::selectOne('SELECT catalogo.descontar_stock(?, ?) AS descontado', [$productoId, $cantidad])->descontado) {
+                    throw $this->error('Stock insuficiente.', 'PED_SIN_STOCK');
                 }
             }
             $carrito->items()->delete();
@@ -179,10 +182,16 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
             if (! EstadosPedido::admite($modelo->estado, $estado)) {
                 throw $this->error('Transicion de estado invalida.', 'PED_ESTADO_INVALIDO');
             }
-            if ($estado === 'EN_PREPARACION' && ! DB::table('pagos')->where('pedido_id', $id)->where('estado', 'APROBADO')->exists()) {
+            if ($estado === 'EN_PREPARACION' && ! DB::table('pagos.pagos')->where('pedido_id', $id)->where('estado', 'APROBADO')->exists()) {
                 throw $this->error('El pago no esta aprobado.', 'PED_PAGO_NO_APROBADO');
             }
             $modelo->update(['estado' => $estado]);
+            if ($estado === 'CANCELADO') {
+                // El stock se descontó al crear el pedido y el esquema no lo devuelve al cancelar.
+                foreach ($modelo->items()->get() as $item) {
+                    DetalleModelo::query()->where('producto_id', $item->producto_id)->increment('stock', $item->cantidad);
+                }
+            }
 
             Event::dispatch(new EstadoPedidoCambiado((int) $modelo->id, (int) $modelo->usuario_id, $estado));
 
@@ -202,16 +211,22 @@ final readonly class PedidoRepositorioEloquent implements PedidoRepositorioInter
             : [];
         $pago = null;
         if ($conPago) {
-            $registro = DB::table('pagos')->where('pedido_id', $modelo->id)->orderByDesc('id')->first();
+            $registro = DB::table('pagos.pagos')->where('pedido_id', $modelo->id)->orderByDesc('id')->first();
             if ($registro !== null) {
                 $pago = ['id' => (int) $registro->id, 'metodo' => $registro->metodo, 'estado' => $registro->estado, 'monto' => (string) $registro->monto];
             }
         }
 
+        $entrega = [
+            'tipo_entrega' => $modelo->tipo_entrega, 'direccion_entrega' => $modelo->direccion_entrega,
+            'telefono_contacto' => $modelo->telefono_contacto,
+            'hora_entrega' => $modelo->hora_entrega === null ? null : substr((string) $modelo->hora_entrega, 0, 5),
+        ];
+
         return new Pedido(
             (int) $modelo->id, (int) $modelo->usuario_id, $modelo->fecha_entrega->format('Y-m-d'),
             $modelo->estado, (string) $modelo->subtotal, (string) $modelo->total,
-            DateTimeImmutable::createFromInterface($modelo->creado_en), $items, $pago,
+            DateTimeImmutable::createFromInterface($modelo->creado_en), $items, $pago, $entrega,
         );
     }
 

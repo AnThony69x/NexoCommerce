@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DetallePedidoModelo extends Model
 {
-    protected $table = 'detalles_pedido';
+    protected $table = 'ventas.detalles_pedido';
 
     public $timestamps = false;
 

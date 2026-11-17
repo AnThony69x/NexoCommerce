@@ -17,13 +17,13 @@ class ProductoModelo extends Model
     /** @use HasFactory<ProductoModeloFactory> */
     use HasFactory;
 
-    protected $table = 'productos';
+    protected $table = 'catalogo.productos';
 
     public const CREATED_AT = 'creado_en';
 
     public const UPDATED_AT = 'actualizado_en';
 
-    protected $fillable = ['categoria_id', 'nombre', 'descripcion', 'precio_base', 'activo'];
+    protected $fillable = ['categoria_id', 'tipo', 'nombre', 'descripcion', 'precio_base', 'activo'];
 
     protected function casts(): array
     {
@@ -60,7 +60,7 @@ class ProductoModelo extends Model
     {
         return $this->belongsToMany(
             MultimediaModelo::class,
-            'producto_multimedia',
+            'catalogo.producto_multimedia',
             'producto_id',
             'multimedia_id',
         )->withPivot(['orden', 'es_principal']);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Infraestructura\Persistencia\Eloquent\Modelos\MultimediaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\PlantillaDisenoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\SublimacionModelo;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -20,7 +21,7 @@ class PlantillaDisenoModeloFactory extends Factory
             'nombre' => fake()->words(2, true),
             'descripcion' => fake()->optional()->sentence(),
             'costo_adicional' => 2,
-            'multimedia_id' => null,
+            'multimedia_id' => MultimediaModelo::factory()->state(['modulo' => 'PLANTILLA']),
             'activo' => true,
         ];
     }

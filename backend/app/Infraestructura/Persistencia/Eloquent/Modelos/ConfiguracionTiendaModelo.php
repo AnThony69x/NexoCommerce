@@ -8,6 +8,7 @@ use Database\Factories\ConfiguracionTiendaModeloFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Modelo Eloquent para la tabla `configuracion_tienda`.
@@ -17,7 +18,7 @@ class ConfiguracionTiendaModelo extends Model
     /** @use HasFactory<ConfiguracionTiendaModeloFactory> */
     use HasFactory;
 
-    protected $table = 'configuracion_tienda';
+    protected $table = 'tienda.configuracion_tienda';
 
     protected $primaryKey = 'id';
 
@@ -30,10 +31,9 @@ class ConfiguracionTiendaModelo extends Model
     const UPDATED_AT = 'actualizado_en';
 
     protected $fillable = [
-        'clave',
         'nombre_tienda',
-        'logo_url',
-        'favicon_url',
+        'logo_id',
+        'favicon_id',
         'color_primario',
         'color_secundario',
         'color_acento',
@@ -52,6 +52,16 @@ class ConfiguracionTiendaModelo extends Model
             'creado_en' => 'datetime',
             'actualizado_en' => 'datetime',
         ];
+    }
+
+    public function logo(): BelongsTo
+    {
+        return $this->belongsTo(MultimediaModelo::class, 'logo_id');
+    }
+
+    public function favicon(): BelongsTo
+    {
+        return $this->belongsTo(MultimediaModelo::class, 'favicon_id');
     }
 
     protected static function newFactory(): Factory

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Requests\UnicoEnTabla;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegistroRequest extends FormRequest
@@ -13,11 +14,17 @@ class RegistroRequest extends FormRequest
         return true;
     }
 
+    /** La unicidad se valida en minusculas, igual que se guarda el correo. */
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['correo' => strtolower((string) $this->input('correo'))]);
+    }
+
     public function rules(): array
     {
         return [
             'nombre_completo' => ['required', 'string', 'max:150'],
-            'correo' => ['required', 'email', 'max:150', 'unique:usuarios,correo'],
+            'correo' => ['required', 'email', 'max:150', new UnicoEnTabla('auth.usuarios', 'correo')],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'telefono' => ['nullable', 'string', 'max:20'],
             'terminos_aceptados' => ['required', 'accepted'],

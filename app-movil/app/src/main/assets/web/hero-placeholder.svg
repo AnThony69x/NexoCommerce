@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 640" role="img" aria-labelledby="title desc">
+  <title id="title">Imagen temporal del producto</title>
+  <desc id="desc">Placeholder para la imagen principal del Hero de Dulces Aesca.</desc>
+  <rect width="800" height="640" fill="#e8ded2" />
+  <rect x="72" y="76" width="656" height="488" rx="28" fill="#f8f3ec" />
+  <circle cx="400" cy="278" r="130" fill="#d9bba5" />
+  <rect x="270" y="360" width="260" height="78" rx="39" fill="#b9826c" />
+  <circle cx="348" cy="248" r="18" fill="#fffaf4" />
+  <circle cx="452" cy="248" r="18" fill="#fffaf4" />
+  <path d="M348 318c30 30 74 30 104 0" fill="none" stroke="#6c4d45" stroke-linecap="round" stroke-width="12" />
+  <text x="400" y="510" fill="#6c4d45" font-family="Georgia, serif" font-size="28" text-anchor="middle">Imagen temporal del producto</text>
+</svg>

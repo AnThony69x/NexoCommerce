@@ -21,7 +21,7 @@ final class PublicacionRepositorioEloquent implements PublicacionRepositorioInte
         $query = $this->consultaConImagenes();
 
         if (! $incluirInactivas) {
-            $query->where('activo', true);
+            $query->where('estado', 'PUBLICADA');
         }
 
         if (isset($filtros['categoria_id'])) {
@@ -54,7 +54,7 @@ final class PublicacionRepositorioEloquent implements PublicacionRepositorioInte
         $query = $this->consultaConImagenes();
 
         if ($soloActiva) {
-            $query->where('activo', true);
+            $query->where('estado', 'PUBLICADA');
         }
 
         $modelo = $query->find($id);
@@ -71,7 +71,7 @@ final class PublicacionRepositorioEloquent implements PublicacionRepositorioInte
                 'producto_id' => $datos['producto_id'],
                 'titulo' => $datos['titulo'],
                 'descripcion' => $datos['descripcion'],
-                'activo' => $datos['activo'],
+                ...$this->estadoDesdeActivo((bool) $datos['activo'], null),
             ]);
 
             $this->reemplazarImagenes($publicacion, $datos['imagenes']);
@@ -91,13 +91,18 @@ final class PublicacionRepositorioEloquent implements PublicacionRepositorioInte
                 throw new PublicacionNoEncontradaException;
             }
 
-            $publicacion->update(array_intersect_key($datos, array_flip([
+            $cambios = array_intersect_key($datos, array_flip([
                 'categoria_id',
                 'producto_id',
                 'titulo',
                 'descripcion',
-                'activo',
-            ])));
+            ]));
+
+            if (array_key_exists('activo', $datos)) {
+                $cambios = array_merge($cambios, $this->estadoDesdeActivo((bool) $datos['activo'], $publicacion->publicada_en));
+            }
+
+            $publicacion->update($cambios);
 
             if (array_key_exists('imagenes', $datos)) {
                 $this->reemplazarImagenes($publicacion, $datos['imagenes']);
@@ -109,11 +114,23 @@ final class PublicacionRepositorioEloquent implements PublicacionRepositorioInte
 
     public function desactivar(int $id): void
     {
-        $actualizadas = PublicacionModelo::query()->whereKey($id)->update(['activo' => false]);
+        $actualizadas = PublicacionModelo::query()->whereKey($id)->update(['estado' => 'ARCHIVADA']);
 
         if ($actualizadas === 0) {
             throw new PublicacionNoEncontradaException;
         }
+    }
+
+    /**
+     * @return array{estado: string, publicada_en?: DateTimeInterface}
+     */
+    private function estadoDesdeActivo(bool $activo, ?DateTimeInterface $publicadaEn): array
+    {
+        if (! $activo) {
+            return ['estado' => 'ARCHIVADA'];
+        }
+
+        return ['estado' => 'PUBLICADA', 'publicada_en' => $publicadaEn ?? now()];
     }
 
     private function consultaConImagenes(): Builder
@@ -130,7 +147,7 @@ final class PublicacionRepositorioEloquent implements PublicacionRepositorioInte
     {
         $asociaciones = [];
         foreach ($imagenes as $imagen) {
-            $asociaciones[$imagen['multimedia_id']] = ['orden' => $imagen['orden']];
+            $asociaciones[$imagen['multimedia_id']] = ['orden' => $imagen['orden'] + 1];
         }
 
         $publicacion->multimedia()->sync($asociaciones);
@@ -145,14 +162,14 @@ final class PublicacionRepositorioEloquent implements PublicacionRepositorioInte
             producto_id: $modelo->producto_id !== null ? (int) $modelo->producto_id : null,
             titulo: (string) $modelo->titulo,
             descripcion: $modelo->descripcion,
-            activo: (bool) $modelo->activo,
+            activo: $modelo->estado === 'PUBLICADA',
             creado_en: DateTimeImmutable::createFromInterface($modelo->creado_en),
             actualizado_en: DateTimeImmutable::createFromInterface($modelo->actualizado_en),
             imagenes: $modelo->multimedia->map(
                 static fn ($multimedia): ImagenPublicacion => new ImagenPublicacion(
                     id: (int) $multimedia->id,
                     ruta_archivo: (string) $multimedia->ruta_archivo,
-                    orden: (int) $multimedia->pivot->orden,
+                    orden: (int) $multimedia->pivot->orden - 1,
                 ),
             )->all(),
         );

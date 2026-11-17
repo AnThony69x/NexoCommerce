@@ -16,6 +16,6 @@ class CambiarEstadoPedidoRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['estado' => ['required', Rule::in(['PENDIENTE', 'EN_PREPARACION', 'LISTO', 'ENTREGADO'])]];
+        return ['estado' => ['required', Rule::in(['PENDIENTE', 'EN_PREPARACION', 'LISTO', 'ENTREGADO', 'CANCELADO'])]];
     }
 }

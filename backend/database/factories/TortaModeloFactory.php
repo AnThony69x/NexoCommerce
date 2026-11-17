@@ -16,7 +16,7 @@ class TortaModeloFactory extends Factory
     public function definition(): array
     {
         return [
-            'producto_id' => ProductoModelo::factory(),
+            'producto_id' => ProductoModelo::factory()->state(['tipo' => 'TORTA']),
             'tamano' => 'Mediana',
             'porciones' => 12,
             'sabor' => 'Chocolate',

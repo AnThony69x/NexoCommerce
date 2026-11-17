@@ -22,7 +22,7 @@ class UsuarioModelo extends Authenticatable
     /** @use HasFactory<UsuarioModeloFactory> */
     use HasApiTokens, HasFactory;
 
-    protected $table = 'usuarios';
+    protected $table = 'auth.usuarios';
 
     protected $primaryKey = 'id';
 

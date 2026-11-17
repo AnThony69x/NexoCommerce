@@ -8,6 +8,7 @@ use App\Infraestructura\Persistencia\Eloquent\Modelos\CategoriaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\ConfiguracionProduccionModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\DetalleModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\DisenoTortaModelo;
+use App\Infraestructura\Persistencia\Eloquent\Modelos\MultimediaModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\PlantillaDisenoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\ProductoModelo;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\SublimacionModelo;
@@ -61,28 +62,28 @@ class IntegrationDemoSeeder extends Seeder
             );
             $detalle = ProductoModelo::query()->firstOrCreate(
                 ['categoria_id' => $categoria->id, 'nombre' => 'DEMO Caja regalo'],
-                ['descripcion' => 'Producto con stock para probar el checkout.', 'precio_base' => '5.00', 'activo' => true],
+                ['tipo' => 'DETALLE', 'descripcion' => 'Producto con stock para probar el checkout.', 'precio_base' => '5.00', 'activo' => true],
             );
             DetalleModelo::query()->firstOrCreate(['producto_id' => $detalle->id], ['stock' => 25]);
 
             $torta = ProductoModelo::query()->firstOrCreate(
                 ['categoria_id' => $categoria->id, 'nombre' => 'DEMO Torta chocolate'],
-                ['descripcion' => 'Torta con diseno del catalogo.', 'precio_base' => '20.00', 'activo' => true],
+                ['tipo' => 'TORTA', 'descripcion' => 'Torta con diseno del catalogo.', 'precio_base' => '20.00', 'activo' => true],
             );
             TortaModelo::query()->firstOrCreate(['producto_id' => $torta->id], ['tamano' => 'Mediana', 'porciones' => 12, 'sabor' => 'Chocolate']);
             DisenoTortaModelo::query()->firstOrCreate(
                 ['torta_id' => $torta->id, 'nombre' => 'DEMO Flores'],
-                ['costo_adicional' => '2.00', 'activo' => true],
+                ['costo_adicional' => '2.00', 'activo' => true, 'multimedia_id' => $this->imagenDemo('DISENO_TORTA')->id],
             );
 
             $sublimacion = ProductoModelo::query()->firstOrCreate(
                 ['categoria_id' => $categoria->id, 'nombre' => 'DEMO Taza'],
-                ['descripcion' => 'Sublimacion con plantilla.', 'precio_base' => '8.00', 'activo' => true],
+                ['tipo' => 'SUBLIMACION', 'descripcion' => 'Sublimacion con plantilla.', 'precio_base' => '8.00', 'activo' => true],
             );
             SublimacionModelo::query()->firstOrCreate(['producto_id' => $sublimacion->id], ['tipo_material' => 'Ceramica']);
             PlantillaDisenoModelo::query()->firstOrCreate(
                 ['sublimacion_id' => $sublimacion->id, 'nombre' => 'DEMO Estrellas'],
-                ['costo_adicional' => '1.00', 'activo' => true],
+                ['costo_adicional' => '1.00', 'activo' => true, 'multimedia_id' => $this->imagenDemo('PLANTILLA')->id],
             );
 
             foreach (range(1, 30) as $dia) {
@@ -92,5 +93,13 @@ class IntegrationDemoSeeder extends Seeder
                 );
             }
         });
+    }
+
+    private function imagenDemo(string $modulo): MultimediaModelo
+    {
+        $ruta = "demo/{$modulo}.png";
+
+        return MultimediaModelo::query()->where('ruta_archivo', $ruta)->first()
+            ?? MultimediaModelo::factory()->state(['ruta_archivo' => $ruta, 'modulo' => $modulo, 'ancho' => 1000, 'alto' => 1000])->create();
     }
 }
