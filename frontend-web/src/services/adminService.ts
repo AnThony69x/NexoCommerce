@@ -479,8 +479,8 @@ export async function subirMultimedia(archivo: File, destino: string): Promise<A
   }
 }
 
-export async function alternarEstadoMultimedia(id: string) {
-  await apiClient.delete(`/multimedia/${id}`)
+export async function alternarEstadoMultimedia(id: string, activo: boolean) {
+  await apiClient.patch(`/admin/multimedia/${id}/estado`, { activo })
 }
 
 export async function abrirMultimediaPrivada(id: string) {

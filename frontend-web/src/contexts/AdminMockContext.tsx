@@ -365,8 +365,11 @@ function AdminBackendProvider({ children }: { children: ReactNode }) {
       return item
     },
     alternarMultimedia: async (id) => {
-      await adminApi.alternarEstadoMultimedia(id)
-      setMultimedia((actual) => actual.map((item) => item.id === id ? { ...item, activo: false } : item))
+      const item = multimedia.find((medio) => medio.id === id)
+      if (!item) return
+      const activo = !item.activo
+      await adminApi.alternarEstadoMultimedia(id, activo)
+      setMultimedia((actual) => actual.map((medio) => medio.id === id ? { ...medio, activo } : medio))
     },
     produccion,
     crearProduccion: (dato) => ejecutarYRecargar(() => adminApi.guardarProduccion(undefined, dato)),

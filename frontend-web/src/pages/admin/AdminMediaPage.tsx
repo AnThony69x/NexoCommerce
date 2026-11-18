@@ -4,8 +4,9 @@ import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import AdminFeedback from '../../components/admin/AdminFeedback'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
+import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import { useAdminMock } from '../../contexts/AdminMockContext'
-import type { AdminFeedbackMessage } from '../../types/admin'
+import type { AdminFeedbackMessage, AdminMedia } from '../../types/admin'
 import { resolverUrlMultimedia } from '../../utils/multimedia'
 
 export default function AdminMediaPage() {
@@ -13,6 +14,22 @@ export default function AdminMediaPage() {
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
   const [vistaPrevia, setVistaPrevia] = useState<string | null>(null)
   const [destino, setDestino] = useState('productos')
+  const [confirmando, setConfirmando] = useState<AdminMedia | undefined>()
+
+  async function confirmarCambioEstado() {
+    if (!confirmando) return
+    const proximoEstado = !confirmando.activo
+    try {
+      await alternarMultimedia(confirmando.id)
+      setMensaje({
+        tipo: 'exito',
+        texto: `Archivo ${proximoEstado ? 'activado' : 'desactivado'}.`,
+      })
+      setConfirmando(undefined)
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado del archivo.' })
+    }
+  }
 
   async function manejarSeleccion(evento: ChangeEvent<HTMLInputElement>) {
     const archivo = evento.target.files?.[0]
@@ -132,13 +149,10 @@ export default function AdminMediaPage() {
                 <AdminStatusBadge estado={item.activo ? 'ACTIVO' : 'INACTIVO'} />
                 <button
                   type="button"
-                  onClick={() => {
-                    void Promise.resolve(alternarMultimedia(item.id)).then(() => setMensaje({ tipo: 'exito', texto: 'Archivo desactivado.' })).catch((error: unknown) => setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo desactivar el archivo.' }))
-                  }}
+                  onClick={() => setConfirmando(item)}
                   className="text-sm font-medium text-stone-800 hover:underline"
-                  disabled={!item.activo}
                 >
-                  {item.activo ? 'Desactivar' : 'Desactivado'}
+                  {item.activo ? 'Desactivar' : 'Activar'}
                 </button>
               </div>
               </div>
@@ -146,6 +160,15 @@ export default function AdminMediaPage() {
           ))}
         </div>
       )}
+
+      <AdminConfirmModal
+        abierto={confirmando !== undefined}
+        titulo={`${confirmando?.activo ? 'Desactivar' : 'Activar'} archivo`}
+        descripcion={`¿Confirmas cambiar el estado de "${confirmando?.nombre}"?`}
+        textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
+        onCancelar={() => setConfirmando(undefined)}
+        onConfirmar={() => void confirmarCambioEstado()}
+      />
     </div>
   )
 }
