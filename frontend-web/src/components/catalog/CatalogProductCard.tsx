@@ -31,6 +31,7 @@ type CatalogProductCardProps = {
   stock: number | null
   /** Etiqueta del maquetado: "Más pedido", "Personalizado", etc. */
   badge?: string
+  personalizar?: boolean
 }
 
 export default function CatalogProductCard({
@@ -41,6 +42,7 @@ export default function CatalogProductCard({
   categoría,
   stock,
   badge,
+  personalizar = false,
 }: CatalogProductCardProps) {
   const { addItem } = useCart()
   const agotado = stock !== null && stock <= 0
@@ -103,15 +105,24 @@ export default function CatalogProductCard({
           <p className="mt-1 text-sm text-brown-soft">{formatPrice(precio)}</p>
         </Link>
 
-        <button
-          type="button"
-          onClick={agregarAlCarrito}
-          disabled={agotado}
-          aria-label={`Agregar ${nombre} al carrito`}
-          className="mt-5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose-brand/50 text-rose-brand transition-colors hover:bg-rose-brand-dark hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-rose-brand"
-        >
-          {ICONO_CARRITO}
-        </button>
+        {personalizar ? (
+          <Link
+            to={`/productos/${id}`}
+            className="mt-4 shrink-0 rounded-full border border-rose-brand/50 px-3 py-2 text-center text-xs font-medium text-rose-brand-dark hover:bg-rose-brand-dark hover:text-white"
+          >
+            Ver y personalizar
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={agregarAlCarrito}
+            disabled={agotado}
+            aria-label={`Agregar ${nombre} al carrito`}
+            className="mt-5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose-brand/50 text-rose-brand transition-colors hover:bg-rose-brand-dark hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-rose-brand"
+          >
+            {ICONO_CARRITO}
+          </button>
+        )}
       </div>
     </article>
   )

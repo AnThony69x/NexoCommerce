@@ -28,6 +28,7 @@ export default function BakeryProductGrid({
               imagen={product.imagen}
               categoría={product.categoria.nombre}
               stock={product.stock}
+              personalizar={product.tipo === 'TORTA'}
             />
           ))}
         </div>
