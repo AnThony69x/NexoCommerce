@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
+import { useState } from 'react'
 import AccountNav from '../../components/account/AccountNav'
 import AccountStatusBadge from '../../components/account/AccountStatusBadge'
 import BackButton from '../../components/common/BackButton'
@@ -6,21 +7,60 @@ import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import { ApiErrorState, LoadingState } from '../../components/common/RequestState'
 import { useAsync } from '../../hooks/useAsync'
 import { obtenerMiPedido } from '../../services/ordersService'
+import { registrarPago } from '../../services/paymentsService'
+import PaymentMethodSelector from '../../components/checkout/PaymentMethodSelector'
+import type { PaymentMethod } from '../../types/checkout'
 import { formatPrice } from '../../utils/formatPrice'
 
 const ETIQUETA_PAGO: Record<string, string> = {
-  PASARELA: 'Tarjeta o pasarela',
+  PASARELA: 'Referencia de pago',
   TRANSFERENCIA: 'Transferencia bancaria',
 }
 
 export default function MiPedidoDetallePage() {
   const { id } = useParams<{ id: string }>()
+  const [metodoNuevoPago, setMetodoNuevoPago] = useState<PaymentMethod>('PASARELA')
+  const [referenciaNuevoPago, setReferenciaNuevoPago] = useState('')
+  const [comprobanteNuevoPago, setComprobanteNuevoPago] = useState<File | null>(null)
+  const [enviandoPago, setEnviandoPago] = useState(false)
+  const [errorPago, setErrorPago] = useState<string | undefined>(undefined)
+  const [mensajePago, setMensajePago] = useState<string | undefined>(undefined)
   const {
     data: pedido,
     loading,
     error,
     recargar,
   } = useAsync(() => obtenerMiPedido(id ?? ''), [id])
+
+  async function registrarPagoDeNuevo() {
+    if (!id || !pedido || enviandoPago) return
+    if (metodoNuevoPago === 'TRANSFERENCIA' && !comprobanteNuevoPago) {
+      setErrorPago('Selecciona el comprobante de transferencia.')
+      return
+    }
+    if (metodoNuevoPago === 'PASARELA' && !referenciaNuevoPago.trim()) {
+      setErrorPago('Ingresa la referencia de pago.')
+      return
+    }
+    setEnviandoPago(true)
+    setErrorPago(undefined)
+    setMensajePago(undefined)
+    try {
+      await registrarPago({
+        pedidoId: id,
+        monto: pedido.total,
+        metodo: metodoNuevoPago,
+        referencia: referenciaNuevoPago,
+        comprobante: comprobanteNuevoPago,
+      })
+      setMensajePago('Nuevo pago registrado y pendiente de revisión.')
+      await recargar()
+    } catch (error) {
+      setErrorPago(error instanceof Error ? error.message : 'No se pudo registrar el pago.')
+    } finally {
+      setEnviandoPago(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -110,10 +150,30 @@ export default function MiPedidoDetallePage() {
                 : 'Sin especificar'}
             </p>
             <p className="mt-1 text-sm text-stone-600">
-              Te confirmamos el pago cuando el pedido esté en preparación.
+              Estado del pago: {pedido.pago_estado ?? 'PENDIENTE'}.
+              {pedido.pago_estado === 'RECHAZADO' && ' Puedes registrar un nuevo pago.'}
             </p>
           </div>
         </section>
+
+        {pedido.pago_estado === 'RECHAZADO' && (
+          <section className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50/60 p-5 sm:p-6">
+            <h2 className="text-lg font-semibold text-stone-800">Registrar otro pago</h2>
+            <PaymentMethodSelector
+              paymentMethod={metodoNuevoPago}
+              onPaymentMethodChange={setMetodoNuevoPago}
+              referenciaPasarela={referenciaNuevoPago}
+              onReferenciaChange={setReferenciaNuevoPago}
+              comprobante={comprobanteNuevoPago}
+              onComprobanteChange={setComprobanteNuevoPago}
+              error={errorPago}
+            />
+            {mensajePago && <p role="status" className="text-sm text-emerald-800">{mensajePago}</p>}
+            <button type="button" onClick={() => void registrarPagoDeNuevo()} disabled={enviandoPago} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-60">
+              {enviandoPago ? 'Registrando…' : 'Registrar pago'}
+            </button>
+          </section>
+        )}
 
         <section className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6">
           <h2 className="text-lg font-semibold text-stone-800">Artículos</h2>

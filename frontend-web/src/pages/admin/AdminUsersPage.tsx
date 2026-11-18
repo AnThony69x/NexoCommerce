@@ -6,7 +6,7 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import { useAdminMock } from '../../contexts/AdminMockContext'
-import { ADMIN_PRINCIPAL_ID } from '../../data/admin/adminUsers.mock'
+import { useAuth } from '../../hooks/useAuth'
 import type { AdminFeedbackMessage, AdminUser } from '../../types/admin'
 
 const claseInput =
@@ -14,6 +14,7 @@ const claseInput =
 
 export default function AdminUsersPage() {
   const { usuarios, alternarUsuario } = useAdminMock()
+  const { user } = useAuth()
   const [busqueda, setBusqueda] = useState('')
   const [filtroRol, setFiltroRol] = useState('todos')
   const [detalle, setDetalle] = useState<AdminUser | undefined>(undefined)
@@ -32,27 +33,31 @@ export default function AdminUsersPage() {
     })
   }, [usuarios, busqueda, filtroRol])
 
-  function confirmarCambio(item: AdminUser) {
-    const ok = alternarUsuario(item.id)
-    setConfirmando(undefined)
-    setMensaje(
-      ok
-        ? {
-            tipo: 'exito',
-            texto: `Usuario ${item.activo ? 'desactivado' : 'activado'} (mock).`,
-          }
-        : {
-            tipo: 'error',
-            texto: 'No se puede desactivar al administrador mock principal.',
-          },
-    )
+  async function confirmarCambio(item: AdminUser) {
+    try {
+      const ok = await alternarUsuario(item.id)
+      setConfirmando(undefined)
+      setMensaje(
+        ok
+          ? {
+              tipo: 'exito',
+              texto: `Usuario ${item.activo ? 'desactivado' : 'activado'}.`,
+            }
+          : {
+              tipo: 'error',
+              texto: 'No se puede desactivar la cuenta actual.',
+            },
+      )
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado del usuario.' })
+    }
   }
 
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Usuarios"
-        descripcion="Administración mock de roles ADMIN y CLIENTE."
+        descripcion="Administración de cuentas y estado de usuarios."
       />
 
       <AdminFeedback mensaje={mensaje} />
@@ -81,7 +86,7 @@ export default function AdminUsersPage() {
       {filtrados.length === 0 ? (
         <AdminEmptyState
           titulo="Sin usuarios"
-          descripcion="No hay usuarios mock con los filtros actuales."
+          descripcion="No hay usuarios que coincidan con los filtros actuales."
         />
       ) : (
         <AdminTable
@@ -123,7 +128,7 @@ export default function AdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => setConfirmando(item)}
-                    disabled={item.id === ADMIN_PRINCIPAL_ID}
+                    disabled={item.id === String(user?.id)}
                     className="font-medium text-stone-600 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {item.activo ? 'Desactivar' : 'Activar'}
@@ -175,7 +180,7 @@ export default function AdminUsersPage() {
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) confirmarCambio(confirmando)
+          if (confirmando) void confirmarCambio(confirmando)
         }}
       />
     </div>

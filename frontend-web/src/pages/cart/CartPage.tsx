@@ -5,7 +5,11 @@ import CartSummary from '../../components/cart/CartSummary'
 import { useCart } from '../../hooks/useCart'
 
 export default function CartPage() {
-  const { items } = useCart()
+  const { items, cargando, error, recargar } = useCart()
+
+  if (cargando) {
+    return <main className="min-h-screen bg-stone-50 px-4 py-8"><div className="mx-auto max-w-6xl">Cargando carrito…</div></main>
+  }
 
   if (items.length === 0) {
     return (
@@ -15,6 +19,8 @@ export default function CartPage() {
           <section>
             <h1 className="text-3xl font-semibold text-stone-800">Carrito</h1>
           </section>
+
+          {error && <div role="alert" className="rounded-lg bg-rose-50 p-4 text-sm text-rose-700">{error}<button className="ml-3 underline" onClick={() => void recargar()}>Reintentar</button></div>}
 
           <div className="rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center">
             <p className="text-lg font-semibold text-stone-800">
@@ -42,6 +48,8 @@ export default function CartPage() {
         <section>
           <h1 className="text-3xl font-semibold text-stone-800">Carrito</h1>
         </section>
+
+        {error && <div role="alert" className="rounded-lg bg-rose-50 p-4 text-sm text-rose-700">{error}<button className="ml-3 underline" onClick={() => void recargar()}>Reintentar</button></div>}
 
         <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
           <section className="space-y-4">

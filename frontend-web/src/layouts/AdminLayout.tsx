@@ -14,6 +14,9 @@ import {
   IconoPublicacion,
   IconoUsuarios,
 } from '../components/admin/AdminIcons'
+import { useAdminMock } from '../contexts/AdminMockContext'
+import { config } from '../config/app'
+import { useAuth } from '../hooks/useAuth'
 
 const navegacion = [
   { titulo: 'Dashboard', href: '/admin', Icono: IconoPanel },
@@ -37,6 +40,7 @@ function claseEnlace(activo: boolean): string {
 }
 
 function SidebarContenido({ onNavegar }: { onNavegar?: () => void }) {
+  const { user } = useAuth()
   return (
     <div className="flex h-full flex-col">
       <Link
@@ -74,13 +78,13 @@ function SidebarContenido({ onNavegar }: { onNavegar?: () => void }) {
 
       <div className="mt-4 rounded-xl bg-white/5 p-3">
         <p className="truncate text-xs font-medium text-white">
-          Admin NexoCommerce
+          {user?.nombre_completo ?? 'Administración'}
         </p>
         <p className="truncate text-[11px] text-stone-400">
-          admin@nexocommerce.test
+          {user?.correo ?? ''}
         </p>
         <p className="mt-1 inline-block rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
-          Mock local
+          {config.mockMode ? 'Mock local' : 'Modo API'}
         </p>
       </div>
     </div>
@@ -89,6 +93,7 @@ function SidebarContenido({ onNavegar }: { onNavegar?: () => void }) {
 
 export default function AdminLayout() {
   const [menuAbierto, setMenuAbierto] = useState(false)
+  const { cargando, error, recargar } = useAdminMock()
 
   return (
     <div className="min-h-screen bg-stone-100">
@@ -152,6 +157,19 @@ export default function AdminLayout() {
         )}
 
         <main className="min-w-0 flex-1">
+          {cargando && (
+            <p role="status" className="mb-4 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-600">
+              Cargando datos del panel…
+            </p>
+          )}
+          {error && (
+            <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+              <span>No se pudieron cargar todos los datos del panel: {error}</span>
+              <button type="button" onClick={() => void recargar()} className="font-semibold underline">
+                Reintentar
+              </button>
+            </div>
+          )}
           <Suspense fallback={<CargandoPagina />}>
             <Outlet />
           </Suspense>

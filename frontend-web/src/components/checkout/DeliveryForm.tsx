@@ -1,5 +1,6 @@
 import { useFormContext } from 'react-hook-form'
 import type { DeliveryFormData } from '../../types/checkout'
+import { useAuth } from '../../hooks/useAuth'
 import {
   getMinimumDeliveryDate,
   reglaTelefono,
@@ -7,42 +8,23 @@ import {
 } from '../../utils/validation'
 
 export default function DeliveryForm() {
+  const { user } = useAuth()
   const {
     register,
+    watch,
     formState: { errors },
   } = useFormContext<DeliveryFormData>()
+  const tipoEntrega = watch('tipoEntrega')
 
   return (
     <div className="space-y-6">
       <section className="rounded-xl border border-stone-200 bg-white p-5 sm:p-6">
-        <h2 className="text-lg font-semibold text-stone-800">
-          Datos del cliente
-        </h2>
+        <h2 className="text-lg font-semibold text-stone-800">Datos de la cuenta</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm text-stone-600 sm:col-span-2">
             <span>Nombre completo</span>
-            <input
-              id="checkout-nombre"
-              type="text"
-              placeholder="Nombre del cliente"
-              aria-invalid={!!errors.nombreCompleto}
-              aria-describedby={
-                errors.nombreCompleto ? 'checkout-error-nombre' : undefined
-              }
-              {...register('nombreCompleto', {
-                required: 'El nombre completo es obligatorio.',
-              })}
-              className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 placeholder:text-stone-400 aria-invalid:border-rose-700"
-            />
-            {errors.nombreCompleto && (
-              <span
-                id="checkout-error-nombre"
-                role="alert"
-                className="text-xs text-rose-700"
-              >
-                {errors.nombreCompleto.message}
-              </span>
-            )}
+            <span className="min-h-11 rounded-lg border border-stone-200 bg-stone-50 px-3 py-3 text-stone-700">{user?.nombre_completo}</span>
+            <span className="text-xs text-stone-500">Tomado de tu cuenta.</span>
           </label>
 
           <label className="flex flex-col gap-2 text-sm text-stone-600 sm:col-span-2">
@@ -77,6 +59,14 @@ export default function DeliveryForm() {
         </h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm text-stone-600 sm:col-span-2">
+            <span>Tipo de entrega</span>
+            <select {...register('tipoEntrega')} className="min-h-11 rounded-lg border border-stone-300 px-3">
+              <option value="RETIRO">Retiro en tienda</option>
+              <option value="DOMICILIO">Entrega a domicilio</option>
+            </select>
+          </label>
+          {tipoEntrega === 'DOMICILIO' && (
+          <label className="flex flex-col gap-2 text-sm text-stone-600 sm:col-span-2">
             <span>Dirección</span>
             <input
               id="checkout-direccion"
@@ -87,7 +77,8 @@ export default function DeliveryForm() {
                 errors.direccion ? 'checkout-error-direccion' : undefined
               }
               {...register('direccion', {
-                required: 'La dirección es obligatoria.',
+                required: tipoEntrega === 'DOMICILIO' ? 'La dirección es obligatoria.' : false,
+                maxLength: { value: 255, message: 'La dirección no puede superar 255 caracteres.' },
               })}
               className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 placeholder:text-stone-400 aria-invalid:border-rose-700"
             />
@@ -101,18 +92,8 @@ export default function DeliveryForm() {
               </span>
             )}
           </label>
+          )}
 
-          <label className="flex flex-col gap-2 text-sm text-stone-600 sm:col-span-2">
-            <span>
-              Referencia de entrega <span className="text-stone-400">(opcional)</span>
-            </span>
-            <input
-              type="text"
-              placeholder="Referencia de entrega"
-              {...register('referencia')}
-              className="min-h-11 rounded-lg border border-stone-300 px-3 text-stone-700 placeholder:text-stone-400"
-            />
-          </label>
         </div>
       </section>
 

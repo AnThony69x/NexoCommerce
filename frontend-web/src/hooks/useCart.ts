@@ -1,16 +1,19 @@
 import { useContext } from 'react'
-import { CartContext, type CartProduct } from '../contexts/CartContext'
+import { CartContext, type CartItemConfiguration, type CartProduct } from '../contexts/CartContext'
 
 export type UseCartResult = {
   items: CartProduct[]
   totalItems: number
   subtotal: number
   total: number
-  addItem: (product: Omit<CartProduct, 'cantidad'>, cantidad: number) => void
-  increaseQuantity: (id: string) => void
-  decreaseQuantity: (id: string) => void
-  removeItem: (id: string) => void
-  clearCart: () => void
+  cargando: boolean
+  error: string | null
+  recargar: () => Promise<void>
+  addItem: (product: Omit<CartProduct, 'cantidad'>, cantidad: number, configuracion?: CartItemConfiguration) => Promise<void>
+  increaseQuantity: (id: string) => Promise<void>
+  decreaseQuantity: (id: string) => Promise<void>
+  removeItem: (id: string) => Promise<void>
+  clearCart: () => Promise<void>
 }
 
 export function useCart(): UseCartResult {
@@ -25,6 +28,9 @@ export function useCart(): UseCartResult {
     totalItems: cart.totalUnidades,
     subtotal: cart.subtotal,
     total: cart.total,
+    cargando: cart.cargando,
+    error: cart.error,
+    recargar: cart.recargar,
     addItem: cart.agregarProducto,
     increaseQuantity: cart.aumentarCantidad,
     decreaseQuantity: cart.disminuirCantidad,

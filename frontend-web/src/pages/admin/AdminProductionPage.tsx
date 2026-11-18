@@ -31,7 +31,7 @@ export default function AdminProductionPage() {
   )
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
 
-  function guardar(dato: Omit<AdminProductionConfig, 'id'>) {
+  async function guardar(dato: Omit<AdminProductionConfig, 'id'>) {
     if (dato.capacidad_ocupada > dato.capacidad_maxima) {
       setMensaje({
         tipo: 'error',
@@ -39,31 +39,36 @@ export default function AdminProductionPage() {
       })
       return
     }
-    if (editando) {
-      actualizarProduccion(editando.id, dato)
-      setMensaje({ tipo: 'exito', texto: 'Configuración actualizada (mock).' })
-    } else {
-      crearProduccion(dato)
-      setMensaje({ tipo: 'exito', texto: 'Configuración creada (mock).' })
+    try {
+      if (editando) {
+        await actualizarProduccion(editando.id, dato)
+        setMensaje({ tipo: 'exito', texto: 'Configuración actualizada.' })
+      } else {
+        await crearProduccion(dato)
+        setMensaje({ tipo: 'exito', texto: 'Configuración creada.' })
+      }
+      setMostrarFormulario(false)
+      setEditando(undefined)
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo guardar la configuración.' })
     }
-    setMostrarFormulario(false)
-    setEditando(undefined)
   }
 
-  function confirmarCambio(item: AdminProductionConfig) {
-    alternarProduccion(item.id)
-    setConfirmando(undefined)
-    setMensaje({
-      tipo: 'exito',
-      texto: `Configuración ${item.activo ? 'desactivada' : 'activada'} (mock).`,
-    })
+  async function confirmarCambio(item: AdminProductionConfig) {
+    try {
+      await alternarProduccion(item.id)
+      setConfirmando(undefined)
+      setMensaje({ tipo: 'exito', texto: `Configuración ${item.activo ? 'desactivada' : 'activada'}.` })
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado de la configuración.' })
+    }
   }
 
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Producción"
-        descripcion="Capacidad mock por fecha y categoría."
+        descripcion="Capacidad de producción por fecha y categoría."
         accion={
           <button
             type="button"
@@ -96,7 +101,7 @@ export default function AdminProductionPage() {
       {produccion.length === 0 ? (
         <AdminEmptyState
           titulo="Sin configuraciones"
-          descripcion="Crea la primera configuración mock de capacidad."
+          descripcion="Crea la primera configuración de capacidad."
         />
       ) : (
         <AdminTable
@@ -115,7 +120,7 @@ export default function AdminProductionPage() {
             return (
               <tr key={item.id} className="border-b border-stone-100">
                 <td className="px-4 py-3 font-medium text-stone-800">{item.fecha}</td>
-                <td className="px-4 py-3 text-stone-600">{item.categoriaNombre}</td>
+        <td className="px-4 py-3 text-stone-600">{item.categoriaNombre}</td>
                 <td className="px-4 py-3 text-stone-600">{item.capacidad_maxima}</td>
                 <td className="px-4 py-3 text-stone-600">
                   {disponible}
@@ -159,11 +164,11 @@ export default function AdminProductionPage() {
       <AdminConfirmModal
         abierto={confirmando !== undefined}
         titulo={`${confirmando?.activo ? 'Desactivar' : 'Activar'} configuración`}
-        descripcion={`¿Confirmas cambiar la configuración del ${confirmando?.fecha}? Acción mock reversible.`}
+        descripcion={`¿Confirmas cambiar la configuración del ${confirmando?.fecha}?`}
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) confirmarCambio(confirmando)
+          if (confirmando) void confirmarCambio(confirmando)
         }}
       />
     </div>

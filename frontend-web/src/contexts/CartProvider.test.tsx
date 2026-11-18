@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { CartProvider } from './CartProvider'
+import { AuthProvider } from './AuthContext'
 import { useCart } from '../hooks/useCart'
 import type { CartProduct } from './CartContext'
 
@@ -60,9 +61,11 @@ function Sonda({ item }: { item: Omit<CartProduct, 'cantidad'> }) {
 
 function montarCarrito(item = producto()) {
   return render(
-    <CartProvider>
-      <Sonda item={item} />
-    </CartProvider>,
+    <AuthProvider>
+      <CartProvider>
+        <Sonda item={item} />
+      </CartProvider>
+    </AuthProvider>,
   )
 }
 

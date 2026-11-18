@@ -1,5 +1,5 @@
 import { formatPrice } from '../../utils/formatPrice'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
@@ -10,22 +10,53 @@ import AdminTable from '../../components/admin/AdminTable'
 import { useAdminMock } from '../../contexts/AdminMockContext'
 import { PEDIDO_FLUJO } from '../../types/admin'
 import type { AdminFeedbackMessage } from '../../types/admin'
+import { obtenerPedidoAdmin } from '../../services/adminService'
+import { config } from '../../config/app'
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { obtenerPedido, avanzarPedido } = useAdminMock()
+  const { obtenerPedido, avanzarPedido, usuarios, cargando } = useAdminMock()
   const [confirmando, setConfirmando] = useState(false)
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
+  const [pedidoDetalle, setPedidoDetalle] = useState<ReturnType<typeof obtenerPedido>>()
+  const [cargandoDetalle, setCargandoDetalle] = useState(!config.mockMode)
 
-  const pedido = id ? obtenerPedido(id) : undefined
+  useEffect(() => {
+    if (!id || config.mockMode) return
+    let cancelado = false
+    setPedidoDetalle(undefined)
+    setCargandoDetalle(true)
+    obtenerPedidoAdmin(id)
+      .then((detalle) => {
+        if (cancelado) return
+        const cliente = usuarios.find((usuario) => usuario.id === detalle.clienteId)
+        setPedidoDetalle(cliente ? {
+          ...detalle,
+          clienteNombre: cliente.nombre_completo,
+          clienteCorreo: cliente.correo,
+          clienteTelefono: cliente.telefono,
+        } : detalle)
+      })
+      .catch((error: unknown) => {
+        if (!cancelado) setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cargar el pedido.' })
+      })
+      .finally(() => { if (!cancelado) setCargandoDetalle(false) })
+    return () => { cancelado = true }
+  }, [id, usuarios])
+
+  const pedido = pedidoDetalle ?? (id ? obtenerPedido(id) : undefined)
 
   if (!pedido) {
+    if (cargando || cargandoDetalle) {
+      return <p role="status" className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600">Cargando pedido…</p>
+    }
     return (
       <div className="space-y-6">
         <AdminSectionHeader titulo="Detalle del pedido" />
+        <AdminFeedback mensaje={mensaje} />
         <AdminEmptyState
           titulo="Registro no encontrado"
-          descripcion="El pedido mock solicitado no existe."
+          descripcion="El pedido solicitado no existe o ya no está disponible."
           accion={
             <Link
               to="/admin/pedidos"
@@ -43,21 +74,26 @@ export default function AdminOrderDetailPage() {
   const siguiente = PEDIDO_FLUJO[indice + 1]
   const pedidoId = pedido.id
 
-  function confirmarAvance() {
-    const avanzo = avanzarPedido(pedidoId)
-    setConfirmando(false)
-    setMensaje(
-      avanzo
-        ? { tipo: 'exito', texto: 'Estado actualizado (mock).' }
-        : { tipo: 'error', texto: 'No se puede avanzar desde este estado.' },
-    )
+  async function confirmarAvance() {
+    try {
+      const avanzo = await avanzarPedido(pedidoId)
+      setConfirmando(false)
+      if (avanzo && siguiente) setPedidoDetalle({ ...pedido, estado: siguiente })
+      setMensaje(
+        avanzo
+          ? { tipo: 'exito', texto: 'Estado actualizado.' }
+          : { tipo: 'error', texto: 'No se puede avanzar desde este estado.' },
+      )
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo actualizar el estado.' })
+    }
   }
 
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         titulo={`Pedido ${pedido.numero}`}
-        descripcion="Detalle mock con cliente, productos y flujo de estados."
+        descripcion="Detalle, entrega y estado actual del pedido."
         accion={
           <Link
             to="/admin/pedidos"
@@ -74,14 +110,16 @@ export default function AdminOrderDetailPage() {
         <div className="rounded-2xl border border-stone-200 bg-white p-5">
           <h2 className="text-sm font-semibold text-stone-800">Cliente</h2>
           <p className="mt-2 text-sm text-stone-700">{pedido.clienteNombre}</p>
-          <p className="text-sm text-stone-600">{pedido.clienteCorreo}</p>
-          <p className="text-sm text-stone-600">{pedido.clienteTelefono}</p>
+          <p className="text-sm text-stone-600">{pedido.clienteCorreo || 'El contrato actual no incluye el correo del cliente.'}</p>
+          <p className="text-sm text-stone-600">{pedido.clienteTelefono || 'El contrato actual no incluye el teléfono del cliente.'}</p>
         </div>
         <div className="rounded-2xl border border-stone-200 bg-white p-5">
           <h2 className="text-sm font-semibold text-stone-800">Entrega y total</h2>
           <p className="mt-2 text-sm text-stone-700">
             Fecha: {pedido.fecha_entrega}
           </p>
+          {pedido.tipo_entrega && <p className="text-sm text-stone-700">Entrega: {pedido.tipo_entrega}</p>}
+          {pedido.direccion && <p className="text-sm text-stone-700">Dirección: {pedido.direccion}</p>}
           <p className="text-sm text-stone-700">
             Total: {formatPrice(pedido.total)}
           </p>
@@ -92,8 +130,7 @@ export default function AdminOrderDetailPage() {
         <div className="rounded-2xl border border-stone-200 bg-white p-5">
           <h2 className="text-sm font-semibold text-stone-800">Cambiar estado</h2>
           <p className="mt-2 text-sm text-stone-600">
-            Flujo: PENDIENTE → EN_PREPARACION → LISTO → ENTREGADO. No se permite
-            retroceder.
+            Flujo: PENDIENTE → EN_PREPARACION → LISTO → ENTREGADO.
           </p>
           {siguiente ? (
             <button
@@ -105,7 +142,7 @@ export default function AdminOrderDetailPage() {
             </button>
           ) : (
             <p className="mt-3 text-sm font-medium text-stone-700">
-              Pedido finalizado.
+              {pedido.estado === 'CANCELADO' ? 'Pedido cancelado.' : 'Pedido finalizado.'}
             </p>
           )}
         </div>
@@ -138,7 +175,7 @@ export default function AdminOrderDetailPage() {
         titulo="Cambiar estado del pedido"
         descripcion={
           siguiente
-            ? `¿Avanzar de ${pedido.estado} a ${siguiente}? Acción mock sin retroceso.`
+            ? `¿Avanzar de ${pedido.estado} a ${siguiente}?`
             : 'Este pedido ya está finalizado.'
         }
         textoConfirmar="Avanzar estado"

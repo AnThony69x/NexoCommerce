@@ -10,6 +10,8 @@ import ProductForm from '../../components/admin/ProductForm'
 import { useAdminMock } from '../../contexts/AdminMockContext'
 import type { AdminFeedbackMessage, AdminProduct } from '../../types/admin'
 import { resolverUrlMultimedia } from '../../utils/multimedia'
+import { config } from '../../config/app'
+import { obtenerProductoAdmin } from '../../services/adminService'
 
 const claseInput =
   'rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-500'
@@ -47,38 +49,48 @@ export default function AdminProductsPage() {
     setMensaje(null)
   }
 
-  function abrirEditar(item: AdminProduct) {
-    setEditando(item)
-    setMostrarFormulario(true)
+  async function abrirEditar(item: AdminProduct) {
     setMensaje(null)
-  }
-
-  function guardar(dato: Omit<AdminProduct, 'id'>) {
-    if (editando) {
-      actualizarProducto(editando.id, dato)
-      setMensaje({ tipo: 'exito', texto: 'Producto actualizado (mock).' })
-    } else {
-      crearProducto(dato)
-      setMensaje({ tipo: 'exito', texto: 'Producto creado (mock).' })
+    try {
+      const producto = config.mockMode ? item : await obtenerProductoAdmin(item.id, categorias)
+      setEditando(producto)
+      setMostrarFormulario(true)
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cargar el producto.' })
     }
-    setMostrarFormulario(false)
-    setEditando(undefined)
   }
 
-  function confirmarCambio(item: AdminProduct) {
-    alternarProducto(item.id)
-    setConfirmando(undefined)
-    setMensaje({
-      tipo: 'exito',
-      texto: `Producto ${item.activo ? 'desactivado' : 'activado'} (mock).`,
-    })
+  async function guardar(dato: Omit<AdminProduct, 'id'>) {
+    try {
+      if (editando) {
+        await actualizarProducto(editando.id, dato)
+        setMensaje({ tipo: 'exito', texto: 'Producto actualizado.' })
+      } else {
+        await crearProducto(dato)
+        setMensaje({ tipo: 'exito', texto: 'Producto creado.' })
+      }
+      setMostrarFormulario(false)
+      setEditando(undefined)
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo guardar el producto.' })
+    }
+  }
+
+  async function confirmarCambio(item: AdminProduct) {
+    try {
+      await alternarProducto(item.id)
+      setConfirmando(undefined)
+      setMensaje({ tipo: 'exito', texto: `Producto ${item.activo ? 'desactivado' : 'activado'}.` })
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado del producto.' })
+    }
   }
 
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Productos"
-        descripcion="Gestión mock de TORTA, DETALLE y SUBLIMACIÓN."
+        descripcion="Gestiona los productos disponibles en el catálogo."
         accion={
           <button
             type="button"
@@ -133,8 +145,9 @@ export default function AdminProductsPage() {
         >
           <option value="todos">Todos los estados</option>
           <option value="activos">Activos</option>
-          <option value="inactivos">Inactivos</option>
+          <option value="inactivos" disabled={!config.mockMode}>Inactivos</option>
         </select>
+        {!config.mockMode && <p className="basis-full text-xs text-stone-500">El endpoint actual del catálogo solo devuelve productos activos. Para reactivar productos desactivados hace falta un listado administrativo.</p>}
       </div>
 
       {mostrarFormulario && (
@@ -152,7 +165,7 @@ export default function AdminProductsPage() {
       {filtrados.length === 0 ? (
         <AdminEmptyState
           titulo="Sin productos"
-          descripcion="No hay productos mock que coincidan con los filtros actuales."
+          descripcion="No hay productos disponibles que coincidan con los filtros actuales."
         />
       ) : (
         <AdminTable
@@ -193,7 +206,7 @@ export default function AdminProductsPage() {
                 <div className="flex flex-wrap gap-2 text-sm">
                   <button
                     type="button"
-                    onClick={() => abrirEditar(item)}
+                    onClick={() => void abrirEditar(item)}
                     className="font-medium text-stone-800 hover:underline"
                   >
                     Editar
@@ -215,11 +228,11 @@ export default function AdminProductsPage() {
       <AdminConfirmModal
         abierto={confirmando !== undefined}
         titulo={`${confirmando?.activo ? 'Desactivar' : 'Activar'} producto`}
-        descripcion={`¿Confirmas cambiar el estado de "${confirmando?.nombre}"? Acción mock reversible.`}
+        descripcion={`¿Confirmas cambiar el estado de "${confirmando?.nombre}"?`}
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) confirmarCambio(confirmando)
+          if (confirmando) void confirmarCambio(confirmando)
         }}
       />
     </div>

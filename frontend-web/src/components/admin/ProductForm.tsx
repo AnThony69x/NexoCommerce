@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type { AdminCategory, AdminProduct, ProductoTipo } from '../../types/admin'
 import SelectorImagenesProducto from './SelectorImagenesProducto'
+import { useAdminMock } from '../../contexts/AdminMockContext'
 
 export type ProductFormValues = {
   nombre: string
@@ -55,6 +56,7 @@ export default function ProductForm({
     },
   })
   const [imagenes, setImagenes] = useState<string[]>(inicial?.imagenes ?? [])
+  const { multimedia } = useAdminMock()
 
   const tipoSeleccionado = watch('tipo')
 
@@ -69,6 +71,14 @@ export default function ProductForm({
       precio_base: Number(valores.precio_base),
       activo: valores.activo,
       imagenes,
+      imagenIds: imagenes.map((url) => {
+        const indiceInicial = inicial?.imagenes.indexOf(url) ?? -1
+        if (indiceInicial >= 0 && inicial?.imagenIds?.[indiceInicial]) {
+          return inicial.imagenIds[indiceInicial]
+        }
+        const subida = multimedia.find((item) => item.url === url)
+        return subida ? Number(subida.id) : Number.NaN
+      }).filter(Number.isFinite),
       tamano: valores.tipo === 'TORTA' ? valores.tamano.trim() : undefined,
       porciones:
         valores.tipo === 'TORTA' ? Number(valores.porciones) : undefined,
@@ -157,11 +167,18 @@ export default function ProductForm({
           <label htmlFor="prod-tipo" className={claseLabel}>
             Tipo
           </label>
-          <select id="prod-tipo" className={claseInput} {...register('tipo')}>
-            <option value="TORTA">TORTA</option>
-            <option value="DETALLE">DETALLE</option>
-            <option value="SUBLIMACION">SUBLIMACIÓN</option>
-          </select>
+          {inicial ? (
+            <>
+              <input type="hidden" {...register('tipo')} />
+              <p className={`${claseInput} bg-stone-50`}>{inicial.tipo} · el tipo se define al crear el producto</p>
+            </>
+          ) : (
+            <select id="prod-tipo" className={claseInput} {...register('tipo')}>
+              <option value="TORTA">TORTA</option>
+              <option value="DETALLE">DETALLE</option>
+              <option value="SUBLIMACION">SUBLIMACIÓN</option>
+            </select>
+          )}
         </div>
         <div>
           <label htmlFor="prod-precio" className={claseLabel}>

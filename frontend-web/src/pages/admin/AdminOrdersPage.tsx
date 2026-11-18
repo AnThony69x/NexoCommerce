@@ -32,7 +32,7 @@ export default function AdminOrdersPage() {
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Pedidos"
-        descripcion="Listado mock con estados PENDIENTE → EN_PREPARACION → LISTO → ENTREGADO."
+        descripcion="Pedidos registrados y su estado de preparación."
       />
 
       <div className="flex flex-wrap gap-2">
@@ -55,13 +55,14 @@ export default function AdminOrdersPage() {
           <option value="EN_PREPARACION">EN_PREPARACION</option>
           <option value="LISTO">LISTO</option>
           <option value="ENTREGADO">ENTREGADO</option>
+          <option value="CANCELADO">CANCELADO</option>
         </select>
       </div>
 
       {filtrados.length === 0 ? (
         <AdminEmptyState
           titulo="Sin pedidos"
-          descripcion="No hay pedidos mock con los filtros actuales."
+          descripcion="No hay pedidos que coincidan con los filtros actuales."
         />
       ) : (
         <AdminTable

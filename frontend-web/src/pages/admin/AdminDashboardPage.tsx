@@ -19,14 +19,14 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Panel de administración"
-        descripcion="Hola, este es el resumen general mock. Usa los accesos rápidos para ir a cada módulo."
+        descripcion="Resumen operativo de pedidos, pagos, usuarios y catálogo."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <AdminStatCard
           etiqueta="Total de productos"
           valor={String(productos.length)}
-          detalle="Dato mock temporal"
+          detalle="Productos activos visibles en el catálogo"
         />
         <AdminStatCard
           etiqueta="Pedidos pendientes"
@@ -41,7 +41,7 @@ export default function AdminDashboardPage() {
         <AdminStatCard
           etiqueta="Usuarios registrados"
           valor={String(usuarios.length)}
-          detalle="Dato mock temporal"
+          detalle="Requieren seguimiento"
         />
       </div>
 
@@ -52,7 +52,7 @@ export default function AdminDashboardPage() {
           </h2>
           {pocoStock.length === 0 ? (
             <p className="mt-2 text-sm text-stone-600">
-              Sin alertas de stock por ahora (mock).
+              Sin alertas de stock por ahora.
             </p>
           ) : (
             <ul className="mt-3 space-y-2 text-sm text-stone-700">

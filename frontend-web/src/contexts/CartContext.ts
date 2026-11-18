@@ -8,7 +8,21 @@ export type CartProduct = {
   categoría: string
   cantidad: number
   /** Stock vigente al agregar. 0 = agotado. */
-  stock: number
+  stock: number | null
+  comentario?: string | null
+  configuracion?: {
+    tipo: string
+    id: number | null
+    nombre: string | null
+    costo_adicional: number
+  } | null
+}
+
+export type CartItemConfiguration = {
+  comentario?: string
+  diseno_torta_id?: number
+  plantilla_diseno_id?: number
+  diseno_personalizado_id?: number
 }
 
 /**
@@ -23,14 +37,18 @@ export type CartContextValue = {
   subtotal: number
   costoEnvio: number
   total: number
+  cargando: boolean
+  error: string | null
+  recargar: () => Promise<void>
   agregarProducto: (
     product: Omit<CartProduct, 'cantidad'>,
     cantidad: number,
-  ) => void
-  aumentarCantidad: (id: string) => void
-  disminuirCantidad: (id: string) => void
-  eliminarProducto: (id: string) => void
-  vaciarCarrito: () => void
+    configuracion?: CartItemConfiguration,
+  ) => Promise<void>
+  aumentarCantidad: (id: string) => Promise<void>
+  disminuirCantidad: (id: string) => Promise<void>
+  eliminarProducto: (id: string) => Promise<void>
+  vaciarCarrito: () => Promise<void>
 }
 
 export const CartContext = createContext<CartContextValue | null>(null)

@@ -10,7 +10,7 @@ export default function CartItem({ producto }: CartItemProps) {
   const { increaseQuantity, decreaseQuantity, removeItem } = useCart()
   const { id, nombre, imagen, precioUnitario, cantidad, categoría, stock } = producto
   const subtotal = precioUnitario * cantidad
-  const enTope = cantidad >= stock
+  const enTope = stock !== null && cantidad >= stock
 
   return (
     <article className="grid gap-4 rounded-xl border border-stone-200 bg-white p-4 sm:grid-cols-[112px_1fr_auto] sm:items-center">
@@ -24,11 +24,24 @@ export default function CartItem({ producto }: CartItemProps) {
       <div>
         <h3 className="font-semibold text-stone-800">{nombre}</h3>
         <p className="mt-1 text-sm text-stone-500">{categoría}</p>
+        {producto.configuracion?.nombre && (
+          <p className="mt-2 text-sm text-stone-600">
+            Diseño: {producto.configuracion.nombre}
+            {producto.configuracion.costo_adicional > 0 && (
+              <span> (+{formatPrice(producto.configuracion.costo_adicional)})</span>
+            )}
+          </p>
+        )}
+        {producto.comentario && (
+          <p className="mt-2 whitespace-pre-wrap text-sm text-stone-600">
+            Indicaciones: {producto.comentario}
+          </p>
+        )}
         <p className="mt-3 text-sm text-stone-600">
           Precio unitario: {formatPrice(precioUnitario)}
         </p>
         <p className="mt-1 text-xs text-stone-500">
-          Disponibles: {stock}
+          {stock === null ? 'Disponibilidad confirmada por la tienda' : `Disponibles: ${stock}`}
         </p>
       </div>
 

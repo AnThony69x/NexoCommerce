@@ -1,5 +1,5 @@
 import { formatPrice } from '../../utils/formatPrice'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import AdminFeedback from '../../components/admin/AdminFeedback'
@@ -8,6 +8,7 @@ import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import { useAdminMock } from '../../contexts/AdminMockContext'
 import type { AdminFeedbackMessage, AdminPayment } from '../../types/admin'
+import { abrirMultimediaPrivada } from '../../services/adminService'
 
 const claseInput =
   'rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-500'
@@ -21,6 +22,12 @@ export default function AdminPaymentsPage() {
   >(undefined)
   const [comprobante, setComprobante] = useState<AdminPayment | undefined>(undefined)
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
+  const [comprobanteUrl, setComprobanteUrl] = useState<string | null>(null)
+  const [cargandoComprobante, setCargandoComprobante] = useState(false)
+
+  useEffect(() => () => {
+    if (comprobanteUrl?.startsWith('blob:')) URL.revokeObjectURL(comprobanteUrl)
+  }, [comprobanteUrl])
 
   const filtrados = useMemo(
     () =>
@@ -34,21 +41,36 @@ export default function AdminPaymentsPage() {
     [pagos, filtroEstado, filtroMetodo],
   )
 
-  function confirmarCambio() {
+  async function confirmarCambio() {
     if (!confirmando) return
-    cambiarEstadoPago(confirmando.pago.id, confirmando.estado)
-    setMensaje({
-      tipo: 'exito',
-      texto: `Pago ${confirmando.estado.toLowerCase()} (mock).`,
-    })
-    setConfirmando(undefined)
+    try {
+      await cambiarEstadoPago(confirmando.pago.id, confirmando.estado)
+      setMensaje({ tipo: 'exito', texto: `Pago ${confirmando.estado.toLowerCase()}.` })
+      setConfirmando(undefined)
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo verificar el pago.' })
+    }
+  }
+
+  async function verComprobante(pago: AdminPayment) {
+    setComprobante(pago)
+    setComprobanteUrl(null)
+    if (!pago.comprobanteId) return
+    setCargandoComprobante(true)
+    try {
+      setComprobanteUrl(await abrirMultimediaPrivada(pago.comprobanteId))
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo abrir el comprobante.' })
+    } finally {
+      setCargandoComprobante(false)
+    }
   }
 
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Pagos"
-        descripcion="Verificación mock de PASARELA y TRANSFERENCIA."
+        descripcion="Revisa los pagos registrados y verifica las transferencias pendientes."
       />
 
       <AdminFeedback mensaje={mensaje} />
@@ -80,7 +102,7 @@ export default function AdminPaymentsPage() {
       {filtrados.length === 0 ? (
         <AdminEmptyState
           titulo="Sin pagos"
-          descripcion="No hay pagos mock con los filtros actuales."
+          descripcion="No hay pagos que coincidan con los filtros actuales."
         />
       ) : (
         <AdminTable
@@ -106,14 +128,14 @@ export default function AdminPaymentsPage() {
               <td className="px-4 py-3">
                 <AdminStatusBadge estado={item.estado} />
               </td>
-              <td className="px-4 py-3 text-stone-600">{item.referencia}</td>
-              <td className="px-4 py-3 text-stone-600">{item.fecha}</td>
+              <td className="px-4 py-3 text-stone-600">{item.referencia || '—'}</td>
+              <td className="px-4 py-3 text-stone-600">{item.fecha || '—'}</td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-2 text-sm">
                   {item.metodo === 'TRANSFERENCIA' && (
                     <button
                       type="button"
-                      onClick={() => setComprobante(item)}
+                      onClick={() => void verComprobante(item)}
                       className="font-medium text-stone-800 hover:underline"
                     >
                       Comprobante
@@ -151,14 +173,21 @@ export default function AdminPaymentsPage() {
       {comprobante && (
         <div className="rounded-2xl border border-stone-200 bg-white p-5">
           <h2 className="text-base font-semibold text-stone-800">
-            Comprobante mock de {comprobante.pedidoNumero}
+            Comprobante de {comprobante.pedidoNumero}
           </h2>
           <p className="mt-2 text-sm text-stone-600">
-            {comprobante.comprobanteMock ?? 'Sin comprobante mock.'}
+            {cargandoComprobante
+              ? 'Cargando comprobante…'
+              : comprobanteUrl
+                ? <a href={comprobanteUrl} target="_blank" rel="noreferrer" className="font-medium underline">Abrir comprobante</a>
+                : comprobante.comprobanteMock ?? 'Este pago no tiene un comprobante asociado.'}
           </p>
           <button
             type="button"
-            onClick={() => setComprobante(undefined)}
+            onClick={() => {
+              setComprobanteUrl(null)
+              setComprobante(undefined)
+            }}
             className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:border-stone-500"
           >
             Cerrar
@@ -169,7 +198,7 @@ export default function AdminPaymentsPage() {
       <AdminConfirmModal
         abierto={confirmando !== undefined}
         titulo={`${confirmando?.estado === 'APROBADO' ? 'Aprobar' : 'Rechazar'} pago`}
-        descripcion={`¿Confirmas cambiar el pago de ${confirmando?.pago.pedidoNumero} a ${confirmando?.estado}? Acción mock.`}
+        descripcion={`¿Confirmas cambiar el pago de ${confirmando?.pago.pedidoNumero} a ${confirmando?.estado}?`}
         textoConfirmar={confirmando?.estado === 'APROBADO' ? 'Aprobar' : 'Rechazar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={confirmarCambio}

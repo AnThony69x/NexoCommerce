@@ -11,6 +11,7 @@ import type { PaymentMethod } from '../../types/checkout'
 import { useAuth } from '../../hooks/useAuth'
 import { useCart } from '../../hooks/useCart'
 import { crearPedido } from '../../services/ordersService'
+import { registrarPago } from '../../services/paymentsService'
 import { ApiError } from '../../types/api'
 import {
   deliveryFormDefaultValues,
@@ -19,41 +20,41 @@ import {
 
 export default function CheckoutPage() {
   const { user } = useAuth()
-  const { items, subtotal, total, clearCart } = useCart()
+  const { items, subtotal, total, clearCart, recargar } = useCart()
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('PASARELA')
+  const [referenciaPasarela, setReferenciaPasarela] = useState('')
+  const [comprobante, setComprobante] = useState<File | null>(null)
   const [pedidoConfirmado, setPedidoConfirmado] =
     useState<PedidoConfirmado | null>(null)
   const [creando, setCreando] = useState(false)
+  const [reintentandoPago, setReintentandoPago] = useState(false)
   const [errorPedido, setErrorPedido] = useState<string | null>(null)
   const methods = useForm<DeliveryFormData>({
-    defaultValues: deliveryFormDefaultValues,
+    defaultValues: {
+      ...deliveryFormDefaultValues,
+      telefono: user?.telefono ?? '',
+    },
   })
 
   async function confirmarPedido(datos: DeliveryFormData) {
     if (!user || pedidoConfirmado || creando) return
-
-    // Re-chequeo de stock al momento de confirmar: el stock se validó al
-    // agregar, pero pudo agotarse (o cambiar) mientras el carrito estaba abierto.
-    const sinStock = items.filter((item) => item.cantidad > item.stock)
-    if (sinStock.length > 0) {
-      setErrorPedido(
-        `Stock insuficiente para: ${sinStock
-          .map((item) => item.nombre)
-          .join(', ')}. Reduce la cantidad o quítalos del carrito.`,
-      )
+    if (paymentMethod === 'TRANSFERENCIA' && !comprobante) {
+      setErrorPedido('Selecciona el comprobante de transferencia.')
+      return
+    }
+    if (paymentMethod === 'PASARELA' && !referenciaPasarela.trim()) {
+      setErrorPedido('Ingresa la referencia de pago para revisión manual.')
       return
     }
 
     setCreando(true)
     setErrorPedido(null)
     try {
-      const envio = items.length > 0 ? total - subtotal : 0
       const pedido = await crearPedido({
-        clienteNombre: datos.nombreCompleto,
+        clienteNombre: user.nombre_completo,
         clienteCorreo: user.correo,
         clienteTelefono: datos.telefono,
-        direccion: datos.direccion,
-        referencia: datos.referencia,
+        direccion: datos.tipoEntrega === 'DOMICILIO' ? datos.direccion : '',
         fechaEntrega: datos.fechaEntrega,
         metodoPago: paymentMethod,
         items: items.map((item) => ({
@@ -62,19 +63,39 @@ export default function CheckoutPage() {
           precioUnitario: item.precioUnitario,
         })),
         subtotal,
-        envio,
+        envio: 0,
         total,
       })
-      clearCart()
+      await clearCart()
+      let errorPago: string | undefined
+      try {
+        await registrarPago({
+          pedidoId: pedido.id,
+          monto: pedido.total,
+          metodo: paymentMethod,
+          referencia: referenciaPasarela,
+          comprobante,
+        })
+      } catch (falloPago) {
+        errorPago = falloPago instanceof Error ? falloPago.message : 'No se pudo registrar el pago.'
+      }
       setPedidoConfirmado({
+        pedidoId: pedido.id,
         numero: pedido.numero,
+        clienteNombre: user.nombre_completo,
         datos,
         metodoPago: paymentMethod,
-        subtotal,
-        envio,
-        total,
+        subtotal: pedido.subtotal,
+        envio: Math.max(pedido.total - pedido.subtotal, 0),
+        total: pedido.total,
+        errorPago,
       })
     } catch (falla) {
+      if (falla instanceof ApiError && falla.codigoError === 'PED_PRECIO_CAMBIADO') {
+        await recargar()
+        setErrorPedido('El precio cambió. Revisa el total actualizado y confirma de nuevo.')
+        return
+      }
       // Sin este catch el fallo quedaba como promesa rechazada invisible:
       // el usuario veía "Confirmando…" y nunca sabía qué pasó.
       setErrorPedido(
@@ -87,8 +108,30 @@ export default function CheckoutPage() {
     }
   }
 
+  async function reintentarPago() {
+    if (!pedidoConfirmado || reintentandoPago) return
+    setReintentandoPago(true)
+    try {
+      await registrarPago({
+        pedidoId: pedidoConfirmado.pedidoId,
+        monto: pedidoConfirmado.total,
+        metodo: paymentMethod,
+        referencia: referenciaPasarela,
+        comprobante,
+      })
+      setPedidoConfirmado({ ...pedidoConfirmado, errorPago: undefined })
+    } catch (error) {
+      setPedidoConfirmado({
+        ...pedidoConfirmado,
+        errorPago: error instanceof Error ? error.message : 'No se pudo registrar el pago.',
+      })
+    } finally {
+      setReintentandoPago(false)
+    }
+  }
+
   if (pedidoConfirmado) {
-    return <OrderConfirmation pedido={pedidoConfirmado} />
+    return <OrderConfirmation pedido={pedidoConfirmado} onReintentarPago={reintentarPago} reintentando={reintentandoPago} />
   }
 
   return (
@@ -110,6 +153,11 @@ export default function CheckoutPage() {
               <PaymentMethodSelector
                 paymentMethod={paymentMethod}
                 onPaymentMethodChange={setPaymentMethod}
+                referenciaPasarela={referenciaPasarela}
+                onReferenciaChange={setReferenciaPasarela}
+                comprobante={comprobante}
+                onComprobanteChange={setComprobante}
+                error={errorPedido ?? undefined}
               />
             </div>
 

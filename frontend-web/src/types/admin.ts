@@ -16,6 +16,7 @@ export type PedidoEstado =
   | 'EN_PREPARACION'
   | 'LISTO'
   | 'ENTREGADO'
+  | 'CANCELADO'
 export type PagoMetodo = 'PASARELA' | 'TRANSFERENCIA'
 export type PagoEstado = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO'
 
@@ -30,6 +31,8 @@ export interface AdminProduct {
   activo: boolean
   /** Referencias a multimedia (urls o nombres de asset mock). La primera es la principal. */
   imagenes: string[]
+  /** IDs reales de multimedia alineados con imagenes cuando vienen del backend. */
+  imagenIds?: number[]
   tamano?: string
   porciones?: number
   sabor?: string
@@ -57,10 +60,12 @@ export interface AdminOrderDetail {
 export interface AdminOrder {
   id: string
   numero: string
+  clienteId?: string
   clienteNombre: string
   clienteCorreo: string
   clienteTelefono: string
   fecha_entrega: string
+  tipo_entrega?: 'RETIRO' | 'DOMICILIO'
   subtotal: number
   total: number
   estado: PedidoEstado
@@ -68,6 +73,7 @@ export interface AdminOrder {
   direccion?: string
   referencia?: string
   metodo_pago?: PagoMetodo
+  pago_estado?: PagoEstado | null
 }
 
 export interface AdminPayment {
@@ -80,6 +86,7 @@ export interface AdminPayment {
   referencia: string
   fecha: string
   comprobanteMock?: string
+  comprobanteId?: string
 }
 
 export interface AdminUser {
@@ -111,6 +118,7 @@ export interface AdminMedia {
   tamanoKb: number
   ancho?: number
   alto?: number
+  rutaArchivo?: string
   url: string
   destino: string
   activo: boolean

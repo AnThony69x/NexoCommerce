@@ -33,5 +33,8 @@ if (!apiUrlCruda && import.meta.env.DEV) {
 
 export const config = {
   apiUrl: apiUrlCruda ? apiUrlCruda : undefined,
-  mockMode: leerBooleano(import.meta.env.VITE_MOCK_MODE as string | undefined, true),
+  mockMode: leerBooleano(
+    import.meta.env.VITE_MOCK_MODE as string | undefined,
+    import.meta.env.MODE === 'test',
+  ),
 } as const

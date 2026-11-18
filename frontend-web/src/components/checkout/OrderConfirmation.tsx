@@ -3,30 +3,37 @@ import type { DeliveryFormData, PaymentMethod } from '../../types/checkout'
 import { formatPrice } from '../../utils/formatPrice'
 
 export type PedidoConfirmado = {
+  pedidoId: string
   numero: string
+  clienteNombre: string
   datos: DeliveryFormData
   metodoPago: PaymentMethod
   subtotal: number
   envio: number
   total: number
+  errorPago?: string
 }
 
 type OrderConfirmationProps = {
   pedido: PedidoConfirmado
+  onReintentarPago: () => Promise<void>
+  reintentando: boolean
 }
 
-export default function OrderConfirmation({ pedido }: OrderConfirmationProps) {
+export default function OrderConfirmation({ pedido, onReintentarPago, reintentando }: OrderConfirmationProps) {
   return (
     <main className="min-h-screen bg-stone-50 px-4 py-10 sm:px-6 lg:px-8">
       <section className="mx-auto max-w-2xl rounded-xl border border-stone-200 bg-white p-6 text-center sm:p-10">
         <p className="text-sm font-semibold uppercase tracking-wide text-stone-500">
-          Pedido confirmado
+          Pedido registrado
         </p>
         <h1 className="mt-3 text-3xl font-semibold text-stone-800">
           Gracias por tu compra
         </h1>
-        <p className="mt-4 text-sm leading-6 text-stone-600">
-          Tu pedido mock fue registrado correctamente.
+        <p role={pedido.errorPago ? 'alert' : 'status'} className={`mt-4 text-sm leading-6 ${pedido.errorPago ? 'text-rose-700' : 'text-stone-600'}`}>
+          {pedido.errorPago
+            ? `El pedido se creó, pero no se pudo registrar el pago: ${pedido.errorPago}`
+            : 'El pedido se registró y el pago quedó pendiente de revisión.'}
         </p>
 
         <dl className="mx-auto mt-8 max-w-sm space-y-4 text-left text-sm text-stone-600">
@@ -36,19 +43,17 @@ export default function OrderConfirmation({ pedido }: OrderConfirmationProps) {
           </div>
           <div className="flex justify-between gap-4 border-b border-stone-200 pb-3">
             <dt>Cliente</dt>
-            <dd className="font-medium text-stone-800">{pedido.datos.nombreCompleto}</dd>
+            <dd className="font-medium text-stone-800">{pedido.clienteNombre}</dd>
           </div>
           <div className="flex justify-between gap-4 border-b border-stone-200 pb-3">
             <dt>Teléfono</dt>
             <dd className="font-medium text-stone-800">{pedido.datos.telefono}</dd>
           </div>
           <div className="flex justify-between gap-4 border-b border-stone-200 pb-3">
-            <dt>Dirección</dt>
-            <dd className="font-medium text-stone-800">{pedido.datos.direccion}</dd>
-          </div>
-          <div className="flex justify-between gap-4 border-b border-stone-200 pb-3">
-            <dt>Referencia</dt>
-            <dd className="font-medium text-stone-800">{pedido.datos.referencia}</dd>
+            <dt>Entrega</dt>
+            <dd className="font-medium text-stone-800">
+              {pedido.datos.tipoEntrega === 'DOMICILIO' ? pedido.datos.direccion : 'Retiro en tienda'}
+            </dd>
           </div>
           <div className="flex justify-between gap-4 border-b border-stone-200 pb-3">
             <dt>Fecha de entrega</dt>
@@ -56,7 +61,7 @@ export default function OrderConfirmation({ pedido }: OrderConfirmationProps) {
           </div>
           <div className="flex justify-between gap-4 border-b border-stone-200 pb-3">
             <dt>Método de pago</dt>
-            <dd className="font-medium text-stone-800">{pedido.metodoPago}</dd>
+            <dd className="font-medium text-stone-800">{pedido.metodoPago === 'PASARELA' ? 'Referencia de pago' : 'Transferencia'}</dd>
           </div>
           <div className="flex justify-between gap-4 border-b border-stone-200 pb-3">
             <dt>Subtotal</dt>
@@ -71,6 +76,12 @@ export default function OrderConfirmation({ pedido }: OrderConfirmationProps) {
             <dd className="font-semibold text-stone-800">{formatPrice(pedido.total)}</dd>
           </div>
         </dl>
+
+        {pedido.errorPago && (
+          <button type="button" onClick={() => void onReintentarPago()} disabled={reintentando} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-rose-700 px-5 py-3 text-sm font-medium text-white hover:bg-rose-800 disabled:opacity-60">
+            {reintentando ? 'Reintentando…' : 'Reintentar registro del pago'}
+          </button>
+        )}
 
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link

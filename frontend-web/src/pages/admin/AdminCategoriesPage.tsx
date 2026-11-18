@@ -26,25 +26,30 @@ export default function AdminCategoriesPage() {
   const principales = categorias.filter((c) => c.categoria_padre_id === null)
   const subcategorias = categorias.filter((c) => c.categoria_padre_id !== null)
 
-  function guardar(dato: Omit<AdminCategory, 'id'>) {
-    if (editando) {
-      actualizarCategoria(editando.id, dato)
-      setMensaje({ tipo: 'exito', texto: 'Categoría actualizada (mock).' })
-    } else {
-      crearCategoria(dato)
-      setMensaje({ tipo: 'exito', texto: 'Categoría creada (mock).' })
+  async function guardar(dato: Omit<AdminCategory, 'id'>) {
+    try {
+      if (editando) {
+        await actualizarCategoria(editando.id, dato)
+        setMensaje({ tipo: 'exito', texto: 'Categoría actualizada.' })
+      } else {
+        await crearCategoria(dato)
+        setMensaje({ tipo: 'exito', texto: 'Categoría creada.' })
+      }
+      setMostrarFormulario(false)
+      setEditando(undefined)
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo guardar la categoría.' })
     }
-    setMostrarFormulario(false)
-    setEditando(undefined)
   }
 
-  function confirmarCambio(item: AdminCategory) {
-    alternarCategoria(item.id)
-    setConfirmando(undefined)
-    setMensaje({
-      tipo: 'exito',
-      texto: `Categoría ${item.activo ? 'desactivada' : 'activada'} (mock).`,
-    })
+  async function confirmarCambio(item: AdminCategory) {
+    try {
+      await alternarCategoria(item.id)
+      setConfirmando(undefined)
+      setMensaje({ tipo: 'exito', texto: `Categoría ${item.activo ? 'desactivada' : 'activada'}.` })
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado de la categoría.' })
+    }
   }
 
   function filaCategoria(item: AdminCategory, esSub: boolean) {
@@ -96,7 +101,7 @@ export default function AdminCategoriesPage() {
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Categorías"
-        descripcion="Categorías principales y subcategorías con categoria_padre_id (mock)."
+        descripcion="Categorías principales y subcategorías organizadas por categoría padre."
         accion={
           <button
             type="button"
@@ -127,7 +132,7 @@ export default function AdminCategoriesPage() {
       )}
 
       {categorias.length === 0 ? (
-        <AdminEmptyState titulo="Sin categorías" descripcion="Crea la primera categoría mock." />
+        <AdminEmptyState titulo="Sin categorías" descripcion="Crea la primera categoría." />
       ) : (
         <AdminTable encabezados={['Nombre', 'Categoría padre', 'Estado', 'Acciones']}>
           {principales.map((item) => filaCategoria(item, false))}
@@ -138,11 +143,11 @@ export default function AdminCategoriesPage() {
       <AdminConfirmModal
         abierto={confirmando !== undefined}
         titulo={`${confirmando?.activo ? 'Desactivar' : 'Activar'} categoría`}
-        descripcion={`¿Confirmas cambiar el estado de "${confirmando?.nombre}"? Acción mock reversible.`}
+        descripcion={`¿Confirmas cambiar el estado de "${confirmando?.nombre}"?`}
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) confirmarCambio(confirmando)
+          if (confirmando) void confirmarCambio(confirmando)
         }}
       />
     </div>

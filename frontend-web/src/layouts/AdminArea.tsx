@@ -2,9 +2,8 @@ import { AdminMockProvider } from '../contexts/AdminMockContext'
 import AdminLayout from './AdminLayout'
 
 /**
- * Area administrativa: agrupa el proveedor de datos mock del panel (los nueve
- * modulos de mock) para que solo se descarguen al entrar a /admin. Asi el
- * bundle inicial del sitio publico no los arrastra.
+ * Área administrativa: carga sus datos al entrar a /admin para que el bundle
+ * inicial de la tienda pública no arrastre los módulos administrativos.
  */
 export default function AdminArea() {
   return (

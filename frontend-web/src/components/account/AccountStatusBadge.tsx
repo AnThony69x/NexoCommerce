@@ -25,6 +25,10 @@ const ESTILOS: Record<PedidoEstado, { etiqueta: string; clases: string }> = {
     etiqueta: 'Entregado',
     clases: 'bg-emerald-100 text-emerald-800',
   },
+  CANCELADO: {
+    etiqueta: 'Cancelado',
+    clases: 'bg-rose-100 text-rose-800',
+  },
 }
 
 export default function AccountStatusBadge({ estado }: AccountStatusBadgeProps) {

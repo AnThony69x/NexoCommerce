@@ -4,7 +4,8 @@
  * Responsabilidades:
  *  - baseURL ÚNICAMENTE desde VITE_API_URL (via config/app.ts). No se
  *    hardcodea ninguna IP/localhost: así soporta backend local o remoto (LAN).
- *  - Headers por defecto: Accept y Content-Type application/json.
+ *  - Header por defecto Accept; Axios serializa JSON y el navegador define
+ *    el boundary correcto para cuerpos multipart/form-data.
  *  - Timeout razonable.
  *  - Envío automático del token Bearer (Authorization) vía tokenStore.
  *  - Normalización global de errores HTTP (401/403/422/500 y red) a ApiError.
@@ -35,7 +36,6 @@ export const apiClient = axios.create({
   timeout: 30000,
   headers: {
     Accept: 'application/json',
-    'Content-Type': 'application/json',
   },
 })
 

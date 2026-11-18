@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import BackButton from '../../components/common/BackButton'
 import ProductGallery from '../../components/catalog/ProductGallery'
@@ -10,9 +11,14 @@ import { useCart } from '../../hooks/useCart'
 import { STOCK_CARRITO_SIN_LIMITE } from '../../contexts/CartContext'
 import { obtenerProducto } from '../../services/productsRepository'
 import { imagenProducto } from '../../utils/imagenProducto'
+import { useAuth } from '../../contexts/AuthContext'
+import { config } from '../../config/app'
+import type { CartItemConfiguration } from '../../contexts/CartContext'
 
 export default function ProductDetailPage() {
-  const { addItem } = useCart()
+  const { addItem, error: errorCarrito } = useCart()
+  const { user } = useAuth()
+  const [configuracion, setConfiguracion] = useState<CartItemConfiguration>({})
   const { id } = useParams()
   const idProducto = Number(id ?? '')
   const {
@@ -81,30 +87,43 @@ export default function ProductDetailPage() {
         <section className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           <ProductGallery images={imagenesGaleria} />
 
-          <ProductInfo
-            nombre={product.nombre}
-            categoría={etiquetaCategoria}
-            precio={product.precio}
-            stock={product.stock}
-            descripción={product.descripcion}
-            onAddToCart={(quantity) =>
-              addItem(
-                {
-                  // El carrito mock trabaja con ids string: se convierte aquí.
-                  id: String(product.id),
-                  nombre: product.nombre,
-                  imagen: imagenProducto(product.imagenes[0]?.url),
-                  precioUnitario: product.precio,
-                  categoría: etiquetaCategoria,
-                  stock: product.stock ?? STOCK_CARRITO_SIN_LIMITE,
-                },
-                quantity,
-              )
-            }
-          />
+          <div>
+            <ProductInfo
+              nombre={product.nombre}
+              categoría={etiquetaCategoria}
+              precio={product.precio}
+              stock={product.stock}
+              descripción={product.descripcion}
+              onAddToCart={(quantity) =>
+                addItem(
+                  {
+                    id: String(product.id),
+                    nombre: product.nombre,
+                    imagen: imagenProducto(product.imagenes[0]?.url),
+                    precioUnitario: product.precio,
+                    categoría: etiquetaCategoria,
+                    stock: product.stock ?? STOCK_CARRITO_SIN_LIMITE,
+                  },
+                  quantity,
+                  configuracion,
+                )
+              }
+            />
+            {errorCarrito && (
+              <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
+                {errorCarrito}
+              </p>
+            )}
+          </div>
         </section>
 
-        <ProductCustomization />
+        <ProductCustomization
+          product={product}
+          value={configuracion}
+          autenticado={user?.role === 'CLIENTE'}
+          modoMock={config.mockMode}
+          onChange={setConfiguracion}
+        />
 
         <RelatedProducts categoriaId={product.categoria.id} excluirId={product.id} />
       </div>

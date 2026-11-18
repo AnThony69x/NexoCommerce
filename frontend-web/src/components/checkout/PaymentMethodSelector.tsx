@@ -5,11 +5,21 @@ export type { PaymentMethod }
 type PaymentMethodSelectorProps = {
   paymentMethod: PaymentMethod
   onPaymentMethodChange: (paymentMethod: PaymentMethod) => void
+  referenciaPasarela: string
+  onReferenciaChange: (referencia: string) => void
+  comprobante: File | null
+  onComprobanteChange: (comprobante: File | null) => void
+  error?: string | undefined
 }
 
 export default function PaymentMethodSelector({
   paymentMethod,
   onPaymentMethodChange,
+  referenciaPasarela,
+  onReferenciaChange,
+  comprobante,
+  onComprobanteChange,
+  error,
 }: PaymentMethodSelectorProps) {
 
   return (
@@ -26,7 +36,7 @@ export default function PaymentMethodSelector({
             checked={paymentMethod === 'PASARELA'}
             onChange={() => onPaymentMethodChange('PASARELA')}
           />
-          <span>Pasarela</span>
+          <span>Referencia de pago para revisión manual</span>
         </label>
         <label className="flex items-center gap-3 rounded-lg border border-stone-200 p-3">
           <input
@@ -46,19 +56,29 @@ export default function PaymentMethodSelector({
             <span>Comprobante de transferencia</span>
             <input
               type="file"
-              accept="image/*,.pdf"
+              accept="image/jpeg,image/png,image/webp,.pdf"
+              required={paymentMethod === 'TRANSFERENCIA'}
+              onChange={(event) => onComprobanteChange(event.target.files?.[0] ?? null)}
               className="block w-full text-sm text-stone-600 file:mr-4 file:rounded-lg file:border-0 file:bg-stone-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-stone-700"
             />
           </label>
-          <p className="mt-2 text-xs text-stone-500">
-            Carga temporal. El archivo todavía no será procesado.
-          </p>
+          {comprobante && <p className="mt-2 text-xs text-stone-600">{comprobante.name}</p>}
+          <p className="mt-2 text-xs text-stone-500">JPG, PNG, WebP o PDF; máximo 5 MB.</p>
         </div>
       ) : (
-        <p className="mt-5 rounded-lg bg-stone-50 p-4 text-sm leading-6 text-stone-600">
-          Serás redirigido a la pasarela de pago para completar la operación.
-        </p>
+        <label className="mt-5 flex flex-col gap-2 text-sm text-stone-600">
+          <span>Referencia de pago</span>
+          <input
+            value={referenciaPasarela}
+            onChange={(event) => onReferenciaChange(event.target.value)}
+            maxLength={255}
+            required
+            className="min-h-11 rounded-lg border border-stone-300 px-3"
+          />
+          <span className="text-xs text-stone-500">El pago quedará pendiente de revisión manual.</span>
+        </label>
       )}
+      {error && <p role="alert" className="mt-3 text-sm text-rose-700">{error}</p>}
     </section>
   )
 }

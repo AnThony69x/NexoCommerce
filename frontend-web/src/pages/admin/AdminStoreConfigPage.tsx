@@ -6,22 +6,42 @@ import { useAdminMock } from '../../contexts/AdminMockContext'
 import type { AdminFeedbackMessage, StoreConfiguration } from '../../types/admin'
 
 export default function AdminStoreConfigPage() {
-  const { tienda, actualizarTienda } = useAdminMock()
+  const { tienda, actualizarTienda, cargando, error, recargar } = useAdminMock()
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
 
-  function guardar(dato: StoreConfiguration) {
-    actualizarTienda(dato)
-    setMensaje({
-      tipo: 'exito',
-      texto: 'Configuración guardada solo en memoria (mock). No afecta la tienda pública todavía.',
-    })
+  async function guardar(dato: StoreConfiguration) {
+    try {
+      await actualizarTienda(dato)
+      setMensaje({ tipo: 'exito', texto: 'Configuración de tienda guardada.' })
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo guardar la configuración.' })
+    }
+  }
+
+  if (cargando) {
+    return (
+      <div className="space-y-6">
+        <AdminSectionHeader titulo="Configuración de tienda" />
+        <p role="status" className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600">Cargando la configuración vigente…</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <AdminSectionHeader titulo="Configuración de tienda" />
+        <AdminFeedback mensaje={{ tipo: 'error', texto: error }} />
+        <button type="button" onClick={() => void recargar()} className="text-sm font-semibold underline">Reintentar carga</button>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Configuración de tienda"
-        descripcion="Formulario mock con React Hook Form. Los cambios no modifican la configuración global real todavía."
+        descripcion="Actualiza los datos y la identidad visual de la tienda."
       />
 
       <AdminFeedback mensaje={mensaje} />

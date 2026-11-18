@@ -35,8 +35,8 @@ export default function ProductionForm({
     formState: { errors },
   } = useForm<ProductionFormValues>({
     defaultValues: {
-      fecha: inicial?.fecha ?? '2026-10-15',
-      categoriaId: inicial?.categoriaId ?? categorias[0]?.id ?? '',
+      fecha: inicial?.fecha ?? new Date().toISOString().slice(0, 10),
+      categoriaId: inicial?.categoriaId ?? '',
       capacidad_maxima: inicial?.capacidad_maxima ?? 10,
       capacidad_ocupada: inicial?.capacidad_ocupada ?? 0,
       activo: inicial?.activo ?? true,
@@ -48,9 +48,9 @@ export default function ProductionForm({
     onGuardar({
       fecha: valores.fecha,
       categoriaId: valores.categoriaId,
-      categoriaNombre: categoria?.nombre ?? 'Sin categoría',
+      categoriaNombre: categoria?.nombre ?? 'Todas',
       capacidad_maxima: Number(valores.capacidad_maxima),
-      capacidad_ocupada: Number(valores.capacidad_ocupada),
+      capacidad_ocupada: inicial?.capacidad_ocupada ?? 0,
       activo: valores.activo,
     })
   }
@@ -86,10 +86,9 @@ export default function ProductionForm({
             aria-describedby={
               errors.categoriaId ? 'cap-error-categoria' : undefined
             }
-            {...register('categoriaId', {
-              required: 'Selecciona una categoría.',
-            })}
+            {...register('categoriaId')}
           >
+            <option value="">Todas las categorías</option>
             {categorias.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.nombre}
@@ -130,24 +129,9 @@ export default function ProductionForm({
           )}
         </div>
         <div>
-          <label htmlFor="cap-ocupada" className={claseLabel}>
-            Capacidad ocupada (mock)
-          </label>
-          <input
-            id="cap-ocupada"
-            type="number"
-            min="0"
-            className={claseInput}
-            {...register('capacidad_ocupada', {
-              required: 'Obligatorio',
-              min: { value: 0, message: 'Mínimo 0' },
-            })}
-          />
-          {errors.capacidad_ocupada && (
-            <p role="alert" className="mt-1 text-xs text-rose-700">
-              {errors.capacidad_ocupada.message}
-            </p>
-          )}
+          <p className="pt-2 text-sm text-stone-500">
+            La capacidad ocupada se calcula desde los pedidos y no se edita aquí.
+          </p>
         </div>
       </div>
 

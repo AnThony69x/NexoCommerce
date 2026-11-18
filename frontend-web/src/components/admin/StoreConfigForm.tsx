@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import type { StoreConfiguration } from '../../types/admin'
 
@@ -17,8 +18,11 @@ export default function StoreConfigForm({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<StoreConfiguration>({ defaultValues: inicial })
+
+  useEffect(() => reset(inicial), [inicial, reset])
 
   return (
     <form
@@ -114,13 +118,13 @@ export default function StoreConfigForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="tienda-logo" className={claseLabel}>
-            Logo (URL)
+            Ruta multimedia del logo
           </label>
           <input id="tienda-logo" className={claseInput} {...register('logoUrl')} />
         </div>
         <div>
           <label htmlFor="tienda-favicon" className={claseLabel}>
-            Favicon (URL)
+            Ruta multimedia del favicon
           </label>
           <input
             id="tienda-favicon"

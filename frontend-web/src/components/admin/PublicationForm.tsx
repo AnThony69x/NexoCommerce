@@ -135,14 +135,18 @@ export default function PublicationForm({
 
       <div>
         <label htmlFor="pub-media" className={claseLabel}>
-          Multimedia mock (URL o nombre)
+          ID de multimedia (súbela primero desde Multimedia)
         </label>
         <input
           id="pub-media"
           className={claseInput}
-          placeholder="hero-placeholder.svg (mock)"
-          {...register('multimediaUrl')}
+          placeholder="ID numérico"
+          {...register('multimediaUrl', {
+            pattern: { value: /^\d*$/, message: 'El ID debe ser numérico.' },
+          })}
         />
+        {errors.multimediaUrl && <p role="alert" className="mt-1 text-xs text-rose-700">{errors.multimediaUrl.message}</p>}
+        <p className="mt-1 text-xs text-stone-500">Escribe el ID que aparece en la ficha del archivo subido.</p>
       </div>
 
       <div className="flex items-center gap-2">

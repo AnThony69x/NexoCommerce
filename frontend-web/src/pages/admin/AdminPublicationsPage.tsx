@@ -25,32 +25,37 @@ export default function AdminPublicationsPage() {
   )
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
 
-  function guardar(dato: Omit<AdminPublication, 'id'>) {
-    if (editando) {
-      actualizarPublicacion(editando.id, dato)
-      setMensaje({ tipo: 'exito', texto: 'Publicación actualizada (mock).' })
-    } else {
-      crearPublicacion(dato)
-      setMensaje({ tipo: 'exito', texto: 'Publicación creada (mock).' })
+  async function guardar(dato: Omit<AdminPublication, 'id'>) {
+    try {
+      if (editando) {
+        await actualizarPublicacion(editando.id, dato)
+        setMensaje({ tipo: 'exito', texto: 'Publicación actualizada.' })
+      } else {
+        await crearPublicacion(dato)
+        setMensaje({ tipo: 'exito', texto: 'Publicación creada.' })
+      }
+      setMostrarFormulario(false)
+      setEditando(undefined)
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo guardar la publicación.' })
     }
-    setMostrarFormulario(false)
-    setEditando(undefined)
   }
 
-  function confirmarCambio(item: AdminPublication) {
-    alternarPublicacion(item.id)
-    setConfirmando(undefined)
-    setMensaje({
-      tipo: 'exito',
-      texto: `Publicación ${item.activo ? 'desactivada' : 'activada'} (mock).`,
-    })
+  async function confirmarCambio(item: AdminPublication) {
+    try {
+      await alternarPublicacion(item.id)
+      setConfirmando(undefined)
+      setMensaje({ tipo: 'exito', texto: `Publicación ${item.activo ? 'desactivada' : 'activada'}.` })
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado de la publicación.' })
+    }
   }
 
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Publicaciones"
-        descripcion="Contenido editorial mock con categoría y producto opcionales."
+        descripcion="Contenido editorial con categoría, producto e imágenes opcionales."
         accion={
           <button
             type="button"
@@ -84,7 +89,7 @@ export default function AdminPublicationsPage() {
       {publicaciones.length === 0 ? (
         <AdminEmptyState
           titulo="Sin publicaciones"
-          descripcion="Crea la primera publicación mock."
+          descripcion="Crea la primera publicación."
         />
       ) : (
         <AdminTable
@@ -107,7 +112,7 @@ export default function AdminPublicationsPage() {
                 {item.productoNombre ?? '—'}
               </td>
               <td className="px-4 py-3 text-stone-600">
-                {item.multimediaUrl ?? '—'}
+                {item.multimediaUrl ? `#${item.multimediaUrl}` : '—'}
               </td>
               <td className="px-4 py-3">
                 <AdminStatusBadge estado={item.activo ? 'ACTIVO' : 'INACTIVO'} />
@@ -142,11 +147,11 @@ export default function AdminPublicationsPage() {
       <AdminConfirmModal
         abierto={confirmando !== undefined}
         titulo={`${confirmando?.activo ? 'Desactivar' : 'Activar'} publicación`}
-        descripcion={`¿Confirmas cambiar el estado de "${confirmando?.titulo}"? Acción mock reversible.`}
+        descripcion={`¿Confirmas cambiar el estado de "${confirmando?.titulo}"?`}
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) confirmarCambio(confirmando)
+          if (confirmando) void confirmarCambio(confirmando)
         }}
       />
     </div>

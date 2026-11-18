@@ -1,4 +1,5 @@
 import type { ChangeEvent } from 'react'
+import { useState } from 'react'
 import { useAdminMock } from '../../contexts/AdminMockContext'
 import { MAX_IMAGENES_PRODUCTO, resolverUrlMultimedia } from '../../utils/multimedia'
 
@@ -11,7 +12,8 @@ export default function SelectorImagenesProducto({
   seleccionadas,
   onCambiar,
 }: SelectorImagenesProductoProps) {
-  const { multimedia, agregarMultimedia } = useAdminMock()
+  const { multimedia, subirMultimedia } = useAdminMock()
+  const [errorSubida, setErrorSubida] = useState<string | null>(null)
 
   const biblioteca = multimedia.filter(
     (item) => item.tipoMime.startsWith('image/') && resolverUrlMultimedia(item.url) !== null,
@@ -31,21 +33,18 @@ export default function SelectorImagenesProducto({
     onCambiar([url, ...seleccionadas.filter((actual) => actual !== url)])
   }
 
-  function manejarSubida(evento: ChangeEvent<HTMLInputElement>) {
+  async function manejarSubida(evento: ChangeEvent<HTMLInputElement>) {
     const archivo = evento.target.files?.[0]
     evento.target.value = ''
     if (!archivo || !archivo.type.startsWith('image/') || limiteAlcanzado) return
 
-    const urlLocal = URL.createObjectURL(archivo)
-    agregarMultimedia({
-      nombre: archivo.name,
-      tipoMime: archivo.type,
-      tamanoKb: Math.max(1, Math.round(archivo.size / 1024)),
-      url: urlLocal,
-      destino: 'productos',
-      activo: true,
-    })
-    onCambiar([...seleccionadas, urlLocal])
+    try {
+      setErrorSubida(null)
+      const subido = await subirMultimedia(archivo, 'productos')
+      onCambiar([...seleccionadas, subido.url])
+    } catch (error) {
+      setErrorSubida(error instanceof Error ? error.message : 'No se pudo subir la imagen.')
+    }
   }
 
   return (
@@ -168,12 +167,13 @@ export default function SelectorImagenesProducto({
         Subir imagen desde el equipo
         <input
           type="file"
-          accept="image/*"
+          accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
           className="hidden"
           disabled={limiteAlcanzado}
           onChange={manejarSubida}
         />
       </label>
+      {errorSubida && <p role="alert" className="text-sm text-rose-700">{errorSubida}</p>}
     </div>
   )
 }

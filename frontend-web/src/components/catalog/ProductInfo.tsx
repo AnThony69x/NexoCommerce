@@ -10,7 +10,7 @@ type ProductInfoProps = {
   /** null = sin control de stock: disponible y sin límite de cantidad. */
   stock: number | null
   descripción: string | null
-  onAddToCart: (quantity: number) => void
+  onAddToCart: (quantity: number) => void | Promise<void>
 }
 
 export default function ProductInfo({
@@ -22,6 +22,7 @@ export default function ProductInfo({
   onAddToCart,
 }: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1)
+  const [adding, setAdding] = useState(false)
   const agotado = stock !== null && stock <= 0
   const conLimite = stock !== null
 
@@ -70,13 +71,18 @@ export default function ProductInfo({
 
       <button
         type="button"
-        disabled={agotado}
-        onClick={() =>
-          onAddToCart(clampCantidad(quantity, stock ?? undefined) || 1)
-        }
+        disabled={agotado || adding}
+        onClick={async () => {
+          setAdding(true)
+          try {
+            await onAddToCart(clampCantidad(quantity, stock ?? undefined) || 1)
+          } finally {
+            setAdding(false)
+          }
+        }}
         className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {agotado ? 'Producto agotado' : 'Agregar al carrito'}
+        {agotado ? 'Producto agotado' : adding ? 'Agregando…' : 'Agregar al carrito'}
       </button>
     </div>
   )

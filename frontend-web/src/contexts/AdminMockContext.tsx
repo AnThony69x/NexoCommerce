@@ -1,10 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
 /**
- * Adaptador mock del panel admin (único seam de datos administrativos).
- * Las 10 páginas admin consumen solo este hook; al conectar el backend se
- * reemplaza por services async (misma firma, ver src/services/) sin tocar páginas.
+ * Capa de datos del panel: fixtures en modo mock y endpoints existentes en modo API.
+ * Las páginas usan una sola interfaz; los mappers HTTP viven en adminService.
  */
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   AdminCategory,
@@ -28,50 +27,56 @@ import { adminProductionMock } from '../data/admin/adminProduction.mock'
 import { adminPublicationsMock } from '../data/admin/adminPublications.mock'
 import { ADMIN_PRINCIPAL_ID, adminUsersMock } from '../data/admin/adminUsers.mock'
 import { storeConfigurationMock } from '../data/admin/storeConfiguration.mock'
+import { config } from '../config/app'
+import * as adminApi from '../services/adminService'
+import { useAuth } from '../hooks/useAuth'
 
 function crearId(prefijo: string): string {
   return `${prefijo}-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`
 }
 
-type AdminMockContextValue = {
+export type AdminMockContextValue = {
+  cargando: boolean
+  error: string | null
+  recargar: () => Promise<void>
   productos: AdminProduct[]
-  crearProducto: (dato: Omit<AdminProduct, 'id'>) => void
-  actualizarProducto: (id: string, dato: Omit<AdminProduct, 'id'>) => void
-  alternarProducto: (id: string) => void
+  crearProducto: (dato: Omit<AdminProduct, 'id'>) => void | Promise<void>
+  actualizarProducto: (id: string, dato: Omit<AdminProduct, 'id'>) => void | Promise<void>
+  alternarProducto: (id: string) => void | Promise<void>
   categorias: AdminCategory[]
-  crearCategoria: (dato: Omit<AdminCategory, 'id'>) => void
-  actualizarCategoria: (id: string, dato: Omit<AdminCategory, 'id'>) => void
-  alternarCategoria: (id: string) => void
+  crearCategoria: (dato: Omit<AdminCategory, 'id'>) => void | Promise<void>
+  actualizarCategoria: (id: string, dato: Omit<AdminCategory, 'id'>) => void | Promise<void>
+  alternarCategoria: (id: string) => void | Promise<void>
   pedidos: AdminOrder[]
   obtenerPedido: (id: string) => AdminOrder | undefined
-  avanzarPedido: (id: string) => boolean
+  avanzarPedido: (id: string) => boolean | Promise<boolean>
   pagos: AdminPayment[]
-  cambiarEstadoPago: (id: string, estado: 'APROBADO' | 'RECHAZADO') => void
+  cambiarEstadoPago: (id: string, estado: 'APROBADO' | 'RECHAZADO') => void | Promise<void>
   usuarios: AdminUser[]
-  alternarUsuario: (id: string) => boolean
+  alternarUsuario: (id: string) => boolean | Promise<boolean>
   publicaciones: AdminPublication[]
-  crearPublicacion: (dato: Omit<AdminPublication, 'id'>) => void
-  actualizarPublicacion: (id: string, dato: Omit<AdminPublication, 'id'>) => void
-  alternarPublicacion: (id: string) => void
+  crearPublicacion: (dato: Omit<AdminPublication, 'id'>) => void | Promise<void>
+  actualizarPublicacion: (id: string, dato: Omit<AdminPublication, 'id'>) => void | Promise<void>
+  alternarPublicacion: (id: string) => void | Promise<void>
   multimedia: AdminMedia[]
-  agregarMultimedia: (dato: Omit<AdminMedia, 'id'>) => void
-  alternarMultimedia: (id: string) => void
+  subirMultimedia: (archivo: File, destino: string) => Promise<AdminMedia>
+  alternarMultimedia: (id: string) => void | Promise<void>
   produccion: AdminProductionConfig[]
-  crearProduccion: (dato: Omit<AdminProductionConfig, 'id'>) => void
+  crearProduccion: (dato: Omit<AdminProductionConfig, 'id'>) => void | Promise<void>
   actualizarProduccion: (
     id: string,
     dato: Omit<AdminProductionConfig, 'id'>,
-  ) => void
-  alternarProduccion: (id: string) => void
+  ) => void | Promise<void>
+  alternarProduccion: (id: string) => void | Promise<void>
   tienda: StoreConfiguration
-  actualizarTienda: (dato: StoreConfiguration) => void
+  actualizarTienda: (dato: StoreConfiguration) => void | Promise<void>
 }
 
-const AdminMockContext = createContext<AdminMockContextValue | undefined>(
+export const AdminMockContext = createContext<AdminMockContextValue | undefined>(
   undefined,
 )
 
-export function AdminMockProvider({ children }: { children: ReactNode }) {
+function AdminMockDataProvider({ children }: { children: ReactNode }) {
   const [productos, setProductos] = useState<AdminProduct[]>(adminProductsMock)
   const [categorias, setCategorias] =
     useState<AdminCategory[]>(adminCategoriesMock)
@@ -87,6 +92,9 @@ export function AdminMockProvider({ children }: { children: ReactNode }) {
 
   const valor = useMemo<AdminMockContextValue>(
     () => ({
+      cargando: false,
+      error: null,
+      recargar: async () => {},
       productos,
       crearProducto: (dato) =>
         setProductos((actual) => [...actual, { ...dato, id: crearId('prod') }]),
@@ -160,8 +168,20 @@ export function AdminMockProvider({ children }: { children: ReactNode }) {
           ),
         ),
       multimedia,
-      agregarMultimedia: (dato) =>
-        setMultimedia((actual) => [...actual, { ...dato, id: crearId('med') }]),
+      subirMultimedia: async (archivo, destino) => {
+        const url = URL.createObjectURL(archivo)
+        const multimedia = {
+          id: crearId('med'),
+          nombre: archivo.name,
+          tipoMime: archivo.type,
+          tamanoKb: Math.max(1, Math.round(archivo.size / 1024)),
+          url,
+          destino,
+          activo: true,
+        }
+        setMultimedia((actual) => [...actual, multimedia])
+        return multimedia
+      },
       alternarMultimedia: (id) =>
         setMultimedia((actual) =>
           actual.map((item) =>
@@ -210,4 +230,147 @@ export function useAdminMock(): AdminMockContextValue {
     throw new Error('useAdminMock debe usarse dentro de AdminMockProvider')
   }
   return contexto
+}
+
+function AdminBackendProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const [productos, setProductos] = useState<AdminProduct[]>([])
+  const [categorias, setCategorias] = useState<AdminCategory[]>([])
+  const [pedidos, setPedidos] = useState<AdminOrder[]>([])
+  const [pagos, setPagos] = useState<AdminPayment[]>([])
+  const [usuarios, setUsuarios] = useState<AdminUser[]>([])
+  const [publicaciones, setPublicaciones] = useState<AdminPublication[]>([])
+  const [multimedia, setMultimedia] = useState<AdminMedia[]>([])
+  const [produccion, setProduccion] = useState<AdminProductionConfig[]>([])
+  const [tienda, setTienda] = useState<StoreConfiguration>(storeConfigurationMock)
+  const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const recargar = useCallback(async () => {
+    setCargando(true)
+    setError(null)
+    try {
+      const [categoriasNuevas, productosNuevos, pedidosNuevos, usuariosNuevos,
+        publicacionesNuevas, tiendaNueva] = await Promise.all([
+        adminApi.listarCategoriasAdmin(),
+        adminApi.listarProductosAdmin(),
+        adminApi.listarPedidosAdmin(),
+        adminApi.listarUsuariosAdmin(),
+        adminApi.listarPublicacionesAdmin(),
+        adminApi.obtenerConfiguracionTienda(),
+      ])
+      const [produccionNueva, pagosNuevos] = await Promise.all([
+        adminApi.listarProduccionAdmin(categoriasNuevas),
+        adminApi.listarPagosAdmin(pedidosNuevos),
+      ])
+      setCategorias(categoriasNuevas)
+      setProductos(productosNuevos)
+      setPedidos(pedidosNuevos.map((pedido) => {
+        const cliente = usuariosNuevos.find((usuario) => usuario.id === pedido.clienteId)
+        return cliente ? {
+          ...pedido,
+          clienteNombre: cliente.nombre_completo,
+          clienteCorreo: cliente.correo,
+          clienteTelefono: cliente.telefono,
+        } : pedido
+      }))
+      setUsuarios(usuariosNuevos)
+      setPublicaciones(publicacionesNuevas.map((publicacion) => ({
+        ...publicacion,
+        categoriaNombre: categoriasNuevas.find((categoria) => categoria.id === publicacion.categoriaId)?.nombre,
+        productoNombre: productosNuevos.find((producto) => producto.id === publicacion.productoId)?.nombre,
+      })))
+      setTienda(tiendaNueva)
+      setProduccion(produccionNueva)
+      setPagos(pagosNuevos)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudieron cargar los datos administrativos.')
+    } finally {
+      setCargando(false)
+    }
+  }, [])
+
+  useEffect(() => { void recargar() }, [recargar])
+
+  const ejecutarYRecargar = useCallback(async (accion: () => Promise<unknown>) => {
+    await accion()
+    await recargar()
+  }, [recargar])
+
+  const valor = useMemo<AdminMockContextValue>(() => ({
+    cargando,
+    error,
+    recargar,
+    productos,
+    crearProducto: (dato) => ejecutarYRecargar(() => adminApi.guardarProducto(undefined, dato)),
+    actualizarProducto: (id, dato) => ejecutarYRecargar(() => adminApi.guardarProducto(id, dato)),
+    alternarProducto: (id) => {
+      const item = productos.find((producto) => producto.id === id)
+      return item ? ejecutarYRecargar(() => adminApi.alternarProducto(id, item.activo)) : Promise.resolve()
+    },
+    categorias,
+    crearCategoria: (dato) => ejecutarYRecargar(() => adminApi.guardarCategoria(undefined, dato)),
+    actualizarCategoria: (id, dato) => ejecutarYRecargar(() => adminApi.guardarCategoria(id, dato)),
+    alternarCategoria: (id) => {
+      const item = categorias.find((categoria) => categoria.id === id)
+      return item ? ejecutarYRecargar(() => adminApi.alternarCategoria(item)) : Promise.resolve()
+    },
+    pedidos,
+    obtenerPedido: (id) => pedidos.find((pedido) => pedido.id === id),
+    avanzarPedido: async (id) => {
+      const item = pedidos.find((pedido) => pedido.id === id)
+      if (!item) return false
+      const indice = PEDIDO_FLUJO.indexOf(item.estado)
+      const siguiente = PEDIDO_FLUJO[indice + 1]
+      if (!siguiente) return false
+      await ejecutarYRecargar(() => adminApi.cambiarEstadoPedido(id, siguiente))
+      return true
+    },
+    pagos,
+    cambiarEstadoPago: (id, estado) => ejecutarYRecargar(() => adminApi.verificarPago(id, estado)),
+    usuarios,
+    alternarUsuario: async (id) => {
+      const usuario = usuarios.find((item) => item.id === id)
+      if (!usuario || id === String(user?.id)) return false
+      await ejecutarYRecargar(() => adminApi.alternarEstadoUsuario(id, usuario.activo))
+      return true
+    },
+    publicaciones,
+    crearPublicacion: (dato) => ejecutarYRecargar(() => adminApi.guardarPublicacion(undefined, dato)),
+    actualizarPublicacion: (id, dato) => ejecutarYRecargar(() => adminApi.guardarPublicacion(id, dato)),
+    alternarPublicacion: (id) => {
+      const item = publicaciones.find((publicacion) => publicacion.id === id)
+      return item ? ejecutarYRecargar(() => adminApi.alternarPublicacion(id, item.activo)) : Promise.resolve()
+    },
+    multimedia,
+    subirMultimedia: async (archivo, destino) => {
+      const item = await adminApi.subirMultimedia(archivo, destino)
+      setMultimedia((actual) => [item, ...actual])
+      return item
+    },
+    alternarMultimedia: async (id) => {
+      await adminApi.alternarEstadoMultimedia(id)
+      setMultimedia((actual) => actual.map((item) => item.id === id ? { ...item, activo: false } : item))
+    },
+    produccion,
+    crearProduccion: (dato) => ejecutarYRecargar(() => adminApi.guardarProduccion(undefined, dato)),
+    actualizarProduccion: (id, dato) => ejecutarYRecargar(() => adminApi.guardarProduccion(id, dato)),
+    alternarProduccion: (id) => {
+      const item = produccion.find((configuracion) => configuracion.id === id)
+      return item ? ejecutarYRecargar(() => adminApi.alternarProduccion(id, item.activo)) : Promise.resolve()
+    },
+    tienda,
+    actualizarTienda: (dato) => ejecutarYRecargar(async () => {
+      await adminApi.actualizarConfiguracionTienda(dato)
+      setTienda(dato)
+    }),
+  }), [cargando, error, recargar, productos, categorias, pedidos, pagos, usuarios, publicaciones, multimedia, produccion, tienda, ejecutarYRecargar, user?.id])
+
+  return <AdminMockContext.Provider value={valor}>{children}</AdminMockContext.Provider>
+}
+
+export function AdminMockProvider({ children }: { children: ReactNode }) {
+  return config.mockMode
+    ? <AdminMockDataProvider>{children}</AdminMockDataProvider>
+    : <AdminBackendProvider>{children}</AdminBackendProvider>
 }
