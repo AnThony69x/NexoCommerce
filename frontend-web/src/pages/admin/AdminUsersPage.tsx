@@ -1,3 +1,4 @@
+import AdminDialog from '../../components/admin/AdminDialog'
 import { useMemo, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
@@ -36,20 +37,11 @@ export default function AdminUsersPage() {
   async function confirmarCambio(item: AdminUser) {
     try {
       const ok = await alternarUsuario(item.id)
+      if (!ok) throw new Error('No se puede desactivar la cuenta actual.')
       setConfirmando(undefined)
-      setMensaje(
-        ok
-          ? {
-              tipo: 'exito',
-              texto: `Usuario ${item.activo ? 'desactivado' : 'activado'}.`,
-            }
-          : {
-              tipo: 'error',
-              texto: 'No se puede desactivar la cuenta actual.',
-            },
-      )
+      setMensaje({ tipo: 'exito', texto: `Usuario ${item.activo ? 'desactivado' : 'activado'}.` })
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado del usuario.' })
+      throw error instanceof Error ? error : new Error('No se pudo cambiar el estado del usuario.')
     }
   }
 
@@ -141,10 +133,7 @@ export default function AdminUsersPage() {
       )}
 
       {detalle && (
-        <div className="rounded-2xl border border-stone-200 bg-white p-5">
-          <h2 className="text-base font-semibold text-stone-800">
-            Detalle de {detalle.nombre_completo}
-          </h2>
+        <AdminDialog titulo={`Detalle de ${detalle.nombre_completo}`} onCerrar={() => setDetalle(undefined)}>
           <dl className="mt-3 grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
             <div>
               <dt className="font-medium">Correo</dt>
@@ -170,7 +159,7 @@ export default function AdminUsersPage() {
           >
             Cerrar detalle
           </button>
-        </div>
+        </AdminDialog>
       )}
 
       <AdminConfirmModal
@@ -180,7 +169,7 @@ export default function AdminUsersPage() {
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) void confirmarCambio(confirmando)
+          if (confirmando) return confirmarCambio(confirmando)
         }}
       />
     </div>

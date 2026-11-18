@@ -1,84 +1,49 @@
-import { useEffect, useRef } from 'react'
+import { useRef, useState } from 'react'
+import AdminDialog from './AdminDialog'
 
 type AdminConfirmModalProps = {
   abierto: boolean
   titulo: string
   descripcion: string
   textoConfirmar?: string
-  onConfirmar: () => void
+  onConfirmar: () => void | Promise<void>
   onCancelar: () => void
 }
 
-export default function AdminConfirmModal({
-  abierto,
-  titulo,
-  descripcion,
-  textoConfirmar = 'Confirmar',
-  onConfirmar,
-  onCancelar,
-}: AdminConfirmModalProps) {
-  const botonCancelarRef = useRef<HTMLButtonElement>(null)
-  const elementoPrevioRef = useRef<HTMLElement | null>(null)
-  const onCancelarRef = useRef(onCancelar)
+function Confirmacion({ titulo, descripcion, textoConfirmar = 'Confirmar', onConfirmar, onCancelar }: AdminConfirmModalProps) {
+  const pendiente = useRef(false)
+  const [ocupado, setOcupado] = useState(false)
+  const [error, setError] = useState<string>()
 
-  // Se mantiene la última función en un ref para no re-registrar el
-  // listener de teclado en cada render del padre.
-  useEffect(() => {
-    onCancelarRef.current = onCancelar
-  }, [onCancelar])
-
-  // Escape cierra el modal, el foco entra al modal y vuelve al elemento
-  // que lo abrio al cerrarse.
-  useEffect(() => {
-    if (!abierto) return
-
-    elementoPrevioRef.current = document.activeElement as HTMLElement | null
-    botonCancelarRef.current?.focus()
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        onCancelarRef.current()
-      }
+  async function confirmar() {
+    if (pendiente.current) return
+    pendiente.current = true
+    setOcupado(true)
+    setError(undefined)
+    try {
+      await onConfirmar()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo completar la acción.')
+    } finally {
+      pendiente.current = false
+      setOcupado(false)
     }
-
-    document.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      elementoPrevioRef.current?.focus()
-    }
-  }, [abierto])
-
-  if (!abierto) return null
+  }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={titulo}
-      className="fixed inset-0 z-20 flex items-center justify-center bg-stone-900/40 px-4"
-    >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
-        <h2 className="text-lg font-semibold text-stone-800">{titulo}</h2>
-        <p className="mt-2 text-sm text-stone-600">{descripcion}</p>
-        <div className="mt-6 flex justify-end gap-2">
-          <button
-            ref={botonCancelarRef}
-            type="button"
-            onClick={onCancelar}
-            className="inline-flex min-h-10 items-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:border-stone-500"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={onConfirmar}
-            className="inline-flex min-h-10 items-center rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700"
-          >
-            {textoConfirmar}
-          </button>
-        </div>
+    <AdminDialog titulo={titulo} onCerrar={onCancelar} ocupado={ocupado}>
+      <p className="text-sm text-stone-600">{descripcion}</p>
+      {error && <p role="alert" className="mt-2 text-sm text-rose-700">{error}</p>}
+      <div className="mt-6 flex justify-end gap-2">
+        <button type="button" disabled={ocupado} onClick={onCancelar} className="rounded-lg border px-4 py-2">Cancelar</button>
+        <button type="button" disabled={ocupado} onClick={() => void confirmar()} className="rounded-lg bg-stone-800 px-4 py-2 text-white disabled:opacity-50">
+          {ocupado ? 'Guardando…' : textoConfirmar}
+        </button>
       </div>
-    </div>
+    </AdminDialog>
   )
+}
+
+export default function AdminConfirmModal(props: AdminConfirmModalProps) {
+  return props.abierto ? <Confirmacion {...props} /> : null
 }

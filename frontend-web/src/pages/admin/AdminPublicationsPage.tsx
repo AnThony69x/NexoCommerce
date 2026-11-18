@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import AdminDialog from '../../components/admin/AdminDialog'
+import { useRef, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import AdminFeedback from '../../components/admin/AdminFeedback'
@@ -25,7 +26,20 @@ export default function AdminPublicationsPage() {
   )
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
 
+  const guardandoRef = useRef(false)
+  const [guardando, setGuardando] = useState(false)
+
+  function cerrarFormulario() {
+    setMostrarFormulario(false)
+    setEditando(undefined)
+    setMensaje(null)
+  }
+
   async function guardar(dato: Omit<AdminPublication, 'id'>) {
+    if (guardandoRef.current) return
+    guardandoRef.current = true
+    setGuardando(true)
+    setMensaje(null)
     try {
       if (editando) {
         await actualizarPublicacion(editando.id, dato)
@@ -38,6 +52,9 @@ export default function AdminPublicationsPage() {
       setEditando(undefined)
     } catch (error) {
       setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo guardar la publicación.' })
+    } finally {
+      guardandoRef.current = false
+      setGuardando(false)
     }
   }
 
@@ -47,7 +64,7 @@ export default function AdminPublicationsPage() {
       setConfirmando(undefined)
       setMensaje({ tipo: 'exito', texto: `Publicación ${item.activo ? 'desactivada' : 'activada'}.` })
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado de la publicación.' })
+      throw error instanceof Error ? error : new Error('No se pudo cambiar el estado de la publicación.')
     }
   }
 
@@ -71,19 +88,21 @@ export default function AdminPublicationsPage() {
         }
       />
 
-      <AdminFeedback mensaje={mensaje} />
+      <AdminFeedback mensaje={mostrarFormulario ? null : mensaje} />
 
       {mostrarFormulario && (
-        <PublicationForm
-          inicial={editando}
-          categorias={categorias}
-          productos={productos}
-          onGuardar={guardar}
-          onCancelar={() => {
-            setMostrarFormulario(false)
-            setEditando(undefined)
-          }}
-        />
+        <AdminDialog titulo={editando ? 'Editar publicación' : 'Crear publicación'} onCerrar={cerrarFormulario} ocupado={guardando}>
+          <AdminFeedback mensaje={mensaje} />
+          <fieldset disabled={guardando} className="min-w-0">
+            <PublicationForm
+              inicial={editando}
+              categorias={categorias}
+              productos={productos}
+              onGuardar={guardar}
+              onCancelar={cerrarFormulario}
+            />
+          </fieldset>
+        </AdminDialog>
       )}
 
       {publicaciones.length === 0 ? (
@@ -151,7 +170,7 @@ export default function AdminPublicationsPage() {
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) void confirmarCambio(confirmando)
+          if (confirmando) return confirmarCambio(confirmando)
         }}
       />
     </div>

@@ -27,7 +27,7 @@ export default function AdminMediaPage() {
       })
       setConfirmando(undefined)
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado del archivo.' })
+      throw error instanceof Error ? error : new Error('No se pudo cambiar el estado del archivo.')
     }
   }
 
@@ -167,7 +167,7 @@ export default function AdminMediaPage() {
         descripcion={`¿Confirmas cambiar el estado de "${confirmando?.nombre}"?`}
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
-        onConfirmar={() => void confirmarCambioEstado()}
+        onConfirmar={confirmarCambioEstado}
       />
     </div>
   )

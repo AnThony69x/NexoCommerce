@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import AdminDialog from '../../components/admin/AdminDialog'
+import { useRef, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import AdminFeedback from '../../components/admin/AdminFeedback'
@@ -31,6 +32,15 @@ export default function AdminProductionPage() {
   )
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
 
+  const guardandoRef = useRef(false)
+  const [guardando, setGuardando] = useState(false)
+
+  function cerrarFormulario() {
+    setMostrarFormulario(false)
+    setEditando(undefined)
+    setMensaje(null)
+  }
+
   async function guardar(dato: Omit<AdminProductionConfig, 'id'>) {
     if (dato.capacidad_ocupada > dato.capacidad_maxima) {
       setMensaje({
@@ -39,6 +49,10 @@ export default function AdminProductionPage() {
       })
       return
     }
+    if (guardandoRef.current) return
+    guardandoRef.current = true
+    setGuardando(true)
+    setMensaje(null)
     try {
       if (editando) {
         await actualizarProduccion(editando.id, dato)
@@ -51,6 +65,9 @@ export default function AdminProductionPage() {
       setEditando(undefined)
     } catch (error) {
       setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo guardar la configuración.' })
+    } finally {
+      guardandoRef.current = false
+      setGuardando(false)
     }
   }
 
@@ -60,7 +77,7 @@ export default function AdminProductionPage() {
       setConfirmando(undefined)
       setMensaje({ tipo: 'exito', texto: `Configuración ${item.activo ? 'desactivada' : 'activada'}.` })
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado de la configuración.' })
+      throw error instanceof Error ? error : new Error('No se pudo cambiar el estado de la configuración.')
     }
   }
 
@@ -84,18 +101,20 @@ export default function AdminProductionPage() {
         }
       />
 
-      <AdminFeedback mensaje={mensaje} />
+      <AdminFeedback mensaje={mostrarFormulario ? null : mensaje} />
 
       {mostrarFormulario && (
-        <ProductionForm
-          inicial={editando}
-          categorias={categorias}
-          onGuardar={guardar}
-          onCancelar={() => {
-            setMostrarFormulario(false)
-            setEditando(undefined)
-          }}
-        />
+        <AdminDialog titulo={editando ? 'Editar configuración de capacidad' : 'Crear configuración de capacidad'} onCerrar={cerrarFormulario} ocupado={guardando}>
+          <AdminFeedback mensaje={mensaje} />
+          <fieldset disabled={guardando} className="min-w-0">
+            <ProductionForm
+              inicial={editando}
+              categorias={categorias}
+              onGuardar={guardar}
+              onCancelar={cerrarFormulario}
+            />
+          </fieldset>
+        </AdminDialog>
       )}
 
       {produccion.length === 0 ? (
@@ -168,7 +187,7 @@ export default function AdminProductionPage() {
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) void confirmarCambio(confirmando)
+          if (confirmando) return confirmarCambio(confirmando)
         }}
       />
     </div>

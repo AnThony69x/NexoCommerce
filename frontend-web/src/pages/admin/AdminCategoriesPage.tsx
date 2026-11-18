@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import AdminDialog from '../../components/admin/AdminDialog'
+import { useRef, useMemo, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import AdminFeedback from '../../components/admin/AdminFeedback'
@@ -26,7 +27,20 @@ export default function AdminCategoriesPage() {
   const principales = categorias.filter((c) => c.categoria_padre_id === null)
   const subcategorias = categorias.filter((c) => c.categoria_padre_id !== null)
 
+  const guardandoRef = useRef(false)
+  const [guardando, setGuardando] = useState(false)
+
+  function cerrarFormulario() {
+    setMostrarFormulario(false)
+    setEditando(undefined)
+    setMensaje(null)
+  }
+
   async function guardar(dato: Omit<AdminCategory, 'id'>) {
+    if (guardandoRef.current) return
+    guardandoRef.current = true
+    setGuardando(true)
+    setMensaje(null)
     try {
       if (editando) {
         await actualizarCategoria(editando.id, dato)
@@ -39,6 +53,9 @@ export default function AdminCategoriesPage() {
       setEditando(undefined)
     } catch (error) {
       setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo guardar la categoría.' })
+    } finally {
+      guardandoRef.current = false
+      setGuardando(false)
     }
   }
 
@@ -48,7 +65,7 @@ export default function AdminCategoriesPage() {
       setConfirmando(undefined)
       setMensaje({ tipo: 'exito', texto: `Categoría ${item.activo ? 'desactivada' : 'activada'}.` })
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado de la categoría.' })
+      throw error instanceof Error ? error : new Error('No se pudo cambiar el estado de la categoría.')
     }
   }
 
@@ -117,18 +134,20 @@ export default function AdminCategoriesPage() {
         }
       />
 
-      <AdminFeedback mensaje={mensaje} />
+      <AdminFeedback mensaje={mostrarFormulario ? null : mensaje} />
 
       {mostrarFormulario && (
-        <CategoryForm
-          inicial={editando}
-          categorias={categorias}
-          onGuardar={guardar}
-          onCancelar={() => {
-            setMostrarFormulario(false)
-            setEditando(undefined)
-          }}
-        />
+        <AdminDialog titulo={editando ? 'Editar categoría' : 'Crear categoría'} onCerrar={cerrarFormulario} ocupado={guardando}>
+          <AdminFeedback mensaje={mensaje} />
+          <fieldset disabled={guardando} className="min-w-0">
+            <CategoryForm
+              inicial={editando}
+              categorias={categorias}
+              onGuardar={guardar}
+              onCancelar={cerrarFormulario}
+            />
+          </fieldset>
+        </AdminDialog>
       )}
 
       {categorias.length === 0 ? (
@@ -147,7 +166,7 @@ export default function AdminCategoriesPage() {
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) void confirmarCambio(confirmando)
+          if (confirmando) return confirmarCambio(confirmando)
         }}
       />
     </div>

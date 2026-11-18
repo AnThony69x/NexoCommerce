@@ -1,3 +1,4 @@
+import AdminDialog from '../../components/admin/AdminDialog'
 import { formatPrice } from '../../utils/formatPrice'
 import { useEffect, useMemo, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
@@ -22,13 +23,6 @@ export default function AdminPaymentsPage() {
   >(undefined)
   const [comprobante, setComprobante] = useState<AdminPayment | undefined>(undefined)
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
-  const [comprobanteUrl, setComprobanteUrl] = useState<string | null>(null)
-  const [cargandoComprobante, setCargandoComprobante] = useState(false)
-
-  useEffect(() => () => {
-    if (comprobanteUrl?.startsWith('blob:')) URL.revokeObjectURL(comprobanteUrl)
-  }, [comprobanteUrl])
-
   const filtrados = useMemo(
     () =>
       pagos.filter((item) => {
@@ -48,21 +42,7 @@ export default function AdminPaymentsPage() {
       setMensaje({ tipo: 'exito', texto: `Pago ${confirmando.estado.toLowerCase()}.` })
       setConfirmando(undefined)
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo verificar el pago.' })
-    }
-  }
-
-  async function verComprobante(pago: AdminPayment) {
-    setComprobante(pago)
-    setComprobanteUrl(null)
-    if (!pago.comprobanteId) return
-    setCargandoComprobante(true)
-    try {
-      setComprobanteUrl(await abrirMultimediaPrivada(pago.comprobanteId))
-    } catch (error) {
-      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo abrir el comprobante.' })
-    } finally {
-      setCargandoComprobante(false)
+      throw error instanceof Error ? error : new Error('No se pudo verificar el pago.')
     }
   }
 
@@ -135,7 +115,7 @@ export default function AdminPaymentsPage() {
                   {item.metodo === 'TRANSFERENCIA' && (
                     <button
                       type="button"
-                      onClick={() => void verComprobante(item)}
+                      onClick={() => setComprobante(item)}
                       className="font-medium text-stone-800 hover:underline"
                     >
                       Comprobante
@@ -171,28 +151,7 @@ export default function AdminPaymentsPage() {
       )}
 
       {comprobante && (
-        <div className="rounded-2xl border border-stone-200 bg-white p-5">
-          <h2 className="text-base font-semibold text-stone-800">
-            Comprobante de {comprobante.pedidoNumero}
-          </h2>
-          <p className="mt-2 text-sm text-stone-600">
-            {cargandoComprobante
-              ? 'Cargando comprobante…'
-              : comprobanteUrl
-                ? <a href={comprobanteUrl} target="_blank" rel="noreferrer" className="font-medium underline">Abrir comprobante</a>
-                : comprobante.comprobanteMock ?? 'Este pago no tiene un comprobante asociado.'}
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setComprobanteUrl(null)
-              setComprobante(undefined)
-            }}
-            className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:border-stone-500"
-          >
-            Cerrar
-          </button>
-        </div>
+        <ComprobanteDialog key={comprobante.id} pago={comprobante} onCerrar={() => setComprobante(undefined)} />
       )}
 
       <AdminConfirmModal
@@ -204,5 +163,44 @@ export default function AdminPaymentsPage() {
         onConfirmar={confirmarCambio}
       />
     </div>
+  )
+}
+
+function ComprobanteDialog({ pago, onCerrar }: { pago: AdminPayment; onCerrar: () => void }) {
+  const [resultado, setResultado] = useState<{ url: string } | { error: string }>()
+
+  useEffect(() => {
+    if (!pago.comprobanteId) return
+    let cerrado = false
+    let url: string | undefined
+    abrirMultimediaPrivada(pago.comprobanteId).then((archivo) => {
+      if (cerrado) {
+        URL.revokeObjectURL(archivo)
+        return
+      }
+      url = archivo
+      setResultado({ url: archivo })
+    }).catch((cause: unknown) => {
+      if (!cerrado) setResultado({ error: cause instanceof Error ? cause.message : 'No se pudo abrir el comprobante.' })
+    })
+    return () => {
+      cerrado = true
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [pago.comprobanteId])
+
+  return (
+    <AdminDialog titulo={`Comprobante de ${pago.pedidoNumero}`} onCerrar={onCerrar}>
+      {!pago.comprobanteId ? (
+        <p>{pago.comprobanteMock ?? 'Este pago no tiene un comprobante asociado.'}</p>
+      ) : !resultado ? (
+        <p role="status">Cargando comprobante…</p>
+      ) : 'error' in resultado ? (
+        <p role="alert" className="text-rose-700">{resultado.error}</p>
+      ) : (
+        <a href={resultado.url} target="_blank" rel="noreferrer" className="font-medium underline">Abrir comprobante a tamaño completo</a>
+      )}
+      <button type="button" onClick={onCerrar} className="mt-4 rounded-lg border px-4 py-2">Cerrar</button>
+    </AdminDialog>
   )
 }

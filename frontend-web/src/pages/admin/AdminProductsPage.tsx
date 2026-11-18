@@ -82,7 +82,7 @@ export default function AdminProductsPage() {
       setConfirmando(undefined)
       setMensaje({ tipo: 'exito', texto: `Producto ${item.activo ? 'desactivado' : 'activado'}.` })
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado del producto.' })
+      throw error instanceof Error ? error : new Error('No se pudo cambiar el estado del producto.')
     }
   }
 
@@ -232,7 +232,7 @@ export default function AdminProductsPage() {
         textoConfirmar={confirmando?.activo ? 'Desactivar' : 'Activar'}
         onCancelar={() => setConfirmando(undefined)}
         onConfirmar={() => {
-          if (confirmando) void confirmarCambio(confirmando)
+          if (confirmando) return confirmarCambio(confirmando)
         }}
       />
     </div>

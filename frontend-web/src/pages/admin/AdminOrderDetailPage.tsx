@@ -71,17 +71,14 @@ export default function AdminOrderDetailPage() {
   async function confirmarAvance() {
     try {
       const avanzo = await avanzarPedido(pedidoId)
+      if (!avanzo) throw new Error('No se puede avanzar desde este estado.')
       setConfirmando(false)
       if (avanzo && siguiente) {
         setPedidoDetalle((actual) => actual ? { ...actual, estado: siguiente } : actual)
       }
-      setMensaje(
-        avanzo
-          ? { tipo: 'exito', texto: 'Estado actualizado.' }
-          : { tipo: 'error', texto: 'No se puede avanzar desde este estado.' },
-      )
+      setMensaje({ tipo: 'exito', texto: 'Estado actualizado.' })
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo actualizar el estado.' })
+      throw error instanceof Error ? error : new Error('No se pudo actualizar el estado.')
     }
   }
 
