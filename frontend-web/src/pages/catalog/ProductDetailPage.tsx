@@ -12,7 +12,6 @@ import { STOCK_CARRITO_SIN_LIMITE } from '../../contexts/CartContext'
 import { obtenerProducto } from '../../services/productsRepository'
 import { imagenProducto } from '../../utils/imagenProducto'
 import { useAuth } from '../../hooks/useAuth'
-import { config } from '../../config/app'
 import type { CartItemConfiguration } from '../../contexts/CartContext'
 
 export default function ProductDetailPage() {
@@ -121,7 +120,6 @@ export default function ProductDetailPage() {
           product={product}
           value={configuracion}
           autenticado={user?.role === 'CLIENTE'}
-          modoMock={config.mockMode}
           onChange={setConfiguracion}
         />
 

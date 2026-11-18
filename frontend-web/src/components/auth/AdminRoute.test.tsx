@@ -1,9 +1,13 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '../../contexts/AuthContext'
 import AdminRoute from './AdminRoute'
 import type { AuthUser } from '../../types/auth'
+
+vi.mock('../../services/authRepository', () => ({
+  refrescarSesionInicial: async () => JSON.parse(localStorage.getItem(SESION_KEY) ?? 'null'),
+}))
 
 const SESION_KEY = 'nexocommerce.mockSession.v1'
 
@@ -41,22 +45,22 @@ describe('AdminRoute', () => {
     localStorage.clear()
   })
 
-  it('manda a /login a los invitados', () => {
+  it('manda a /login a los invitados', async () => {
     montarRutas('/admin')
-    expect(screen.getByText('Login')).toBeTruthy()
+    expect(await screen.findByText('Login')).toBeTruthy()
     expect(screen.queryByText('Panel')).toBeNull()
   })
 
-  it('manda a /inicio a quien no es administrador', () => {
+  it('manda a /inicio a quien no es administrador', async () => {
     dejarSesion('CLIENTE')
     montarRutas('/admin')
-    expect(screen.getByText('Inicio')).toBeTruthy()
+    expect(await screen.findByText('Inicio')).toBeTruthy()
     expect(screen.queryByText('Panel')).toBeNull()
   })
 
-  it('deja entrar al administrador', () => {
+  it('deja entrar al administrador', async () => {
     dejarSesion('ADMIN')
     montarRutas('/admin')
-    expect(screen.getByText('Panel')).toBeTruthy()
+    expect(await screen.findByText('Panel')).toBeTruthy()
   })
 })

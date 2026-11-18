@@ -7,7 +7,7 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import ProductionForm from '../../components/admin/ProductionForm'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import type {
   AdminFeedbackMessage,
   AdminProductionConfig,
@@ -24,7 +24,7 @@ export default function AdminProductionPage() {
     crearProduccion,
     actualizarProduccion,
     alternarProduccion,
-  } = useAdminMock()
+  } = useAdmin()
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editando, setEditando] = useState<AdminProductionConfig | undefined>(undefined)
   const [confirmando, setConfirmando] = useState<AdminProductionConfig | undefined>(

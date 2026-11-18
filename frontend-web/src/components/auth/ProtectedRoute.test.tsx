@@ -1,9 +1,13 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '../../contexts/AuthContext'
 import ProtectedRoute from './ProtectedRoute'
 import type { AuthUser } from '../../types/auth'
+
+vi.mock('../../services/authRepository', () => ({
+  refrescarSesionInicial: async () => JSON.parse(localStorage.getItem(SESION_KEY) ?? 'null'),
+}))
 
 const SESION_KEY = 'nexocommerce.mockSession.v1'
 
@@ -25,7 +29,7 @@ describe('ProtectedRoute', () => {
     localStorage.clear()
   })
 
-  it('redirige a /login cuando no hay sesion', () => {
+  it('redirige a /login cuando no hay sesion', async () => {
     render(
       <AuthProvider>
         <MemoryRouter initialEntries={['/perfil']}>
@@ -39,11 +43,11 @@ describe('ProtectedRoute', () => {
       </AuthProvider>,
     )
 
-    expect(screen.getByText('Pantalla de login')).toBeTruthy()
+    expect(await screen.findByText('Pantalla de login')).toBeTruthy()
     expect(screen.queryByText('Perfil')).toBeNull()
   })
 
-  it('deja pasar al usuario con sesion', () => {
+  it('deja pasar al usuario con sesion', async () => {
     dejarSesion('CLIENTE')
     render(
       <AuthProvider>
@@ -58,6 +62,6 @@ describe('ProtectedRoute', () => {
       </AuthProvider>,
     )
 
-    expect(screen.getByText('Perfil')).toBeTruthy()
+    expect(await screen.findByText('Perfil')).toBeTruthy()
   })
 })

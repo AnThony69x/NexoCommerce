@@ -1,4 +1,4 @@
-import { AdminMockProvider } from '../contexts/AdminMockContext'
+import { AdminProvider } from '../contexts/AdminContext'
 import AdminLayout from './AdminLayout'
 
 /**
@@ -7,8 +7,8 @@ import AdminLayout from './AdminLayout'
  */
 export default function AdminArea() {
   return (
-    <AdminMockProvider>
+    <AdminProvider>
       <AdminLayout />
-    </AdminMockProvider>
+    </AdminProvider>
   )
 }

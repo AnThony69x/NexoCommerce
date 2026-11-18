@@ -11,7 +11,7 @@ import { imagenProducto } from '../../utils/imagenProducto'
 /**
  * Ids numéricos de los destacados (catálogo actual: 1 torta jardín, 5 caja
  * dulce, 8 taza flores, 2 cheesecake). El listado completo está en
- * src/data/products.mock.ts y en el backend real.
+ * el catálogo del backend.
  */
 const destacadosIds = [1, 5, 8, 2]
 

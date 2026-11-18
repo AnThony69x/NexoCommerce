@@ -14,8 +14,7 @@ import {
   IconoPublicacion,
   IconoUsuarios,
 } from '../components/admin/AdminIcons'
-import { useAdminMock } from '../contexts/AdminMockContext'
-import { config } from '../config/app'
+import { useAdmin } from '../contexts/AdminContext'
 import { useAuth } from '../hooks/useAuth'
 
 const navegacion = [
@@ -83,9 +82,6 @@ function SidebarContenido({ onNavegar }: { onNavegar?: () => void }) {
         <p className="truncate text-[11px] text-stone-400">
           {user?.correo ?? ''}
         </p>
-        <p className="mt-1 inline-block rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
-          {config.mockMode ? 'Mock local' : 'Modo API'}
-        </p>
       </div>
     </div>
   )
@@ -93,7 +89,7 @@ function SidebarContenido({ onNavegar }: { onNavegar?: () => void }) {
 
 export default function AdminLayout() {
   const [menuAbierto, setMenuAbierto] = useState(false)
-  const { cargando, error, recargar } = useAdminMock()
+  const { cargando, error, recargar } = useAdmin()
 
   return (
     <div className="min-h-screen bg-stone-100">

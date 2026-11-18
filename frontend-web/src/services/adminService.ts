@@ -154,10 +154,6 @@ function aPago(api: ApiRecord): AdminPayment {
     fecha: String(api.fecha_pago ?? ''),
     comprobanteId:
       multimediaId === null || multimediaId === undefined ? undefined : String(multimediaId),
-    comprobanteMock:
-      multimediaId === null || multimediaId === undefined
-        ? undefined
-        : `/multimedia/${String(multimediaId)}/archivo`,
   }
 }
 

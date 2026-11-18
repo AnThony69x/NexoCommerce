@@ -7,7 +7,7 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import PublicationForm from '../../components/admin/PublicationForm'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, AdminPublication } from '../../types/admin'
 
 export default function AdminPublicationsPage() {
@@ -18,7 +18,7 @@ export default function AdminPublicationsPage() {
     crearPublicacion,
     actualizarPublicacion,
     alternarPublicacion,
-  } = useAdminMock()
+  } = useAdmin()
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editando, setEditando] = useState<AdminPublication | undefined>(undefined)
   const [confirmando, setConfirmando] = useState<AdminPublication | undefined>(

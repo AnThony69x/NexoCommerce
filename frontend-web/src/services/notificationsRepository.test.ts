@@ -1,10 +1,35 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   listarNotificaciones,
   marcarLeida,
 } from './notificationsRepository'
 
-describe('notificationsRepository (mock)', () => {
+let leida = false
+
+vi.mock('./api', () => ({
+  apiClient: {
+    get: async () => ({
+      data: { data: [aviso(2, leida), aviso(1, true)], meta: { total_no_leidas: leida ? 0 : 1 } },
+    }),
+    patch: async (ruta: string) => {
+      if (ruta !== '/notificaciones/2/leida') throw new Error('El aviso no existe.')
+      leida = true
+      return { data: { data: aviso(2, true) } }
+    },
+  },
+}))
+
+function aviso(id: number, leida: boolean) {
+  return {
+    id, pedido_id: null, leida, titulo: 'Aviso', mensaje: 'Aviso de prueba',
+    creado_en: `2026-11-0${id}T00:00:00Z`,
+    fecha_lectura: leida ? '2026-11-03T00:00:00Z' : null,
+  }
+}
+
+beforeEach(() => { leida = false })
+
+describe('notificationsRepository', () => {
   it('lista los avisos con el total de no leidas', async () => {
     const resultado = await listarNotificaciones()
 

@@ -1,37 +1,15 @@
-/**
- * Repositorio de productos: única puerta de acceso de la UI a productos.
- * Aquí se centraliza la decisión mock/real (nunca dentro de componentes):
- *
- *   VITE_MOCK_MODE=true  → datos locales (data/products.mock), sin red.
- *   VITE_MOCK_MODE=false → productsService (API real).
- *
- * Sin fallback silencioso: en modo real los errores se propagan para que la
- * UI muestre loading / error con reintento / empty state. Ambos caminos
- * devuelven los mismos tipos (Product y ProductDetalle), así la UI ignora el
- * origen de los datos.
- *
- * Las consultas compuestas (por categoría, relacionados, destacados) se
- * apoyan en listarProductos() para que también cambien de origen con el modo.
- */
-import { config } from '../config/app'
-import {
-  CATEGORIA_DETALLES,
-  CATEGORIA_REPOSTERIA,
-  CATEGORIA_SUBLIMACION,
-  productsMock,
-  productosDetalleMock,
-} from '../data/products.mock'
 import {
   listarProductos as listarProductosApi,
   obtenerProducto as obtenerProductoApi,
 } from './productsService'
 import type { Product, ProductDetalle } from '../types/product'
 
-export { CATEGORIA_DETALLES, CATEGORIA_REPOSTERIA, CATEGORIA_SUBLIMACION }
+export const CATEGORIA_DETALLES = 'Detalles personalizados'
+export const CATEGORIA_REPOSTERIA = 'Repostería'
+export const CATEGORIA_SUBLIMACION = 'Sublimación'
 
-/** Catálogo completo de productos activos (mock o API según el modo). */
+/** Catálogo completo de productos activos. */
 export async function listarProductos(): Promise<Product[]> {
-  if (config.mockMode) return productsMock
   return listarProductosApi()
 }
 
@@ -43,9 +21,6 @@ export async function obtenerProducto(
   id: number,
 ): Promise<ProductDetalle | null> {
   if (!Number.isInteger(id)) return null
-  if (config.mockMode) {
-    return productosDetalleMock.find((item) => item.id === id) ?? null
-  }
   return obtenerProductoApi(id)
 }
 

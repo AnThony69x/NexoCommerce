@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 /**
- * Capa de datos del panel: fixtures en modo mock y endpoints existentes en modo API.
+ * Capa de datos del panel: consultas y acciones administrativas mediante la API.
  * Las páginas usan una sola interfaz; los mappers HTTP viven en adminService.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -15,28 +15,13 @@ import type {
   AdminProductionConfig,
   AdminPublication,
   AdminUser,
-  PedidoEstado,
   StoreConfiguration,
 } from '../types/admin'
 import { PEDIDO_FLUJO } from '../types/admin'
-import { adminCategoriesMock } from '../data/admin/adminCategories.mock'
-import { adminMediaMock } from '../data/admin/adminMedia.mock'
-import { adminOrdersMock } from '../data/admin/adminOrders.mock'
-import { adminPaymentsMock } from '../data/admin/adminPayments.mock'
-import { adminProductsMock } from '../data/admin/adminProducts.mock'
-import { adminProductionMock } from '../data/admin/adminProduction.mock'
-import { adminPublicationsMock } from '../data/admin/adminPublications.mock'
-import { ADMIN_PRINCIPAL_ID, adminUsersMock } from '../data/admin/adminUsers.mock'
-import { storeConfigurationMock } from '../data/admin/storeConfiguration.mock'
-import { config } from '../config/app'
 import * as adminApi from '../services/adminService'
 import { useAuth } from '../hooks/useAuth'
 
-function crearId(prefijo: string): string {
-  return `${prefijo}-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`
-}
-
-export type AdminMockContextValue = {
+export type AdminContextValue = {
   cargando: boolean
   error: string | null
   recargar: () => Promise<void>
@@ -74,178 +59,19 @@ export type AdminMockContextValue = {
   actualizarTienda: (dato: StoreConfiguration) => void | Promise<void>
 }
 
-export const AdminMockContext = createContext<AdminMockContextValue | undefined>(
+export const AdminContext = createContext<AdminContextValue | undefined>(
   undefined,
 )
 
-function AdminMockDataProvider({ children }: { children: ReactNode }) {
-  const [productos, setProductos] = useState<AdminProduct[]>(adminProductsMock)
-  const [categorias, setCategorias] =
-    useState<AdminCategory[]>(adminCategoriesMock)
-  const [pedidos, setPedidos] = useState<AdminOrder[]>(adminOrdersMock)
-  const [pagos, setPagos] = useState<AdminPayment[]>(adminPaymentsMock)
-  const [usuarios, setUsuarios] = useState<AdminUser[]>(adminUsersMock)
-  const [publicaciones, setPublicaciones] =
-    useState<AdminPublication[]>(adminPublicationsMock)
-  const [multimedia, setMultimedia] = useState<AdminMedia[]>(adminMediaMock)
-  const [produccion, setProduccion] =
-    useState<AdminProductionConfig[]>(adminProductionMock)
-  const [tienda, setTienda] = useState<StoreConfiguration>(storeConfigurationMock)
-
-  const valor = useMemo<AdminMockContextValue>(
-    () => ({
-      cargando: false,
-      error: null,
-      recargar: async () => {},
-      dashboard: {
-        productos_activos: productos.filter((item) => item.activo).length,
-        pedidos_pendientes: pedidos.filter((item) => item.estado === 'PENDIENTE').length,
-        pagos_pendientes: pagos.filter((item) => item.estado === 'PENDIENTE').length,
-        usuarios_registrados: usuarios.length,
-        pedidos_recientes: pedidos.slice(0, 5).map((item) => ({ id: item.id, estado: item.estado })),
-        productos_stock_bajo: productos
-          .filter((item) => item.activo && item.tipo === 'DETALLE' && (item.stock ?? 0) <= 5)
-          .map((item) => ({ id: item.id, nombre: item.nombre, stock: item.stock ?? 0 }))
-          .slice(0, 10),
-      },
-      productos,
-      crearProducto: (dato) =>
-        setProductos((actual) => [...actual, { ...dato, id: crearId('prod') }]),
-      actualizarProducto: (id, dato) =>
-        setProductos((actual) =>
-          actual.map((item) => (item.id === id ? { ...dato, id } : item)),
-        ),
-      alternarProducto: (id) =>
-        setProductos((actual) =>
-          actual.map((item) =>
-            item.id === id ? { ...item, activo: !item.activo } : item,
-          ),
-        ),
-      categorias,
-      crearCategoria: (dato) =>
-        setCategorias((actual) => [...actual, { ...dato, id: crearId('cat') }]),
-      actualizarCategoria: (id, dato) =>
-        setCategorias((actual) =>
-          actual.map((item) => (item.id === id ? { ...dato, id } : item)),
-        ),
-      alternarCategoria: (id) =>
-        setCategorias((actual) =>
-          actual.map((item) =>
-            item.id === id ? { ...item, activo: !item.activo } : item,
-          ),
-        ),
-      pedidos,
-      obtenerPedido: (id) => pedidos.find((item) => item.id === id),
-      avanzarPedido: (id) => {
-        let avanzo = false
-        setPedidos((actual) =>
-          actual.map((item) => {
-            if (item.id !== id) return item
-            const indice = PEDIDO_FLUJO.indexOf(item.estado)
-            const siguiente: PedidoEstado | undefined = PEDIDO_FLUJO[indice + 1]
-            if (indice < 0 || !siguiente) return item
-            avanzo = true
-            return { ...item, estado: siguiente }
-          }),
-        )
-        return avanzo
-      },
-      pagos,
-      cambiarEstadoPago: (id, estado) =>
-        setPagos((actual) =>
-          actual.map((item) =>
-            item.id === id ? { ...item, estado } : item,
-          ),
-        ),
-      usuarios,
-      alternarUsuario: (id) => {
-        if (id === ADMIN_PRINCIPAL_ID) return false
-        setUsuarios((actual) =>
-          actual.map((item) =>
-            item.id === id ? { ...item, activo: !item.activo } : item,
-          ),
-        )
-        return true
-      },
-      publicaciones,
-      crearPublicacion: (dato) =>
-        setPublicaciones((actual) => [...actual, { ...dato, id: crearId('pub') }]),
-      actualizarPublicacion: (id, dato) =>
-        setPublicaciones((actual) =>
-          actual.map((item) => (item.id === id ? { ...dato, id } : item)),
-        ),
-      alternarPublicacion: (id) =>
-        setPublicaciones((actual) =>
-          actual.map((item) =>
-            item.id === id ? { ...item, activo: !item.activo } : item,
-          ),
-        ),
-      multimedia,
-      subirMultimedia: async (archivo, destino) => {
-        const url = URL.createObjectURL(archivo)
-        const multimedia = {
-          id: crearId('med'),
-          nombre: archivo.name,
-          tipoMime: archivo.type,
-          tamanoKb: Math.max(1, Math.round(archivo.size / 1024)),
-          url,
-          destino,
-          activo: true,
-        }
-        setMultimedia((actual) => [...actual, multimedia])
-        return multimedia
-      },
-      alternarMultimedia: (id) =>
-        setMultimedia((actual) =>
-          actual.map((item) =>
-            item.id === id ? { ...item, activo: !item.activo } : item,
-          ),
-        ),
-      produccion,
-      crearProduccion: (dato) =>
-        setProduccion((actual) => [...actual, { ...dato, id: crearId('cap') }]),
-      actualizarProduccion: (id, dato) =>
-        setProduccion((actual) =>
-          actual.map((item) => (item.id === id ? { ...dato, id } : item)),
-        ),
-      alternarProduccion: (id) =>
-        setProduccion((actual) =>
-          actual.map((item) =>
-            item.id === id ? { ...item, activo: !item.activo } : item,
-          ),
-        ),
-      tienda,
-      actualizarTienda: (dato) => setTienda(dato),
-    }),
-    [
-      productos,
-      categorias,
-      pedidos,
-      pagos,
-      usuarios,
-      publicaciones,
-      multimedia,
-      produccion,
-      tienda,
-    ],
-  )
-
-  return (
-    <AdminMockContext.Provider value={valor}>
-      {children}
-    </AdminMockContext.Provider>
-  )
-}
-
-export function useAdminMock(): AdminMockContextValue {
-  const contexto = useContext(AdminMockContext)
+export function useAdmin(): AdminContextValue {
+  const contexto = useContext(AdminContext)
   if (!contexto) {
-    throw new Error('useAdminMock debe usarse dentro de AdminMockProvider')
+    throw new Error('useAdmin debe usarse dentro de AdminProvider')
   }
   return contexto
 }
 
-function AdminBackendProvider({ children }: { children: ReactNode }) {
+export function AdminProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [productos, setProductos] = useState<AdminProduct[]>([])
   const [categorias, setCategorias] = useState<AdminCategory[]>([])
@@ -255,7 +81,11 @@ function AdminBackendProvider({ children }: { children: ReactNode }) {
   const [publicaciones, setPublicaciones] = useState<AdminPublication[]>([])
   const [multimedia, setMultimedia] = useState<AdminMedia[]>([])
   const [produccion, setProduccion] = useState<AdminProductionConfig[]>([])
-  const [tienda, setTienda] = useState<StoreConfiguration>(storeConfigurationMock)
+  const [tienda, setTienda] = useState<StoreConfiguration>({
+    nombre_tienda: '', logoUrl: '', faviconUrl: '',
+    color_primario: '', color_secundario: '', color_acento: '',
+    color_fondo: '', color_texto: '', telefono: '', correo: '', direccion: '',
+  })
   const [dashboard, setDashboard] = useState<AdminDashboard>({
     productos_activos: 0,
     pedidos_pendientes: 0,
@@ -312,7 +142,7 @@ function AdminBackendProvider({ children }: { children: ReactNode }) {
     await recargar()
   }, [recargar])
 
-  const valor = useMemo<AdminMockContextValue>(() => ({
+  const valor = useMemo<AdminContextValue>(() => ({
     cargando,
     error,
     recargar,
@@ -385,11 +215,6 @@ function AdminBackendProvider({ children }: { children: ReactNode }) {
     }),
   }), [cargando, error, recargar, dashboard, productos, categorias, pedidos, pagos, usuarios, publicaciones, multimedia, produccion, tienda, ejecutarYRecargar, user?.id])
 
-  return <AdminMockContext.Provider value={valor}>{children}</AdminMockContext.Provider>
+  return <AdminContext.Provider value={valor}>{children}</AdminContext.Provider>
 }
 
-export function AdminMockProvider({ children }: { children: ReactNode }) {
-  return config.mockMode
-    ? <AdminMockDataProvider>{children}</AdminMockDataProvider>
-    : <AdminBackendProvider>{children}</AdminBackendProvider>
-}

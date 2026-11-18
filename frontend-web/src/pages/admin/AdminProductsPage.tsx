@@ -8,10 +8,9 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import ProductForm from '../../components/admin/ProductForm'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, AdminProduct } from '../../types/admin'
 import { resolverUrlMultimedia } from '../../utils/multimedia'
-import { config } from '../../config/app'
 import { obtenerProductoAdmin } from '../../services/adminService'
 
 const claseInput =
@@ -19,7 +18,7 @@ const claseInput =
 
 export default function AdminProductsPage() {
   const { productos, categorias, crearProducto, actualizarProducto, alternarProducto } =
-    useAdminMock()
+    useAdmin()
   const [busqueda, setBusqueda] = useState('')
   const [filtroCategoria, setFiltroCategoria] = useState('todas')
   const [filtroEstado, setFiltroEstado] = useState('todos')
@@ -69,7 +68,7 @@ export default function AdminProductsPage() {
   async function abrirEditar(item: AdminProduct) {
     setMensaje(null)
     try {
-      const producto = config.mockMode ? item : await obtenerProductoAdmin(item.id, categorias)
+      const producto = await obtenerProductoAdmin(item.id, categorias)
       setEditando(producto)
       setMostrarFormulario(true)
     } catch (error) {
@@ -222,7 +221,7 @@ export default function AdminProductsPage() {
               </td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-2 text-sm">
-                  {item.activo && !config.mockMode && (
+                  {item.activo && (
                     <Link
                       to={`/productos/${item.id}`}
                       target="_blank"

@@ -1,27 +1,6 @@
-import type {
-  AdminQuickAccessItem,
-  AdminSummaryItem,
-} from '../types/admin'
+import type { AdminQuickAccessItem } from '../types/admin'
 
-export const adminSummaryMock: AdminSummaryItem[] = [
-  {
-    etiqueta: 'Productos activos',
-    valor: '24',
-    detalle: 'Dato mock temporal',
-  },
-  {
-    etiqueta: 'Pedidos pendientes',
-    valor: '6',
-    detalle: 'Dato mock temporal',
-  },
-  {
-    etiqueta: 'Pagos por verificar',
-    valor: '3',
-    detalle: 'Dato mock temporal',
-  },
-]
-
-export const adminQuickAccessMock: AdminQuickAccessItem[] = [
+export const adminQuickAccess: AdminQuickAccessItem[] = [
   {
     titulo: 'Productos',
     descripcion: 'Catálogo y personalización',

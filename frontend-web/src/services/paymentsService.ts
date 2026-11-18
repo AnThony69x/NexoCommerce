@@ -1,5 +1,4 @@
 import { apiClient } from './api'
-import { config } from '../config/app'
 import type { ApiEnvelope } from '../types/api'
 import type { PaymentMethod } from '../types/checkout'
 
@@ -12,7 +11,6 @@ export async function registrarPago(datos: {
   referencia?: string
   comprobante?: File | null
 }): Promise<void> {
-  if (config.mockMode) return
 
   let multimediaId: number | undefined
   if (datos.metodo === 'TRANSFERENCIA') {

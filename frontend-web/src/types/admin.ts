@@ -94,7 +94,6 @@ export interface AdminPayment {
   estado: PagoEstado
   referencia: string
   fecha: string
-  comprobanteMock?: string
   comprobanteId?: string
 }
 

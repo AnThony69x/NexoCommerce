@@ -8,7 +8,6 @@ type ProductCustomizationProps = {
   product: ProductDetalle
   value: CartItemConfiguration
   autenticado: boolean
-  modoMock: boolean
   onChange: (value: CartItemConfiguration) => void
 }
 
@@ -19,7 +18,6 @@ export default function ProductCustomization({
   product,
   value,
   autenticado,
-  modoMock,
   onChange,
 }: ProductCustomizationProps) {
   const [subiendo, setSubiendo] = useState(false)
@@ -124,7 +122,7 @@ export default function ProductCustomization({
                 ))}
               </select>
             </label>
-            {!modoMock && (
+            {(
               <label className="flex flex-col gap-2 text-sm text-stone-600 sm:col-span-2">
                 <span>O sube tu propio diseño (JPG, PNG o WebP; máximo 5 MB)</span>
                 <input

@@ -37,8 +37,7 @@ export default function RegisterPage() {
   async function handleRegister(data: RegisterFormData) {
     setEnviando(true)
     try {
-      // El registro público siempre crea CLIENTE. El repositorio decide
-      // mock o API real según VITE_MOCK_MODE (términos/versión enviados allí).
+      // El registro público siempre crea CLIENTE.
       await registrar({
         nombre_completo: data.fullName,
         correo: data.email,

@@ -7,22 +7,21 @@ import AdminFeedback from '../../components/admin/AdminFeedback'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import { PEDIDO_FLUJO } from '../../types/admin'
 import type { AdminFeedbackMessage } from '../../types/admin'
 import { obtenerPedidoAdmin } from '../../services/adminService'
-import { config } from '../../config/app'
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { obtenerPedido, avanzarPedido, cargando } = useAdminMock()
+  const { obtenerPedido, avanzarPedido, cargando } = useAdmin()
   const [confirmando, setConfirmando] = useState(false)
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
   const [pedidoDetalle, setPedidoDetalle] = useState<ReturnType<typeof obtenerPedido>>()
-  const [cargandoDetalle, setCargandoDetalle] = useState(!config.mockMode)
+  const [cargandoDetalle, setCargandoDetalle] = useState(true)
 
   useEffect(() => {
-    if (!id || config.mockMode) return
+    if (!id) return
     let cancelado = false
     setPedidoDetalle(undefined)
     setCargandoDetalle(true)

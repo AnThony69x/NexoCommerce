@@ -5,12 +5,12 @@ import AdminFeedback from '../../components/admin/AdminFeedback'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, AdminMedia } from '../../types/admin'
 import { resolverUrlMultimedia } from '../../utils/multimedia'
 
 export default function AdminMediaPage() {
-  const { multimedia, subirMultimedia, alternarMultimedia, recargar, cargando } = useAdminMock()
+  const { multimedia, subirMultimedia, alternarMultimedia, recargar, cargando } = useAdmin()
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
   const [vistaPrevia, setVistaPrevia] = useState<string | null>(null)
   const [destino, setDestino] = useState('productos')

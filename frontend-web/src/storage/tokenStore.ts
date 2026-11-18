@@ -1,11 +1,3 @@
-/**
- * Token de sesión en localStorage.
- * - Modo mock: token simulado determinista (crearTokenMock), solo desarrollo.
- * - Modo real (VITE_MOCK_MODE=false): el token Sanctum devuelto por
- *   POST /auth/login; services/api.ts lo adjunta como Bearer en cada petición.
- */
-import type { AuthUser } from '../types/auth'
-
 const TOKEN_KEY = 'nexocommerce.mockToken.v1'
 
 function leer(clave: string): string | null {
@@ -17,7 +9,8 @@ function leer(clave: string): string | null {
 }
 
 export function cargarToken(): string | null {
-  return leer(TOKEN_KEY)
+  const token = leer(TOKEN_KEY)
+  return token?.startsWith('mock-token-') ? null : token
 }
 
 export function guardarToken(token: string): void {
@@ -34,9 +27,4 @@ export function limpiarToken(): void {
   } catch {
     // Sin almacenamiento: nada que limpiar.
   }
-}
-
-/** Token simulado determinista por usuario (solo modo mock). */
-export function crearTokenMock(usuario: AuthUser): string {
-  return `mock-token-${usuario.id}`
 }

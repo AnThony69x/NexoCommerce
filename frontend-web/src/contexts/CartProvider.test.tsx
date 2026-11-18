@@ -1,7 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { CartProvider } from './CartProvider'
-import { AuthProvider } from './AuthContext'
 import { useCart } from '../hooks/useCart'
 import type { CartProduct } from './CartContext'
 
@@ -17,6 +16,38 @@ function producto(
     stock: 3,
     ...over,
   }
+}
+
+const usuario = { id: 1 }
+vi.mock('../hooks/useAuth', () => ({ useAuth: () => ({ user: usuario }) }))
+let cantidadRemota = 0
+
+function snapshot() {
+  const subtotal = cantidadRemota * 45
+  return {
+    productos: cantidadRemota ? [{ ...producto(), cantidad: cantidadRemota }] : [],
+    subtotal,
+    total: subtotal + (cantidadRemota ? 5 : 0),
+  }
+}
+
+vi.mock('../services/cartService', () => ({
+  obtenerCarrito: async () => snapshot(),
+  agregarAlCarrito: async (_id: number, cantidad: number) => {
+    if (cantidad === 1) throw new Error('Sin stock')
+    cantidadRemota = Math.min(cantidadRemota + cantidad, 3)
+    return snapshot()
+  },
+  actualizarCantidadCarrito: async (_id: string, cantidad: number) => {
+    cantidadRemota = Math.min(cantidad, 3)
+    return snapshot()
+  },
+  eliminarDelCarrito: async () => { cantidadRemota = 0; return snapshot() },
+  vaciarCarritoRemoto: async () => { cantidadRemota = 0; return snapshot() },
+}))
+
+async function pulsar(nombre: string) {
+  await act(async () => { fireEvent.click(screen.getByText(nombre)) })
 }
 
 /**
@@ -61,11 +92,7 @@ function Sonda({ item }: { item: Omit<CartProduct, 'cantidad'> }) {
 
 function montarCarrito(item = producto()) {
   return render(
-    <AuthProvider>
-      <CartProvider>
-        <Sonda item={item} />
-      </CartProvider>
-    </AuthProvider>,
+    <CartProvider><Sonda item={item} /></CartProvider>,
   )
 }
 
@@ -75,63 +102,63 @@ function valorDe(pruebaId: string): string {
 
 describe('CartProvider', () => {
   beforeEach(() => {
-    localStorage.clear()
+    cantidadRemota = 0
   })
 
-  it('no agrega productos sin stock', () => {
+  it('no agrega productos sin stock', async () => {
     montarCarrito()
-    fireEvent.click(screen.getByText('agregar sin stock'))
+    await pulsar('agregar sin stock')
     expect(valorDe('unidades')).toBe('0')
     expect(valorDe('subtotal')).toBe('0')
   })
 
-  it('calcula subtotal, envio y total', () => {
+  it('calcula subtotal, envio y total', async () => {
     montarCarrito()
-    fireEvent.click(screen.getByText('agregar'))
+    await pulsar('agregar')
     expect(valorDe('unidades')).toBe('2')
     expect(valorDe('subtotal')).toBe('90')
     // 90 de productos + 5 de envio
     expect(valorDe('total')).toBe('95')
   })
 
-  it('acumula el mismo producto sin superar el stock', () => {
+  it('acumula el mismo producto sin superar el stock', async () => {
     montarCarrito()
-    fireEvent.click(screen.getByText('agregar'))
-    fireEvent.click(screen.getByText('agregar'))
+    await pulsar('agregar')
+    await pulsar('agregar')
     expect(valorDe('unidades')).toBe('3')
     expect(valorDe('items')).toBe('1:3')
   })
 
-  it('aumentar no pasa del stock y disminuir no baja de 1', () => {
+  it('aumentar no pasa del stock y disminuir no baja de 1', async () => {
     montarCarrito()
-    fireEvent.click(screen.getByText('agregar'))
-    fireEvent.click(screen.getByText('agregar'))
-    fireEvent.click(screen.getByText('aumentar'))
+    await pulsar('agregar')
+    await pulsar('agregar')
+    await pulsar('aumentar')
     expect(valorDe('items')).toBe('1:3')
-    fireEvent.click(screen.getByText('disminuir'))
-    fireEvent.click(screen.getByText('disminuir'))
-    fireEvent.click(screen.getByText('disminuir'))
+    await pulsar('disminuir')
+    await pulsar('disminuir')
+    await pulsar('disminuir')
     expect(valorDe('items')).toBe('1:1')
   })
 
-  it('elimina y vacia el carrito', () => {
+  it('elimina y vacia el carrito', async () => {
     montarCarrito()
-    fireEvent.click(screen.getByText('agregar'))
-    fireEvent.click(screen.getByText('eliminar'))
+    await pulsar('agregar')
+    await pulsar('eliminar')
     expect(valorDe('unidades')).toBe('0')
-    fireEvent.click(screen.getByText('agregar'))
-    fireEvent.click(screen.getByText('vaciar'))
+    await pulsar('agregar')
+    await pulsar('vaciar')
     expect(valorDe('unidades')).toBe('0')
     expect(valorDe('total')).toBe('0')
   })
 
-  it('persiste el carrito y lo restaura al volver a montar', () => {
+  it('vuelve a cargar el carrito remoto al montar', async () => {
     const { unmount } = montarCarrito()
-    fireEvent.click(screen.getByText('agregar'))
+    await pulsar('agregar')
     unmount()
 
     montarCarrito()
-    expect(valorDe('unidades')).toBe('2')
+    await waitFor(() => expect(valorDe('unidades')).toBe('2'))
     expect(valorDe('subtotal')).toBe('90')
   })
 })

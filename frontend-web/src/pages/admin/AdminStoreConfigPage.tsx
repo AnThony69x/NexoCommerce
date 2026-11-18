@@ -2,11 +2,11 @@ import { useState } from 'react'
 import AdminFeedback from '../../components/admin/AdminFeedback'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import StoreConfigForm from '../../components/admin/StoreConfigForm'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, StoreConfiguration } from '../../types/admin'
 
 export default function AdminStoreConfigPage() {
-  const { tienda, actualizarTienda, cargando, error, recargar } = useAdminMock()
+  const { tienda, actualizarTienda, cargando, error, recargar } = useAdmin()
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
 
   async function guardar(dato: StoreConfiguration) {

@@ -7,12 +7,12 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import CategoryForm from '../../components/admin/CategoryForm'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import type { AdminCategory, AdminFeedbackMessage } from '../../types/admin'
 
 export default function AdminCategoriesPage() {
   const { categorias, crearCategoria, actualizarCategoria, alternarCategoria } =
-    useAdminMock()
+    useAdmin()
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editando, setEditando] = useState<AdminCategory | undefined>(undefined)
   const [confirmando, setConfirmando] = useState<AdminCategory | undefined>(undefined)

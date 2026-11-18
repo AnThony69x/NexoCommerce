@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatCard from '../../components/admin/AdminStatCard'
 import AdminTable from '../../components/admin/AdminTable'
-import { useAdminMock } from '../../contexts/AdminMockContext'
-import { adminQuickAccessMock } from '../../data/adminDashboard.mock'
+import { useAdmin } from '../../contexts/AdminContext'
+import { adminQuickAccess } from '../../data/adminQuickAccess'
 
 export default function AdminDashboardPage() {
-  const { dashboard, recargar, cargando } = useAdminMock()
+  const { dashboard, recargar, cargando } = useAdmin()
 
   return (
     <div className="space-y-6">
@@ -83,7 +83,7 @@ export default function AdminDashboardPage() {
       <AdminTable
         encabezados={['Módulo', 'Descripción', 'Acción']}
       >
-        {adminQuickAccessMock.map((acceso) => (
+        {adminQuickAccess.map((acceso) => (
           <tr key={acceso.titulo} className="border-b border-stone-100">
             <td className="px-4 py-3 font-medium text-stone-800">
               {acceso.titulo}

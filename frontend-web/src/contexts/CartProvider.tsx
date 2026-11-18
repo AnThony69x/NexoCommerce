@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { CartContext, type CartItemConfiguration, type CartProduct } from './CartContext'
-import { cargarCarrito, guardarCarrito } from '../storage/cartStore'
-import { clampCantidad } from '../utils/validation'
-import { config } from '../config/app'
 import { useAuth } from '../hooks/useAuth'
 import {
   agregarAlCarrito,
@@ -14,12 +11,10 @@ import {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const [productos, setProductos] = useState<CartProduct[]>(() =>
-    config.mockMode ? cargarCarrito() : [],
-  )
+  const [productos, setProductos] = useState<CartProduct[]>([])
   const [subtotalApi, setSubtotalApi] = useState(0)
   const [totalApi, setTotalApi] = useState(0)
-  const [cargando, setCargando] = useState(!config.mockMode && !!user)
+  const [cargando, setCargando] = useState(!!user)
   const [error, setError] = useState<string | null>(null)
 
   const aplicarCarrito = useCallback((snapshot: Awaited<ReturnType<typeof obtenerCarrito>>) => {
@@ -29,7 +24,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const recargar = useCallback(async () => {
-    if (config.mockMode || !user) return
+    if (!user) return
     setCargando(true)
     setError(null)
     try {
@@ -42,11 +37,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [aplicarCarrito, user])
 
   useEffect(() => {
-    if (config.mockMode) guardarCarrito(productos)
-  }, [productos])
-
-  useEffect(() => {
-    if (config.mockMode) return
     if (user) {
       void recargar()
     } else {
@@ -74,36 +64,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     cantidad: number,
     configuracion: CartItemConfiguration = {},
   ) {
-    if (config.mockMode) {
-      const stock = producto.stock ?? 999
-      if (stock <= 0) return
-      const segura = clampCantidad(cantidad, stock)
-      if (segura < 1) return
-      const tieneConfiguracion = Boolean(
-        configuracion.comentario?.trim() || configuracion.diseno_torta_id ||
-        configuracion.plantilla_diseno_id || configuracion.diseno_personalizado_id,
-      )
-      const idLinea = tieneConfiguracion
-        ? `${producto.id}:${configuracion.diseno_torta_id ?? ''}:${configuracion.plantilla_diseno_id ?? ''}:${configuracion.diseno_personalizado_id ?? ''}:${configuracion.comentario?.trim() ?? ''}`
-        : producto.id
-      setProductos((actuales) => {
-        const existente = actuales.find((item) => item.id === idLinea)
-        const personalizado: Omit<CartProduct, 'cantidad'> = {
-          ...producto,
-          id: idLinea,
-          comentario: configuracion.comentario?.trim() || null,
-          configuracion: configuracion.diseno_personalizado_id
-            ? { tipo: 'PERSONALIZADO', id: configuracion.diseno_personalizado_id, nombre: 'Diseño personalizado', costo_adicional: 0 }
-            : null,
-        }
-        return existente
-          ? actuales.map((item) => item.id === idLinea
-            ? { ...item, cantidad: clampCantidad(item.cantidad + segura, item.stock ?? 999) }
-            : item)
-          : [...actuales, { ...personalizado, cantidad: segura }]
-      })
-      return
-    }
     if (!user) {
       setError('Inicia sesión para agregar productos al carrito.')
       return
@@ -112,37 +72,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   async function cambiarCantidad(id: string, cantidad: number) {
-    if (config.mockMode) {
-      setProductos((actuales) => actuales.map((item) => item.id === id
-        ? { ...item, cantidad: Math.max(1, clampCantidad(cantidad, item.stock ?? 999)) }
-        : item))
-      return
-    }
     await ejecutarApi(() => actualizarCantidadCarrito(id, cantidad))
   }
 
   async function eliminarProducto(id: string) {
-    if (config.mockMode) {
-      setProductos((actuales) => actuales.filter((item) => item.id !== id))
-      return
-    }
     await ejecutarApi(() => eliminarDelCarrito(id))
   }
 
   async function vaciarCarrito() {
-    if (config.mockMode) {
-      setProductos([])
-      return
-    }
     await ejecutarApi(vaciarCarritoRemoto)
   }
 
   const totalUnidades = productos.reduce((suma, item) => suma + item.cantidad, 0)
-  const subtotal = config.mockMode
-    ? productos.reduce((suma, item) => suma + item.precioUnitario * item.cantidad, 0)
-    : subtotalApi
-  const costoEnvio = config.mockMode && productos.length > 0 ? 5 : 0
-  const total = config.mockMode ? subtotal + costoEnvio : totalApi
+  const subtotal = subtotalApi
+  const costoEnvio = 0
+  const total = totalApi
 
   return (
     <CartContext.Provider value={{

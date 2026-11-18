@@ -28,7 +28,7 @@ const PerfilPage = lazy(() => import('../pages/perfil/PerfilPage'))
 const MisPedidosPage = lazy(() => import('../pages/orders/MisPedidosPage'))
 const MiPedidoDetallePage = lazy(() => import('../pages/orders/MiPedidoDetallePage'))
 const NotificacionesPage = lazy(() => import('../pages/notifications/NotificacionesPage'))
-/** Area admin: trae el layout y los mocks administrativos en un solo trozo. */
+/** Area admin: trae el layout y el contexto administrativo en un solo trozo. */
 const AdminArea = lazy(() => import('../layouts/AdminArea'))
 const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'))
 const AdminProductsPage = lazy(() => import('../pages/admin/AdminProductsPage'))

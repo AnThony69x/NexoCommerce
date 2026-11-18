@@ -55,7 +55,7 @@ export interface AuthUser {
   activo: boolean
 }
 
-/** Sesión activa: usuario de UI + token (mock o Sanctum real). */
+/** Sesión activa: usuario de UI + token Sanctum. */
 export interface SesionAuth {
   usuario: AuthUser
   token: string

@@ -361,7 +361,7 @@ frontend-web/
 │   ├── layouts/
 │   │   ├── PublicLayout.tsx
 │   │   ├── AdminLayout.tsx
-│   │   └── AdminArea.tsx        (layout admin + mocks del panel)
+│   │   └── AdminArea.tsx        (layout y contexto administrativo)
 │   │
 │   ├── pages/
 │   │   ├── auth/
@@ -450,37 +450,7 @@ Los demás servicios encapsularán las operaciones correspondientes a cada módu
 
 ## Backend en Desarrollo
 
-Frontend y Backend se desarrollan de manera independiente.
-
-Cuando una funcionalidad del Backend todavía no esté disponible, el Frontend podrá utilizar datos simulados.
-
-```text
-Mock Data
-    │
-    ▼
-Servicio
-    │
-    ▼
-Componente React
-```
-
-Posteriormente:
-
-```text
-Laravel API
-    │
-    ▼
-Servicio
-    │
-    ▼
-Componente React
-```
-
-Esto permite desarrollar las interfaces sin acoplar los componentes directamente al estado actual del Backend.
-
-Los mocks deberán respetar, siempre que exista el contrato correspondiente, la estructura definida por la API.
-
----
+El frontend consume la API Laravel mediante los servicios de `src/services`.
 
 ## Variables de Entorno
 
@@ -543,7 +513,6 @@ proxy que Vite ya trae configurado:
 
 ```env
 # .env (no se versiona)
-VITE_MOCK_MODE=false
 VITE_API_URL=/api/v1
 ```
 
@@ -573,7 +542,7 @@ configuración CORS del backend. Para producción se usa la URL completa.
 3. **Actualizar `.env`** con esa IP (`VITE_API_URL=http://192.168.X.X:8000/api/v1`).
 4. **Reiniciar** el servidor de desarrollo: `npm run dev` (Vite lee `.env` al arrancar).
 5. **Probar desde el navegador**: abrir `http://localhost:5173/catalogo` y confirmar que
-   cargan los productos del backend (en modo real, `VITE_MOCK_MODE=false`).
+   cargan los productos del backend.
 
 ### Diagnóstico de errores
 
@@ -843,7 +812,7 @@ feat(frontend): crear estructura inicial del proyecto web
 8. Las rutas privadas requieren autenticación.
 9. Las rutas administrativas requieren autenticación y rol `ADMIN`.
 10. La autorización final siempre debe ser validada por el Backend.
-11. Los módulos que todavía no dispongan de endpoints funcionales podrán trabajar temporalmente con mocks desacoplados.
+
 
 
 ---
@@ -874,7 +843,7 @@ feat(frontend): crear estructura inicial del proyecto web
 [x] Capa de servicios
 [x] Variables de entorno
 [x] Sistema de autenticación
-[x] Integración con API REST (el panel admin sigue con mocks)
+[x] Integración con API REST
 [x] Módulos del cliente
 [x] Panel administrativo
 [x] Pruebas del Frontend (Vitest + Testing Library)

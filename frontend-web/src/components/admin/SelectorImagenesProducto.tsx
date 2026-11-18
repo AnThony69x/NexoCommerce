@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react'
 import { useState } from 'react'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import { MAX_IMAGENES_PRODUCTO, resolverUrlMultimedia } from '../../utils/multimedia'
 
 type SelectorImagenesProductoProps = {
@@ -12,7 +12,7 @@ export default function SelectorImagenesProducto({
   seleccionadas,
   onCambiar,
 }: SelectorImagenesProductoProps) {
-  const { multimedia, subirMultimedia } = useAdminMock()
+  const { multimedia, subirMultimedia } = useAdmin()
   const [errorSubida, setErrorSubida] = useState<string | null>(null)
 
   const biblioteca = multimedia.filter(

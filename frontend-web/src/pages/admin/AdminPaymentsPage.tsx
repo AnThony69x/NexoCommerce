@@ -7,7 +7,7 @@ import AdminFeedback from '../../components/admin/AdminFeedback'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, AdminPayment } from '../../types/admin'
 import { abrirMultimediaPrivada } from '../../services/adminService'
 
@@ -15,7 +15,7 @@ const claseInput =
   'rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-500'
 
 export default function AdminPaymentsPage() {
-  const { pagos, cambiarEstadoPago } = useAdminMock()
+  const { pagos, cambiarEstadoPago } = useAdmin()
   const [filtroEstado, setFiltroEstado] = useState('todos')
   const [filtroMetodo, setFiltroMetodo] = useState('todos')
   const [confirmando, setConfirmando] = useState<
@@ -192,7 +192,7 @@ function ComprobanteDialog({ pago, onCerrar }: { pago: AdminPayment; onCerrar: (
   return (
     <AdminDialog titulo={`Comprobante de ${pago.pedidoNumero}`} onCerrar={onCerrar}>
       {!pago.comprobanteId ? (
-        <p>{pago.comprobanteMock ?? 'Este pago no tiene un comprobante asociado.'}</p>
+        <p>Este pago no tiene un comprobante asociado.</p>
       ) : !resultado ? (
         <p role="status">Cargando comprobante…</p>
       ) : 'error' in resultado ? (

@@ -25,7 +25,6 @@ import {
   limpiarToken,
 } from '../storage/tokenStore'
 import { SESION_EXPIRADA_EVENTO } from '../services/api'
-import { config } from '../config/app'
 import type { AuthUser, SesionAuth } from '../types/auth'
 
 type AuthContextValue = {
@@ -39,7 +38,7 @@ type AuthContextValue = {
    */
   validando: boolean
   /**
-   * Inicia sesión (mock o API real según VITE_MOCK_MODE). Lanza ApiError si
+   * Inicia sesión. Lanza ApiError si
    * falla (401 credenciales inválidas, error de red, etc.) para que la página
    * muestre el mensaje; nunca devuelve null silencioso.
    */
@@ -75,13 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // invitadas al recargar; el refresh de abajo la valida en modo real.
   const [user, setUser] = useState<AuthUser | null>(() => cargarSesion())
   const [token, setToken] = useState<string | null>(() => cargarToken())
-  // En mock la sesión local ya es válida (validando = false, sin parpadeo de
-  // "verificando"); en real se valida contra el backend y las rutas protegidas
-  // esperan a este chequeo antes de decidir si redirigen.
-  const [validando, setValidando] = useState(!config.mockMode)
+  // Las rutas protegidas esperan a que el backend valide la sesión.
+  const [validando, setValidando] = useState(true)
 
-  // Al montar: el repositorio resuelve la sesión inicial (mock = local,
-  // real = valida token contra /auth/perfil; solo 401 la descarta).
+  // Valida el token guardado contra /auth/perfil.
   useEffect(() => {
     let cancelado = false
 

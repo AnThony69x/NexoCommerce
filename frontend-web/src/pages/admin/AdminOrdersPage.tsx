@@ -5,13 +5,13 @@ import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
-import { useAdminMock } from '../../contexts/AdminMockContext'
+import { useAdmin } from '../../contexts/AdminContext'
 
 const claseInput =
   'rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-500'
 
 export default function AdminOrdersPage() {
-  const { pedidos } = useAdminMock()
+  const { pedidos } = useAdmin()
   const [filtroEstado, setFiltroEstado] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
 

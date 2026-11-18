@@ -35,7 +35,6 @@ export default function LoginPage() {
   async function handleLogin(data: LoginFormData) {
     setEnviando(true)
     try {
-      // Mock o API real según VITE_MOCK_MODE; lanza ApiError si falla.
       const user = await login(data.email, data.password)
       setAuthError('')
       const destino =

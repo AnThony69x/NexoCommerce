@@ -84,7 +84,7 @@ export default function CatalogPage() {
     recargar,
   } = useAsync(listarProductos)
 
-  // Categorías del sidebar (mock o API real según el modo).
+  // Categorías del sidebar.
   const {
     data: categorias,
     loading: cargandoCategorias,
