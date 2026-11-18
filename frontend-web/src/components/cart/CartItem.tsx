@@ -4,10 +4,11 @@ import { useCart } from '../../hooks/useCart'
 
 type CartItemProps = {
   producto: CartProduct
+  onEliminar: () => void
 }
 
-export default function CartItem({ producto }: CartItemProps) {
-  const { increaseQuantity, decreaseQuantity, removeItem } = useCart()
+export default function CartItem({ producto, onEliminar }: CartItemProps) {
+  const { increaseQuantity, decreaseQuantity } = useCart()
   const { id, nombre, imagen, precioUnitario, cantidad, categoría, stock } = producto
   const subtotal = precioUnitario * cantidad
   const enTope = stock !== null && cantidad >= stock
@@ -51,7 +52,8 @@ export default function CartItem({ producto }: CartItemProps) {
             type="button"
             aria-label={`Disminuir cantidad de ${nombre}`}
             onClick={() => decreaseQuantity(id)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-300 text-stone-700 hover:border-stone-500"
+            disabled={cantidad <= 1}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-300 text-stone-700 hover:border-stone-500 disabled:opacity-50"
           >
             -
           </button>
@@ -73,7 +75,7 @@ export default function CartItem({ producto }: CartItemProps) {
         </p>
         <button
           type="button"
-          onClick={() => removeItem(id)}
+          onClick={onEliminar}
           className="mt-2 text-sm text-rose-700 hover:text-rose-800"
         >
           Eliminar

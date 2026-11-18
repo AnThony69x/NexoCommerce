@@ -12,8 +12,8 @@ export type UseCartResult = {
   addItem: (product: Omit<CartProduct, 'cantidad'>, cantidad: number, configuracion?: CartItemConfiguration) => Promise<void>
   increaseQuantity: (id: string) => Promise<void>
   decreaseQuantity: (id: string) => Promise<void>
-  removeItem: (id: string) => Promise<void>
-  clearCart: () => Promise<void>
+  removeItem: (id: string) => Promise<string | null>
+  clearCart: () => Promise<string | null>
 }
 
 export function useCart(): UseCartResult {
