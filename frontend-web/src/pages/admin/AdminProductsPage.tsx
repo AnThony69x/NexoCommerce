@@ -1,3 +1,5 @@
+import AdminResourceState from '../../components/admin/AdminResourceState'
+import { useAdminQueryFilter } from '../../hooks/useAdminQueryFilter'
 import { formatPrice } from '../../utils/formatPrice'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -8,7 +10,7 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import ProductForm from '../../components/admin/ProductForm'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdmin, useAdminResource } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, AdminProduct } from '../../types/admin'
 import { resolverUrlMultimedia } from '../../utils/multimedia'
 import { obtenerProductoAdmin } from '../../services/adminService'
@@ -17,11 +19,15 @@ const claseInput =
   'rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-500'
 
 export default function AdminProductsPage() {
-  const { productos, categorias, crearProducto, actualizarProducto, alternarProducto } =
-    useAdmin()
+  const recurso = useAdminResource('productos')
+  const productos = recurso.data ?? []
+  const recursoCategorias = useAdminResource('categorias')
+  const categorias = recursoCategorias.data ?? []
+  const { crearProducto, actualizarProducto, alternarProducto } = useAdmin()
   const [busqueda, setBusqueda] = useState('')
   const [filtroCategoria, setFiltroCategoria] = useState('todas')
   const [filtroEstado, setFiltroEstado] = useState('todos')
+  const [filtroStock, setFiltroStock] = useAdminQueryFilter('stock', ['bajo'], 'todos')
   const [filtroTipo, setFiltroTipo] = useState('todos')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editando, setEditando] = useState<AdminProduct | undefined>(undefined)
@@ -29,13 +35,14 @@ export default function AdminProductsPage() {
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
 
   const hayFiltros = busqueda !== '' || filtroCategoria !== 'todas' ||
-    filtroEstado !== 'todos' || filtroTipo !== 'todos'
+    filtroEstado !== 'todos' || filtroTipo !== 'todos' || filtroStock === 'bajo'
 
   function limpiarFiltros() {
     setBusqueda('')
     setFiltroCategoria('todas')
     setFiltroEstado('todos')
     setFiltroTipo('todos')
+    if (filtroStock === 'bajo') setFiltroStock('todos')
   }
 
   const accionLimpiar = hayFiltros ? (
@@ -55,9 +62,11 @@ export default function AdminProductsPage() {
         filtroEstado === 'todos' ||
         (filtroEstado === 'activos' ? item.activo : !item.activo)
       const coincideTipo = filtroTipo === 'todos' || item.tipo === filtroTipo
-      return coincideTexto && coincideCategoria && coincideEstado && coincideTipo
+      const coincideStock = filtroStock !== 'bajo' ||
+        (item.activo && item.tipo === 'DETALLE' && item.stock !== undefined && item.stock >= 0 && item.stock <= 5)
+      return coincideStock && coincideTexto && coincideCategoria && coincideEstado && coincideTipo
     })
-  }, [productos, busqueda, filtroCategoria, filtroEstado, filtroTipo])
+  }, [productos, busqueda, filtroCategoria, filtroEstado, filtroTipo, filtroStock])
 
   function abrirCrear() {
     setEditando(undefined)
@@ -103,6 +112,7 @@ export default function AdminProductsPage() {
   }
 
   return (
+    <AdminResourceState recurso={recurso} nombre="Productos">
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Productos"
@@ -111,6 +121,7 @@ export default function AdminProductsPage() {
           <button
             type="button"
             onClick={abrirCrear}
+            disabled={!recursoCategorias.data}
             className="inline-flex min-h-10 items-center rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700"
           >
             Crear producto
@@ -118,6 +129,7 @@ export default function AdminProductsPage() {
         }
       />
 
+      <AdminResourceState recurso={recursoCategorias} nombre="Categorías" />
       <AdminFeedback mensaje={mensaje} />
 
       <div className="flex flex-wrap gap-2">
@@ -163,10 +175,14 @@ export default function AdminProductsPage() {
           <option value="activos">Activos</option>
           <option value="inactivos">Inactivos</option>
         </select>
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={filtroStock === 'bajo'} onChange={(evento) => setFiltroStock(evento.target.checked ? 'bajo' : 'todos')} />
+          Stock bajo
+        </label>
         {accionLimpiar}
       </div>
 
-      {mostrarFormulario && (
+      {mostrarFormulario && recursoCategorias.data !== undefined && (
         <ProductForm
           inicial={editando}
           categorias={categorias}
@@ -186,7 +202,7 @@ export default function AdminProductsPage() {
         />
       ) : (
         <AdminTable
-          encabezados={['Imagen', 'Nombre', 'Tipo', 'Categoría', 'Precio', 'Estado', 'Acciones']}
+          encabezados={['Imagen', 'Nombre', 'Tipo', 'Categoría', 'Precio', 'Stock', 'Estado', 'Acciones']}
         >
           {filtrados.map((item) => (
             <tr key={item.id} className="border-b border-stone-100">
@@ -216,6 +232,7 @@ export default function AdminProductsPage() {
               <td className="px-4 py-3 text-stone-600">
                 {formatPrice(item.precio_base)}
               </td>
+              <td className="px-4 py-3 text-stone-600">{item.tipo === 'DETALLE' ? item.stock ?? '—' : '—'}</td>
               <td className="px-4 py-3">
                 <AdminStatusBadge estado={item.activo ? 'ACTIVO' : 'INACTIVO'} />
               </td>
@@ -235,6 +252,7 @@ export default function AdminProductsPage() {
                   <button
                     type="button"
                     onClick={() => void abrirEditar(item)}
+                    disabled={!recursoCategorias.data}
                     className="font-medium text-stone-800 hover:underline"
                   >
                     Editar
@@ -264,5 +282,6 @@ export default function AdminProductsPage() {
         }}
       />
     </div>
+    </AdminResourceState>
   )
 }

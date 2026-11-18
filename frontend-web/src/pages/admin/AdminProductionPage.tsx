@@ -1,3 +1,4 @@
+import AdminResourceState from '../../components/admin/AdminResourceState'
 import AdminDialog from '../../components/admin/AdminDialog'
 import { useRef, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
@@ -7,7 +8,7 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import ProductionForm from '../../components/admin/ProductionForm'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdmin, useAdminResource } from '../../contexts/AdminContext'
 import type {
   AdminFeedbackMessage,
   AdminProductionConfig,
@@ -18,9 +19,13 @@ function capacidadDisponible(item: AdminProductionConfig): number {
 }
 
 export default function AdminProductionPage() {
+  const recurso = useAdminResource('produccion')
+  const recursoCategorias = useAdminResource('categorias')
+  const categorias = recursoCategorias.data ?? []
+  const produccion = (recurso.data ?? []).map((item) => ({
+    ...item, categoriaNombre: categorias.find((categoria) => categoria.id === item.categoriaId)?.nombre ?? item.categoriaNombre,
+  }))
   const {
-    produccion,
-    categorias,
     crearProduccion,
     actualizarProduccion,
     alternarProduccion,
@@ -82,6 +87,7 @@ export default function AdminProductionPage() {
   }
 
   return (
+    <AdminResourceState recurso={recurso} nombre="Producción">
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Producción"
@@ -101,12 +107,14 @@ export default function AdminProductionPage() {
         }
       />
 
+      <AdminResourceState recurso={recursoCategorias} nombre="Categorías" />
       <AdminFeedback mensaje={mostrarFormulario ? null : mensaje} />
 
       {mostrarFormulario && (
         <AdminDialog titulo={editando ? 'Editar configuración de capacidad' : 'Crear configuración de capacidad'} onCerrar={cerrarFormulario} ocupado={guardando}>
           <AdminFeedback mensaje={mensaje} />
-          <fieldset disabled={guardando} className="min-w-0">
+          <AdminResourceState recurso={recursoCategorias} nombre="Categorías" />
+          <fieldset disabled={guardando || !recursoCategorias.data} className="min-w-0">
             <ProductionForm
               inicial={editando}
               categorias={categorias}
@@ -191,5 +199,6 @@ export default function AdminProductionPage() {
         }}
       />
     </div>
+    </AdminResourceState>
   )
 }

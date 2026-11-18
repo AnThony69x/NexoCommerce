@@ -14,7 +14,6 @@ import {
   IconoPublicacion,
   IconoUsuarios,
 } from '../components/admin/AdminIcons'
-import { useAdmin } from '../contexts/AdminContext'
 import { useAuth } from '../hooks/useAuth'
 
 const navegacion = [
@@ -89,7 +88,6 @@ function SidebarContenido({ onNavegar }: { onNavegar?: () => void }) {
 
 export default function AdminLayout() {
   const [menuAbierto, setMenuAbierto] = useState(false)
-  const { cargando, error, recargar } = useAdmin()
 
   return (
     <div className="min-h-screen bg-stone-100">
@@ -153,19 +151,6 @@ export default function AdminLayout() {
         )}
 
         <main className="min-w-0 flex-1">
-          {cargando && (
-            <p role="status" className="mb-4 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-600">
-              Cargando datos del panel…
-            </p>
-          )}
-          {error && (
-            <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-              <span>No se pudieron cargar todos los datos del panel: {error}</span>
-              <button type="button" onClick={() => void recargar()} className="font-semibold underline">
-                Reintentar
-              </button>
-            </div>
-          )}
           <Suspense fallback={<CargandoPagina />}>
             <Outlet />
           </Suspense>

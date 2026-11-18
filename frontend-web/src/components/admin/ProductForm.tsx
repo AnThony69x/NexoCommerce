@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type { AdminCategory, AdminProduct, ProductoTipo } from '../../types/admin'
 import SelectorImagenesProducto from './SelectorImagenesProducto'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdminResource } from '../../contexts/AdminContext'
 
 export type ProductFormValues = {
   nombre: string
@@ -56,7 +56,7 @@ export default function ProductForm({
     },
   })
   const [imagenes, setImagenes] = useState<string[]>(inicial?.imagenes ?? [])
-  const { multimedia } = useAdmin()
+  const multimedia = useAdminResource('multimedia').data ?? []
 
   const tipoSeleccionado = watch('tipo')
 

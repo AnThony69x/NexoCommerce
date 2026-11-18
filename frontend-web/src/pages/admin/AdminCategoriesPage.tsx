@@ -1,3 +1,4 @@
+import AdminResourceState from '../../components/admin/AdminResourceState'
 import AdminDialog from '../../components/admin/AdminDialog'
 import { useRef, useMemo, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
@@ -7,12 +8,13 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import CategoryForm from '../../components/admin/CategoryForm'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdmin, useAdminResource } from '../../contexts/AdminContext'
 import type { AdminCategory, AdminFeedbackMessage } from '../../types/admin'
 
 export default function AdminCategoriesPage() {
-  const { categorias, crearCategoria, actualizarCategoria, alternarCategoria } =
-    useAdmin()
+  const recurso = useAdminResource('categorias')
+  const categorias = recurso.data ?? []
+  const { crearCategoria, actualizarCategoria, alternarCategoria } = useAdmin()
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editando, setEditando] = useState<AdminCategory | undefined>(undefined)
   const [confirmando, setConfirmando] = useState<AdminCategory | undefined>(undefined)
@@ -115,6 +117,7 @@ export default function AdminCategoriesPage() {
   }
 
   return (
+    <AdminResourceState recurso={recurso} nombre="Categorías">
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Categorías"
@@ -170,5 +173,6 @@ export default function AdminCategoriesPage() {
         }}
       />
     </div>
+    </AdminResourceState>
   )
 }

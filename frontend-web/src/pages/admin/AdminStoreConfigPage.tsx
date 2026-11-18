@@ -1,12 +1,15 @@
+import AdminResourceState from '../../components/admin/AdminResourceState'
 import { useState } from 'react'
 import AdminFeedback from '../../components/admin/AdminFeedback'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import StoreConfigForm from '../../components/admin/StoreConfigForm'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdmin, useAdminResource } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, StoreConfiguration } from '../../types/admin'
 
 export default function AdminStoreConfigPage() {
-  const { tienda, actualizarTienda, cargando, error, recargar } = useAdmin()
+  const { actualizarTienda } = useAdmin()
+  const recurso = useAdminResource('tienda')
+  const tienda = recurso.data
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
 
   async function guardar(dato: StoreConfiguration) {
@@ -18,25 +21,6 @@ export default function AdminStoreConfigPage() {
     }
   }
 
-  if (cargando) {
-    return (
-      <div className="space-y-6">
-        <AdminSectionHeader titulo="Configuración de tienda" />
-        <p role="status" className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600">Cargando la configuración vigente…</p>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <AdminSectionHeader titulo="Configuración de tienda" />
-        <AdminFeedback mensaje={{ tipo: 'error', texto: error }} />
-        <button type="button" onClick={() => void recargar()} className="text-sm font-semibold underline">Reintentar carga</button>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <AdminSectionHeader
@@ -46,7 +30,9 @@ export default function AdminStoreConfigPage() {
 
       <AdminFeedback mensaje={mensaje} />
 
-      <StoreConfigForm inicial={tienda} onGuardar={guardar} />
+      <AdminResourceState recurso={recurso} nombre="Configuración de tienda">
+      {tienda && <StoreConfigForm inicial={tienda} onGuardar={guardar} />}
+      </AdminResourceState>
     </div>
   )
 }

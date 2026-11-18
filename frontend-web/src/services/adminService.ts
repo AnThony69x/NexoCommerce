@@ -87,7 +87,7 @@ function aProducto(api: ApiRecord): AdminProduct {
     tamano: torta.tamano === undefined ? undefined : String(torta.tamano),
     porciones: torta.porciones === undefined ? undefined : Number(torta.porciones),
     sabor: torta.sabor === undefined ? undefined : String(torta.sabor),
-    stock: detalle.stock === undefined ? undefined : Number(detalle.stock),
+    stock: detalle.stock == null ? undefined : Number(detalle.stock),
     tipo_material:
       sublimacion.tipo_material === undefined
         ? undefined
@@ -114,6 +114,7 @@ function aPedidoResumen(api: ApiRecord): AdminOrder {
 
 function aPedidoDetalle(api: ApiRecord): AdminOrder {
   const pedido = aPedidoResumen(api)
+  const pago = api.pago as ApiRecord | null
   const items = Array.isArray(api.items) ? (api.items as ApiRecord[]) : []
   return {
     ...pedido,
@@ -123,10 +124,10 @@ function aPedidoDetalle(api: ApiRecord): AdminOrder {
       cantidad: Number(item.cantidad ?? 0),
       precio_unitario: Number(item.precio_unitario ?? 0),
       subtotal: Number(item.subtotal ?? 0),
-      personalizacion:
-        [item.nombre_diseno, item.indicaciones]
-          .filter((valor) => typeof valor === 'string' && valor.trim() !== '')
-          .join(' · ') || undefined,
+      tipoConfiguracion: typeof item.tipo_configuracion === 'string' ? item.tipo_configuracion : undefined,
+      nombreDiseno: typeof item.nombre_diseno === 'string' ? item.nombre_diseno : undefined,
+      costoDiseno: Number(item.costo_diseno ?? 0),
+      indicaciones: typeof item.indicaciones === 'string' ? item.indicaciones : undefined,
     })),
     clienteNombre: String(((api.cliente ?? {}) as ApiRecord).nombre_completo ?? pedido.clienteNombre),
     clienteCorreo: String(((api.cliente ?? {}) as ApiRecord).correo ?? ''),
@@ -134,8 +135,12 @@ function aPedidoDetalle(api: ApiRecord): AdminOrder {
     direccion: String(api.direccion_entrega ?? ''),
     referencia: String(api.referencia_entrega ?? ''),
     tipo_entrega: api.tipo_entrega as AdminOrder['tipo_entrega'],
-    metodo_pago: (api.pago as ApiRecord | null)?.metodo as AdminOrder['metodo_pago'],
-    pago_estado: (api.pago as ApiRecord | null)?.estado as PagoEstado | undefined,
+    horaEntrega: typeof api.hora_entrega === 'string' ? api.hora_entrega : undefined,
+    telefonoContacto: typeof api.telefono_contacto === 'string' ? api.telefono_contacto : undefined,
+    pagoId: pago?.id == null ? undefined : String(pago.id),
+    pagoMonto: pago?.monto == null ? undefined : Number(pago.monto),
+    metodo_pago: pago?.metodo as AdminOrder['metodo_pago'],
+    pago_estado: pago?.estado as PagoEstado | undefined,
   }
 }
 
@@ -152,6 +157,11 @@ function aPago(api: ApiRecord): AdminPayment {
     estado: api.estado as PagoEstado,
     referencia: String(api.referencia_pasarela ?? ''),
     fecha: String(api.fecha_pago ?? ''),
+    fechaRegistro: typeof api.creado_en === 'string' ? api.creado_en : undefined,
+    pedidoEstado: api.pedido_estado ? api.pedido_estado as PedidoEstado : undefined,
+    fechaRevision: typeof comprobante?.fecha_revision === 'string' ? comprobante.fecha_revision : undefined,
+    revisorId: comprobante?.revisado_por_id == null ? undefined : String(comprobante.revisado_por_id),
+    comentarioRevision: typeof comprobante?.comentario_revision === 'string' ? comprobante.comentario_revision : undefined,
     comprobanteId:
       multimediaId === null || multimediaId === undefined ? undefined : String(multimediaId),
   }
@@ -289,7 +299,13 @@ export async function obtenerPedidoAdmin(id: string) {
 }
 
 export async function cambiarEstadoPedido(id: string, estado: PedidoEstado) {
-  await apiClient.patch(`/admin/pedidos/${id}/estado`, { estado })
+  const { data } = await apiClient.patch<ApiEnvelope<{ estado: PedidoEstado }>>(`/admin/pedidos/${id}/estado`, { estado })
+  return data.data.estado
+}
+
+export async function obtenerPagoPedidoAdmin(id: string) {
+  const { data } = await apiClient.get<ApiEnvelope<ApiRecord | null>>(`/pedidos/${id}/pago`)
+  return data.data ? aPago(data.data) : null
 }
 
 export async function listarPagosAdmin() {
@@ -325,11 +341,16 @@ export async function obtenerDashboardAdmin() {
   return {
     productos_activos: Number(dashboard.productos_activos ?? 0),
     pedidos_pendientes: Number(dashboard.pedidos_pendientes ?? 0),
+    pedidos_listos: Number(dashboard.pedidos_listos ?? 0),
+    total_productos_stock_bajo: Number(dashboard.total_productos_stock_bajo ?? 0),
     pagos_pendientes: Number(dashboard.pagos_pendientes ?? 0),
     usuarios_registrados: Number(dashboard.usuarios_registrados ?? 0),
     pedidos_recientes: (dashboard.pedidos_recientes as ApiRecord[] ?? []).map((item) => ({
       id: String(item.id),
       estado: item.estado as PedidoEstado,
+      cliente: String(item.cliente_nombre ?? 'Cliente sin nombre'),
+      fechaEntrega: String(item.fecha_entrega ?? ''),
+      total: Number(item.total ?? 0),
     })),
     productos_stock_bajo: (dashboard.productos_stock_bajo as ApiRecord[] ?? []).map((item) => ({
       id: String(item.id),

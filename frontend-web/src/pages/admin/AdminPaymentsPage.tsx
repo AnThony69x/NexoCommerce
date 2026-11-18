@@ -1,27 +1,35 @@
+import AdminResourceState from '../../components/admin/AdminResourceState'
+import { useAdminQueryFilter } from '../../hooks/useAdminQueryFilter'
+import { Link } from 'react-router-dom'
 import AdminDialog from '../../components/admin/AdminDialog'
+import { ComprobantePrivado } from '../../components/admin/ComprobanteDialog'
 import { formatPrice } from '../../utils/formatPrice'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import AdminFeedback from '../../components/admin/AdminFeedback'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdmin, useAdminResource } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, AdminPayment } from '../../types/admin'
-import { abrirMultimediaPrivada } from '../../services/adminService'
 
 const claseInput =
   'rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-500'
 
 export default function AdminPaymentsPage() {
-  const { pagos, cambiarEstadoPago } = useAdmin()
-  const [filtroEstado, setFiltroEstado] = useState('todos')
+  const recurso = useAdminResource('pagos')
+  const pagos = recurso.data ?? []
+  const { cambiarEstadoPago } = useAdmin()
+  const [filtroEstado, setFiltroEstado] = useAdminQueryFilter('estado', ['PENDIENTE', 'APROBADO', 'RECHAZADO'], 'todos')
   const [filtroMetodo, setFiltroMetodo] = useState('todos')
   const [confirmando, setConfirmando] = useState<
     { pago: AdminPayment; estado: 'APROBADO' | 'RECHAZADO' } | undefined
   >(undefined)
-  const [comprobante, setComprobante] = useState<AdminPayment | undefined>(undefined)
+  const [pagoSeleccionadoId, setPagoSeleccionadoId] = useState<string>()
+  const detalle = pagos.find((pago) => pago.id === pagoSeleccionadoId)
+  const revisores = useAdminResource('usuarios', Boolean(detalle?.revisorId))
+  const usuarios = revisores.data ?? []
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
   const filtrados = useMemo(
     () =>
@@ -47,6 +55,7 @@ export default function AdminPaymentsPage() {
   }
 
   return (
+    <AdminResourceState recurso={recurso} nombre="Pagos">
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Pagos"
@@ -92,7 +101,7 @@ export default function AdminPaymentsPage() {
             'Monto',
             'Estado',
             'Referencia',
-            'Fecha',
+            'Fecha de registro',
             'Acciones',
           ]}
         >
@@ -109,18 +118,15 @@ export default function AdminPaymentsPage() {
                 <AdminStatusBadge estado={item.estado} />
               </td>
               <td className="px-4 py-3 text-stone-600">{item.referencia || '—'}</td>
-              <td className="px-4 py-3 text-stone-600">{item.fecha || '—'}</td>
+              <td className="px-4 py-3 text-stone-600">{formatearFecha(item.fechaRegistro)}</td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-2 text-sm">
-                  {item.metodo === 'TRANSFERENCIA' && (
-                    <button
-                      type="button"
-                      onClick={() => setComprobante(item)}
-                      className="font-medium text-stone-800 hover:underline"
-                    >
-                      Comprobante
-                    </button>
-                  )}
+                  <button type="button" onClick={(evento) => {
+                    evento.currentTarget.focus()
+                    setPagoSeleccionadoId(item.id)
+                  }} className="font-medium text-stone-800 hover:underline">
+                    Ver detalle
+                  </button>
                   {item.estado === 'PENDIENTE' && (
                     <>
                       <button
@@ -150,8 +156,11 @@ export default function AdminPaymentsPage() {
         </AdminTable>
       )}
 
-      {comprobante && (
-        <ComprobanteDialog key={comprobante.id} pago={comprobante} onCerrar={() => setComprobante(undefined)} />
+      {detalle && (
+        <DetallePago key={detalle.id} pago={detalle}
+          avisoRevisor={detalle.revisorId && <AdminResourceState recurso={revisores} nombre="Responsable de revisión" />}
+          revisor={usuarios.find((usuario) => usuario.id === detalle.revisorId)?.nombre_completo}
+          onCerrar={() => setPagoSeleccionadoId(undefined)} />
       )}
 
       <AdminConfirmModal
@@ -163,44 +172,52 @@ export default function AdminPaymentsPage() {
         onConfirmar={confirmarCambio}
       />
     </div>
+    </AdminResourceState>
   )
 }
 
-function ComprobanteDialog({ pago, onCerrar }: { pago: AdminPayment; onCerrar: () => void }) {
-  const [resultado, setResultado] = useState<{ url: string } | { error: string }>()
 
-  useEffect(() => {
-    if (!pago.comprobanteId) return
-    let cerrado = false
-    let url: string | undefined
-    abrirMultimediaPrivada(pago.comprobanteId).then((archivo) => {
-      if (cerrado) {
-        URL.revokeObjectURL(archivo)
-        return
-      }
-      url = archivo
-      setResultado({ url: archivo })
-    }).catch((cause: unknown) => {
-      if (!cerrado) setResultado({ error: cause instanceof Error ? cause.message : 'No se pudo abrir el comprobante.' })
-    })
-    return () => {
-      cerrado = true
-      if (url) URL.revokeObjectURL(url)
-    }
-  }, [pago.comprobanteId])
+const formatoFecha = new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium', timeStyle: 'short' })
+
+function formatearFecha(valor?: string) {
+  const fecha = valor ? new Date(valor) : null
+  return fecha && !Number.isNaN(fecha.getTime()) ? formatoFecha.format(fecha) : '—'
+}
+
+function DetallePago({ pago, revisor, avisoRevisor, onCerrar }: { pago: AdminPayment; revisor?: string; avisoRevisor?: ReactNode; onCerrar: () => void }) {
+  const estados = { PENDIENTE: 'Pendiente', APROBADO: 'Aprobado', RECHAZADO: 'Rechazado' }
+  const estadosPedido = { PENDIENTE: 'Pendiente', EN_PREPARACION: 'En preparación', LISTO: 'Listo', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado' }
 
   return (
-    <AdminDialog titulo={`Comprobante de ${pago.pedidoNumero}`} onCerrar={onCerrar}>
-      {!pago.comprobanteId ? (
-        <p>Este pago no tiene un comprobante asociado.</p>
-      ) : !resultado ? (
-        <p role="status">Cargando comprobante…</p>
-      ) : 'error' in resultado ? (
-        <p role="alert" className="text-rose-700">{resultado.error}</p>
-      ) : (
-        <a href={resultado.url} target="_blank" rel="noreferrer" className="font-medium underline">Abrir comprobante a tamaño completo</a>
-      )}
-      <button type="button" onClick={onCerrar} className="mt-4 rounded-lg border px-4 py-2">Cerrar</button>
+    <AdminDialog titulo={`Detalle del pago #${pago.id}`} onCerrar={onCerrar}>
+      <div className="space-y-5 text-sm">
+        <dl className="grid gap-3 sm:grid-cols-2">
+          <div><dt className="font-semibold">Método</dt><dd>{pago.metodo === 'TRANSFERENCIA' ? 'Transferencia' : 'Referencia de pago'}</dd></div>
+          <div><dt className="font-semibold">Monto</dt><dd>{formatPrice(pago.monto)}</dd></div>
+          <div><dt className="font-semibold">Estado del pago</dt><dd><AdminStatusBadge estado={pago.estado} etiqueta={estados[pago.estado]} /></dd></div>
+          {pago.referencia && <div><dt className="font-semibold">Referencia</dt><dd className="break-all">{pago.referencia}</dd></div>}
+          <div><dt className="font-semibold">Registrado</dt><dd>{formatearFecha(pago.fechaRegistro)}</dd></div>
+          <div><dt className="font-semibold">Aprobado</dt><dd>{formatearFecha(pago.fecha)}</dd></div>
+        </dl>
+
+        <section className="space-y-2 border-t pt-4">
+          <h3 className="font-semibold">Pedido {pago.pedidoNumero}</h3>
+          {pago.pedidoEstado && <p>Estado: {estadosPedido[pago.pedidoEstado]}</p>}
+          <Link className="font-medium underline" to={`/admin/pedidos/${pago.pedidoId}`}>Ver pedido</Link>
+        </section>
+
+        {pago.metodo === 'TRANSFERENCIA' && (
+          <section className="space-y-2 border-t pt-4">
+            <h3 className="font-semibold">Comprobante</h3>
+            <ComprobantePrivado key={pago.comprobanteId} comprobanteId={pago.comprobanteId} />
+            {pago.fechaRevision && <p>Revisado: {formatearFecha(pago.fechaRevision)}</p>}
+            {avisoRevisor}
+            {pago.revisorId && <p>Responsable: {revisor || `Usuario #${pago.revisorId}`}</p>}
+            {pago.comentarioRevision && <p className="whitespace-pre-wrap break-words">Comentario: {pago.comentarioRevision}</p>}
+          </section>
+        )}
+        <button type="button" onClick={onCerrar} className="rounded-lg border px-4 py-2">Cerrar</button>
+      </div>
     </AdminDialog>
   )
 }

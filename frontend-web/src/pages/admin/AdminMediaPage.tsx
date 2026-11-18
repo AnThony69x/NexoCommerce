@@ -1,3 +1,4 @@
+import AdminResourceState from '../../components/admin/AdminResourceState'
 import { useState } from 'react'
 import type { ChangeEvent } from 'react'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
@@ -5,12 +6,14 @@ import AdminFeedback from '../../components/admin/AdminFeedback'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdmin, useAdminResource } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, AdminMedia } from '../../types/admin'
 import { resolverUrlMultimedia } from '../../utils/multimedia'
 
 export default function AdminMediaPage() {
-  const { multimedia, subirMultimedia, alternarMultimedia, recargar, cargando } = useAdmin()
+  const recurso = useAdminResource('multimedia')
+  const multimedia = recurso.data ?? []
+  const { subirMultimedia, alternarMultimedia } = useAdmin()
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
   const [vistaPrevia, setVistaPrevia] = useState<string | null>(null)
   const [destino, setDestino] = useState('productos')
@@ -49,6 +52,7 @@ export default function AdminMediaPage() {
   }
 
   return (
+    <AdminResourceState recurso={recurso} nombre="Multimedia">
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Multimedia"
@@ -63,7 +67,7 @@ export default function AdminMediaPage() {
               <option value="disenos">Diseños</option>
               <option value="comprobantes">Comprobantes</option>
             </select>
-            <button type="button" onClick={() => void recargar()} disabled={cargando} className="min-h-10 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 disabled:opacity-50">Actualizar</button>
+            <button type="button" onClick={recurso.recargar} disabled={recurso.loading} className="min-h-10 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 disabled:opacity-50">Actualizar</button>
             <label className="inline-flex min-h-10 cursor-pointer items-center rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700">
               Seleccionar archivo
               <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={manejarSeleccion} />
@@ -88,7 +92,7 @@ export default function AdminMediaPage() {
         </div>
       )}
 
-      {multimedia.length === 0 && cargando ? (
+      {multimedia.length === 0 && recurso.loading ? (
         <p role="status" className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600">Cargando biblioteca multimedia…</p>
       ) : multimedia.length === 0 ? (
         <AdminEmptyState
@@ -170,5 +174,6 @@ export default function AdminMediaPage() {
         onConfirmar={confirmarCambioEstado}
       />
     </div>
+    </AdminResourceState>
   )
 }

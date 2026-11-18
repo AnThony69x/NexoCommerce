@@ -1,5 +1,6 @@
 type AdminStatusBadgeProps = {
   estado: string
+  etiqueta?: string
 }
 
 function clasePorEstado(estado: string): string {
@@ -25,12 +26,12 @@ function clasePorEstado(estado: string): string {
   }
 }
 
-export default function AdminStatusBadge({ estado }: AdminStatusBadgeProps) {
+export default function AdminStatusBadge({ estado, etiqueta }: AdminStatusBadgeProps) {
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${clasePorEstado(estado)}`}
     >
-      {estado}
+      {etiqueta ?? estado}
     </span>
   )
 }

@@ -1,3 +1,5 @@
+import AdminResourceState from '../../components/admin/AdminResourceState'
+import { useAdminQueryFilter } from '../../hooks/useAdminQueryFilter'
 import { formatPrice } from '../../utils/formatPrice'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -5,14 +7,16 @@ import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdminResource } from '../../contexts/AdminContext'
 
 const claseInput =
   'rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-500'
 
 export default function AdminOrdersPage() {
-  const { pedidos } = useAdmin()
-  const [filtroEstado, setFiltroEstado] = useState('todos')
+  const recurso = useAdminResource('pedidos')
+  const pedidos = recurso.data ?? []
+
+  const [filtroEstado, setFiltroEstado] = useAdminQueryFilter('estado', ['PENDIENTE', 'EN_PREPARACION', 'LISTO', 'ENTREGADO', 'CANCELADO'], 'todos')
   const [busqueda, setBusqueda] = useState('')
 
   const filtrados = useMemo(() => {
@@ -29,6 +33,7 @@ export default function AdminOrdersPage() {
   }, [pedidos, filtroEstado, busqueda])
 
   return (
+    <AdminResourceState recurso={recurso} nombre="Pedidos">
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Pedidos"
@@ -101,5 +106,6 @@ export default function AdminOrdersPage() {
         </AdminTable>
       )}
     </div>
+    </AdminResourceState>
   )
 }

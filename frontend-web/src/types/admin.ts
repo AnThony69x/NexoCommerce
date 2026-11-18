@@ -13,9 +13,11 @@ export interface AdminSummaryItem {
 export interface AdminDashboard {
   productos_activos: number
   pedidos_pendientes: number
+  pedidos_listos: number
+  total_productos_stock_bajo: number
   pagos_pendientes: number
   usuarios_registrados: number
-  pedidos_recientes: Array<{ id: string; estado: PedidoEstado }>
+  pedidos_recientes: Array<{ id: string; estado: PedidoEstado; cliente: string; fechaEntrega: string; total: number }>
   productos_stock_bajo: Array<{ id: string; nombre: string; stock: number }>
 }
 
@@ -63,7 +65,11 @@ export interface AdminOrderDetail {
   cantidad: number
   precio_unitario: number
   subtotal: number
+  tipoConfiguracion?: string
+  nombreDiseno?: string
+  costoDiseno?: number
   personalizacion?: string
+  indicaciones?: string
 }
 
 export interface AdminOrder {
@@ -81,6 +87,10 @@ export interface AdminOrder {
   detalles: AdminOrderDetail[]
   direccion?: string
   referencia?: string
+  horaEntrega?: string
+  telefonoContacto?: string
+  pagoId?: string
+  pagoMonto?: number
   metodo_pago?: PagoMetodo
   pago_estado?: PagoEstado | null
 }
@@ -94,7 +104,12 @@ export interface AdminPayment {
   estado: PagoEstado
   referencia: string
   fecha: string
+  fechaRegistro?: string
+  pedidoEstado?: PedidoEstado
   comprobanteId?: string
+  fechaRevision?: string
+  revisorId?: string
+  comentarioRevision?: string
 }
 
 export interface AdminUser {
@@ -160,10 +175,3 @@ export interface AdminFeedbackMessage {
   tipo: 'exito' | 'error'
   texto: string
 }
-
-export const PEDIDO_FLUJO: PedidoEstado[] = [
-  'PENDIENTE',
-  'EN_PREPARACION',
-  'LISTO',
-  'ENTREGADO',
-]

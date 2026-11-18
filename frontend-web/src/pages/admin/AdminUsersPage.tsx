@@ -1,3 +1,4 @@
+import AdminResourceState from '../../components/admin/AdminResourceState'
 import AdminDialog from '../../components/admin/AdminDialog'
 import { useMemo, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
@@ -6,7 +7,7 @@ import AdminFeedback from '../../components/admin/AdminFeedback'
 import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdmin, useAdminResource } from '../../contexts/AdminContext'
 import { useAuth } from '../../hooks/useAuth'
 import type { AdminFeedbackMessage, AdminUser } from '../../types/admin'
 
@@ -14,7 +15,9 @@ const claseInput =
   'rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-800 outline-none focus:border-stone-500'
 
 export default function AdminUsersPage() {
-  const { usuarios, alternarUsuario } = useAdmin()
+  const recurso = useAdminResource('usuarios')
+  const usuarios = recurso.data ?? []
+  const { alternarUsuario } = useAdmin()
   const { user } = useAuth()
   const [busqueda, setBusqueda] = useState('')
   const [filtroRol, setFiltroRol] = useState('todos')
@@ -46,6 +49,7 @@ export default function AdminUsersPage() {
   }
 
   return (
+    <AdminResourceState recurso={recurso} nombre="Usuarios">
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Usuarios"
@@ -173,5 +177,6 @@ export default function AdminUsersPage() {
         }}
       />
     </div>
+    </AdminResourceState>
   )
 }

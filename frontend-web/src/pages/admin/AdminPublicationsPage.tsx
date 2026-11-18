@@ -1,3 +1,4 @@
+import AdminResourceState from '../../components/admin/AdminResourceState'
 import AdminDialog from '../../components/admin/AdminDialog'
 import { useRef, useState } from 'react'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
@@ -7,14 +8,21 @@ import AdminSectionHeader from '../../components/admin/AdminSectionHeader'
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge'
 import AdminTable from '../../components/admin/AdminTable'
 import PublicationForm from '../../components/admin/PublicationForm'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdmin, useAdminResource } from '../../contexts/AdminContext'
 import type { AdminFeedbackMessage, AdminPublication } from '../../types/admin'
 
 export default function AdminPublicationsPage() {
+  const recurso = useAdminResource('publicaciones')
+  const recursoCategorias = useAdminResource('categorias')
+  const categorias = recursoCategorias.data ?? []
+  const recursoProductos = useAdminResource('productos')
+  const productos = recursoProductos.data ?? []
+  const publicaciones = (recurso.data ?? []).map((item) => ({
+    ...item,
+    categoriaNombre: categorias.find((categoria) => categoria.id === item.categoriaId)?.nombre,
+    productoNombre: productos.find((producto) => producto.id === item.productoId)?.nombre,
+  }))
   const {
-    publicaciones,
-    categorias,
-    productos,
     crearPublicacion,
     actualizarPublicacion,
     alternarPublicacion,
@@ -69,6 +77,7 @@ export default function AdminPublicationsPage() {
   }
 
   return (
+    <AdminResourceState recurso={recurso} nombre="Publicaciones">
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Publicaciones"
@@ -88,12 +97,16 @@ export default function AdminPublicationsPage() {
         }
       />
 
+      <AdminResourceState recurso={recursoCategorias} nombre="Categorías" />
+      <AdminResourceState recurso={recursoProductos} nombre="Productos relacionados" />
       <AdminFeedback mensaje={mostrarFormulario ? null : mensaje} />
 
       {mostrarFormulario && (
         <AdminDialog titulo={editando ? 'Editar publicación' : 'Crear publicación'} onCerrar={cerrarFormulario} ocupado={guardando}>
           <AdminFeedback mensaje={mensaje} />
-          <fieldset disabled={guardando} className="min-w-0">
+          <AdminResourceState recurso={recursoCategorias} nombre="Categorías" />
+          <AdminResourceState recurso={recursoProductos} nombre="Productos relacionados" />
+          <fieldset disabled={guardando || !recursoCategorias.data || !recursoProductos.data} className="min-w-0">
             <PublicationForm
               inicial={editando}
               categorias={categorias}
@@ -174,5 +187,6 @@ export default function AdminPublicationsPage() {
         }}
       />
     </div>
+    </AdminResourceState>
   )
 }

@@ -1,6 +1,7 @@
+import AdminResourceState from './AdminResourceState'
 import type { ChangeEvent } from 'react'
 import { useState } from 'react'
-import { useAdmin } from '../../contexts/AdminContext'
+import { useAdmin, useAdminResource } from '../../contexts/AdminContext'
 import { MAX_IMAGENES_PRODUCTO, resolverUrlMultimedia } from '../../utils/multimedia'
 
 type SelectorImagenesProductoProps = {
@@ -12,7 +13,9 @@ export default function SelectorImagenesProducto({
   seleccionadas,
   onCambiar,
 }: SelectorImagenesProductoProps) {
-  const { multimedia, subirMultimedia } = useAdmin()
+  const { subirMultimedia } = useAdmin()
+  const recurso = useAdminResource('multimedia')
+  const multimedia = recurso.data ?? []
   const [errorSubida, setErrorSubida] = useState<string | null>(null)
 
   const biblioteca = multimedia.filter(
@@ -49,6 +52,7 @@ export default function SelectorImagenesProducto({
 
   return (
     <div className="space-y-3">
+      <AdminResourceState recurso={recurso} nombre="Biblioteca de imágenes" />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium text-stone-700">
           Imágenes de referencia
