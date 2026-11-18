@@ -92,6 +92,9 @@ export default function ProductDetailPage() {
               categoría={etiquetaCategoria}
               precio={product.precio}
               stock={product.stock}
+              requiereConfiguracion={product.tipo === 'SUBLIMACION'
+                && !configuracion.plantilla_diseno_id
+                && !configuracion.diseno_personalizado_id}
               descripción={product.descripcion}
               onAddToCart={(quantity) =>
                 addItem(

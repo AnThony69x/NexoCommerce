@@ -1,12 +1,10 @@
 import { Link } from 'react-router-dom'
-import ProductCard from './ProductCard'
+import CatalogProductCard from '../catalog/CatalogProductCard'
 import { ApiErrorState, LoadingState } from '../common/RequestState'
 import { useAsync } from '../../hooks/useAsync'
 import {
-  CATEGORIA_SUBLIMACION,
-  listarDestacados,
+  listarProductos,
 } from '../../services/productsRepository'
-import { imagenProducto } from '../../utils/imagenProducto'
 
 /**
  * Ids numéricos de los destacados (catálogo actual: 1 torta jardín, 5 caja
@@ -18,12 +16,12 @@ const destacadosIds = [1, 5, 8, 2]
 /** Badge del maquetado: el primero es "Más pedido"; sublimación "Personalizado". */
 function badgeDeProducto(
   indice: number,
-  categoria: string,
+  sublimacion: boolean,
   agotado: boolean,
 ): string | undefined {
   if (agotado) return undefined
   if (indice === 0) return 'Más pedido'
-  if (categoria === CATEGORIA_SUBLIMACION) return 'Personalizado'
+  if (sublimacion) return 'Personalizado'
   return undefined
 }
 
@@ -33,7 +31,14 @@ export default function FeaturedProductsSection() {
     loading,
     error,
     recargar,
-  } = useAsync(() => listarDestacados(destacadosIds), [])
+  } = useAsync(async () => {
+    const productos = await listarProductos()
+    const preferidos = destacadosIds.flatMap((id) => productos.filter((producto) => producto.id === id))
+    const disponibles = productos.filter((producto) =>
+      !destacadosIds.includes(producto.id) && (producto.stock === null || producto.stock > 0),
+    )
+    return [...preferidos, ...disponibles].slice(0, destacadosIds.length)
+  })
 
   return (
     <section className="bg-cream-rose px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
@@ -62,17 +67,18 @@ export default function FeaturedProductsSection() {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {(destacados ?? []).map((producto, indice) => (
-              <ProductCard
+              <CatalogProductCard
                 key={producto.id}
                 id={producto.id}
                 nombre={producto.nombre}
                 precio={producto.precio}
-                imagen={imagenProducto(producto.imagen)}
-                categoria={producto.categoria.nombre}
+                imagen={producto.imagen}
+                categoría={producto.categoria.nombre}
+                personalizar={producto.tipo === 'SUBLIMACION'}
                 stock={producto.stock}
                 badge={badgeDeProducto(
                   indice,
-                  producto.categoria.nombre,
+                  producto.tipo === 'SUBLIMACION',
                   producto.stock !== null && producto.stock <= 0,
                 )}
               />

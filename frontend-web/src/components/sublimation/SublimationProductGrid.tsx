@@ -28,6 +28,7 @@ export default function SublimationProductGrid({
               imagen={product.imagen}
               categoría={product.categoria.nombre}
               stock={product.stock}
+              personalizar
             />
           ))}
         </div>

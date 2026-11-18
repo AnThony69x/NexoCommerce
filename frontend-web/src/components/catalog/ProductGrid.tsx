@@ -30,7 +30,7 @@ export default function ProductGrid({
         if (!agotado) {
           if (badgeDestacado && producto.id === 1) {
             badge = 'Más pedido'
-          } else if (producto.categoria.nombre === 'Sublimación') {
+          } else if (producto.tipo === 'SUBLIMACION') {
             badge = 'Personalizado'
           }
         }
@@ -45,6 +45,7 @@ export default function ProductGrid({
             categoría={producto.categoria.nombre}
             stock={producto.stock}
             badge={badge}
+            personalizar={producto.tipo === 'SUBLIMACION'}
           />
         )
       })}

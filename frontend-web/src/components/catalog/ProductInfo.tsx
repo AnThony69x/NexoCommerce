@@ -8,6 +8,7 @@ type ProductInfoProps = {
   /** Precio en number; el formato $18.00 se aplica solo al renderizar. */
   precio: number
   /** null = sin control de stock: disponible y sin límite de cantidad. */
+  requiereConfiguracion?: boolean
   stock: number | null
   descripción: string | null
   onAddToCart: (quantity: number) => void | Promise<void>
@@ -18,6 +19,7 @@ export default function ProductInfo({
   categoría,
   precio,
   stock,
+  requiereConfiguracion = false,
   descripción,
   onAddToCart,
 }: ProductInfoProps) {
@@ -71,7 +73,7 @@ export default function ProductInfo({
 
       <button
         type="button"
-        disabled={agotado || adding}
+        disabled={agotado || adding || requiereConfiguracion}
         onClick={async () => {
           setAdding(true)
           try {
@@ -82,7 +84,7 @@ export default function ProductInfo({
         }}
         className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {agotado ? 'Producto agotado' : adding ? 'Agregando…' : 'Agregar al carrito'}
+        {agotado ? 'Producto agotado' : adding ? 'Agregando…' : requiereConfiguracion ? 'Elige una plantilla o sube tu diseño' : 'Agregar al carrito'}
       </button>
     </div>
   )
