@@ -1,5 +1,6 @@
 import { formatPrice } from '../../utils/formatPrice'
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import AdminConfirmModal from '../../components/admin/AdminConfirmModal'
 import AdminEmptyState from '../../components/admin/AdminEmptyState'
 import AdminFeedback from '../../components/admin/AdminFeedback'
@@ -27,6 +28,22 @@ export default function AdminProductsPage() {
   const [editando, setEditando] = useState<AdminProduct | undefined>(undefined)
   const [confirmando, setConfirmando] = useState<AdminProduct | undefined>(undefined)
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
+
+  const hayFiltros = busqueda !== '' || filtroCategoria !== 'todas' ||
+    filtroEstado !== 'todos' || filtroTipo !== 'todos'
+
+  function limpiarFiltros() {
+    setBusqueda('')
+    setFiltroCategoria('todas')
+    setFiltroEstado('todos')
+    setFiltroTipo('todos')
+  }
+
+  const accionLimpiar = hayFiltros ? (
+    <button type="button" onClick={limpiarFiltros} className={claseInput}>
+      Limpiar filtros
+    </button>
+  ) : null
 
   const filtrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase()
@@ -145,9 +162,9 @@ export default function AdminProductsPage() {
         >
           <option value="todos">Todos los estados</option>
           <option value="activos">Activos</option>
-          <option value="inactivos" disabled={!config.mockMode}>Inactivos</option>
+          <option value="inactivos">Inactivos</option>
         </select>
-        {!config.mockMode && <p className="basis-full text-xs text-stone-500">El endpoint actual del catálogo solo devuelve productos activos. Para reactivar productos desactivados hace falta un listado administrativo.</p>}
+        {accionLimpiar}
       </div>
 
       {mostrarFormulario && (
@@ -166,6 +183,7 @@ export default function AdminProductsPage() {
         <AdminEmptyState
           titulo="Sin productos"
           descripcion="No hay productos disponibles que coincidan con los filtros actuales."
+          accion={accionLimpiar}
         />
       ) : (
         <AdminTable
@@ -204,6 +222,17 @@ export default function AdminProductsPage() {
               </td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-2 text-sm">
+                  {item.activo && !config.mockMode && (
+                    <Link
+                      to={`/productos/${item.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Ver producto: ${item.nombre} (abre en otra pestaña)`}
+                      className="font-medium text-stone-800 hover:underline"
+                    >
+                      Ver producto
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={() => void abrirEditar(item)}
