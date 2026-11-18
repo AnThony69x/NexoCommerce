@@ -52,8 +52,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCargando(true)
     try {
       aplicarCarrito(await accion())
+      return null
     } catch (fallo) {
-      setError(fallo instanceof Error ? fallo.message : 'No se pudo actualizar el carrito.')
+      const mensaje = fallo instanceof Error ? fallo.message : 'No se pudo actualizar el carrito.'
+      setError(mensaje)
+      return mensaje
     } finally {
       setCargando(false)
     }
@@ -76,11 +79,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   async function eliminarProducto(id: string) {
-    await ejecutarApi(() => eliminarDelCarrito(id))
+    return ejecutarApi(() => eliminarDelCarrito(id))
   }
 
   async function vaciarCarrito() {
-    await ejecutarApi(vaciarCarritoRemoto)
+    return ejecutarApi(vaciarCarritoRemoto)
   }
 
   const totalUnidades = productos.reduce((suma, item) => suma + item.cantidad, 0)

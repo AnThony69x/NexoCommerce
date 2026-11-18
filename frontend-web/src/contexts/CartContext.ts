@@ -47,8 +47,8 @@ export type CartContextValue = {
   ) => Promise<void>
   aumentarCantidad: (id: string) => Promise<void>
   disminuirCantidad: (id: string) => Promise<void>
-  eliminarProducto: (id: string) => Promise<void>
-  vaciarCarrito: () => Promise<void>
+  eliminarProducto: (id: string) => Promise<string | null>
+  vaciarCarrito: () => Promise<string | null>
 }
 
 export const CartContext = createContext<CartContextValue | null>(null)
