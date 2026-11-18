@@ -11,6 +11,7 @@ import { useAsync } from '../../hooks/useAsync'
 import { listarCategorias } from '../../services/categoriesRepository'
 import { listarProductos } from '../../services/productsRepository'
 import type { Product } from '../../types/product'
+import { incluirCategoriasActivas } from '../../utils/categoryTree'
 
 type OrdenCatalogo = 'destacados' | 'precio-asc' | 'precio-desc'
 
@@ -92,9 +93,14 @@ export default function CatalogPage() {
     recargar: recargarCategorias,
   } = useAsync(listarCategorias, [])
 
-  const nombresCategorias = (categorias ?? []).map(
-    (categoria) => categoria.nombre,
-  )
+  const categoriasActivas = (categorias ?? []).filter((categoria) => categoria.activo)
+  const nombresCategorias = categoriasActivas.map((categoria) => categoria.nombre)
+  const idsCategoriasSeleccionadas = new Set<number>()
+  for (const categoria of categoriasActivas) {
+    if (categoriasSeleccionadas.includes(categoria.nombre)) {
+      incluirCategoriasActivas(categoria, idsCategoriasSeleccionadas)
+    }
+  }
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase()
   const filteredProducts = (productos ?? []).filter((product) => {
@@ -103,7 +109,7 @@ export default function CatalogPage() {
       .includes(normalizedSearchTerm)
     const matchesCategory =
       categoriasSeleccionadas.length === 0 ||
-      categoriasSeleccionadas.includes(product.categoria.nombre)
+      idsCategoriasSeleccionadas.has(product.categoria.id)
     const matchesPrice = coincidePrecio(product.precio, rangoPrecio)
     // stock null = sin control de inventario → disponible.
     const matchesAvailability =
