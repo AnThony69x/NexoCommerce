@@ -3,7 +3,7 @@ import { CartContext, type CartItemConfiguration, type CartProduct } from './Car
 import { cargarCarrito, guardarCarrito } from '../storage/cartStore'
 import { clampCantidad } from '../utils/validation'
 import { config } from '../config/app'
-import { useAuth } from './AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import {
   agregarAlCarrito,
   actualizarCantidadCarrito,

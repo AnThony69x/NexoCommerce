@@ -72,7 +72,9 @@ export default function AdminOrderDetailPage() {
     try {
       const avanzo = await avanzarPedido(pedidoId)
       setConfirmando(false)
-      if (avanzo && siguiente) setPedidoDetalle({ ...pedido, estado: siguiente })
+      if (avanzo && siguiente) {
+        setPedidoDetalle((actual) => actual ? { ...actual, estado: siguiente } : actual)
+      }
       setMensaje(
         avanzo
           ? { tipo: 'exito', texto: 'Estado actualizado.' }
