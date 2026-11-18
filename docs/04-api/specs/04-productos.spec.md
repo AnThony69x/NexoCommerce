@@ -373,3 +373,6 @@ El archivo se sube antes (spec 08) y se envia `multimedia_id`.
 * [ ] **TC-04:** Dos imagenes principales en el mismo producto: 422.
 * [ ] **TC-05:** CLIENTE no puede POST `/admin/productos` (403).
 * [ ] **TC-06:** Diseño personalizado guarda `usuario_id` del token.
+
+### 4.9 Consulta administrativa de productos
+`GET /api/v1/admin/productos` requiere Sanctum y rol ADMIN. Incluye activos e inactivos si no se envía `activo`; admite `activo` booleano, `categoria_id`, `tipo`, `buscar` por nombre y `page`. Respuesta paginada de 12, ordenada por `creado_en` e `id` descendentes, usando el recurso de listado actual. `GET /api/v1/admin/productos/{id}` devuelve el detalle aunque el producto esté inactivo. La reactivación se realiza con el `PUT` administrativo existente enviando `activo: true`.

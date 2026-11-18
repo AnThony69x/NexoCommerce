@@ -136,3 +136,6 @@ Sirve unicamente `comprobantes/` o `personalizaciones/` al usuario `subido_por_i
 * [x] **TC-06:** Archivo privado exige token y devuelve 403 a usuario ajeno; dueño y ADMIN pueden descargarlo.
 * [x] **TC-07:** CLIENTE no puede subir a destinos publicos; ADMIN si puede.
 * [x] **TC-08:** Archivo subido por backend-1 se lee identico desde backend-2 mediante el volumen compartido.
+
+### 4.6 Listar multimedia (ADMIN)
+`GET /api/v1/admin/multimedia` requiere Sanctum y rol ADMIN. Admite `activo` (por defecto true), `destino` y `page`; devuelve 15 filas por página ordenadas por `id` descendente e incluye `destino`, derivado del primer segmento de `ruta_archivo`. `url` solo se calcula para destinos públicos. Comprobantes y personalizaciones conservan `url: null` y se descargan con la ruta privada existente.

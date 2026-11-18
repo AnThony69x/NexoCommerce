@@ -264,3 +264,6 @@ Salto, retroceso o repeticion de estado: 400 `PED_ESTADO_INVALIDO`. Cancelar des
 ## 6. Historial de cambios
 * **1.2.0 (2026-10-18):** cambio de contrato. Nuevo estado `CANCELADO` (en `PATCH /admin/pedidos/{id}/estado` y filtros de listado). Campos de entrega opcionales en `POST /pedidos`: `tipo_entrega`, `direccion_entrega`, `telefono_contacto`, `hora_entrega`. El detalle (`GET /pedidos/{id}`) devuelve `tipo_entrega`, `direccion_entrega`, `telefono_contacto` y `hora_entrega`. El listado no cambia.
 * **1.1.1 (2026-09-24):** version previa del contrato.
+
+### Cambio de contrato administrativo 1.3.0
+El listado administrativo incorpora `cliente.id` y `cliente.nombre_completo`. El detalle incorpora `cliente` con `id`, `nombre_completo`, `correo` y `telefono` solo cuando consulta ADMIN.
