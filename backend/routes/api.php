@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
+use App\Http\Controllers\Admin\ConsultaAdminController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Carrito\CarritoController;
 use App\Http\Controllers\Categorias\CategoriaController;
@@ -65,6 +66,9 @@ Route::prefix('v1')->group(function (): void {
             // Modulo 02: Usuarios — gestion administrativa
             Route::get('usuarios', [AdminUsuarioController::class, 'index']);
             Route::patch('usuarios/{id}', [AdminUsuarioController::class, 'update']);
+            Route::get('pagos', [ConsultaAdminController::class, 'pagos']);
+            Route::get('multimedia', [ConsultaAdminController::class, 'multimedia']);
+            Route::get('dashboard', [ConsultaAdminController::class, 'dashboard']);
 
             // Modulo 09: Tienda — configuracion
             Route::put('tienda/configuracion', [ConfiguracionTiendaController::class, 'actualizar']);
