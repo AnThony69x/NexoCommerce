@@ -26,21 +26,21 @@ class ConsultasAdminTest extends TestCase
 
     public function test_listado_admin_incluye_inactivos_y_filtra_por_nombre(): void
     {
-        $activo = ProductoModelo::factory()->create(['nombre' => 'Taza azul']);
+        $activo = ProductoModelo::factory()->create(['nombre' => 'Contrato-admin taza azul']);
         DetalleModelo::factory()->create(['producto_id' => $activo->id, 'stock' => 3]);
-        $inactivo = ProductoModelo::factory()->inactivo()->create(['nombre' => 'Taza roja']);
+        $inactivo = ProductoModelo::factory()->inactivo()->create(['nombre' => 'Contrato-admin taza roja']);
         DetalleModelo::factory()->create(['producto_id' => $inactivo->id, 'stock' => 0]);
         $admin = $this->admin();
 
         $this->getJson('/api/v1/admin/productos')
             ->assertUnauthorized();
         $this->withToken($admin->createToken('test')->plainTextToken)
-            ->getJson('/api/v1/admin/productos?buscar=taza')
+            ->getJson('/api/v1/admin/productos?buscar=contrato-admin+taza')
             ->assertOk()->assertJsonPath('meta.total', 2);
         $this->getJson('/api/v1/admin/productos?activo=0&buscar=roja')
             ->assertOk()->assertJsonPath('meta.total', 1)
             ->assertJsonPath('data.0.activo', false)
-            ->assertJsonPath('data.0.nombre', 'Taza roja');
+            ->assertJsonPath('data.0.nombre', 'Contrato-admin taza roja');
         $this->getJson('/api/v1/admin/productos?activo=maybe')->assertUnprocessable();
         $this->getJson('/api/v1/admin/productos/'.$inactivo->id)
             ->assertOk()->assertJsonPath('data.activo', false);
@@ -109,6 +109,10 @@ class ConsultasAdminTest extends TestCase
 
     public function test_dashboard_y_consultas_de_pedido_incluyen_datos_admin(): void
     {
+        $productosActivosPrevios = ProductoModelo::query()->where('activo', true)->count();
+        $pedidosPendientesPrevios = PedidoModelo::query()->where('estado', 'PENDIENTE')->count();
+        $pagosPendientesPrevios = PagoModelo::query()->where('estado', 'PENDIENTE')->count();
+        $usuariosPrevios = UsuarioModelo::query()->count();
         $cliente = UsuarioModelo::factory()->verificado()->create([
             'nombre_completo' => 'Cliente de prueba',
             'correo' => 'cliente.contratos@example.test',
@@ -134,10 +138,10 @@ class ConsultasAdminTest extends TestCase
         $this->withToken($admin->createToken('test')->plainTextToken);
 
         $this->getJson('/api/v1/admin/dashboard')
-            ->assertOk()->assertJsonPath('data.productos_activos', 1)
-            ->assertJsonPath('data.pedidos_pendientes', 1)
-            ->assertJsonPath('data.pagos_pendientes', 1)
-            ->assertJsonPath('data.usuarios_registrados', 2)
+            ->assertOk()->assertJsonPath('data.productos_activos', $productosActivosPrevios + 1)
+            ->assertJsonPath('data.pedidos_pendientes', $pedidosPendientesPrevios + 1)
+            ->assertJsonPath('data.pagos_pendientes', $pagosPendientesPrevios + 1)
+            ->assertJsonPath('data.usuarios_registrados', $usuariosPrevios + 2)
             ->assertJsonPath('data.productos_stock_bajo.0.stock', 2);
         $this->getJson('/api/v1/admin/pedidos')
             ->assertOk()->assertJsonPath('data.0.cliente.id', $cliente->id)
