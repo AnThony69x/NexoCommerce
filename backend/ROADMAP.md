@@ -396,6 +396,7 @@ Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
 - [ ] Avisar a Nathalia y Emilio de los cambios de contrato antes de fusionar
 - [x] Consultas administrativas: productos (incluidos inactivos y busqueda), pagos, multimedia, dashboard y datos del comprador en consultas admin; OpenAPI y contratos actualizados. Pruebas PostgreSQL 17: suite principal 179/179 (1085 aserciones) y concurrentes 4/4 (27 aserciones) (Completado: 2026-11-17 21:29)
 - [x] Multimedia admin: confirmar cambios de estado desde el front y permitir reactivar registros inactivos mediante `PATCH /api/v1/admin/multimedia/{id}/estado`; OpenAPI y spec actualizados. Consultas admin verificadas en PostgreSQL 17 con datos demo: 4/4 (41 aserciones), Pint aplicado (Completado: 2026-11-17 22:45)
+- [x] Demo de integración: mover la torta existente a Repostería → Tortas, conservar su diseño y sembrar 30 días de capacidad (Completado: 2026-11-18 00:18)
 
 ---
 

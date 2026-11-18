@@ -66,10 +66,28 @@ class IntegrationDemoSeeder extends Seeder
             );
             DetalleModelo::query()->firstOrCreate(['producto_id' => $detalle->id], ['stock' => 25]);
 
-            $torta = ProductoModelo::query()->firstOrCreate(
-                ['categoria_id' => $categoria->id, 'nombre' => 'DEMO Torta chocolate'],
-                ['tipo' => 'TORTA', 'descripcion' => 'Torta con diseno del catalogo.', 'precio_base' => '20.00', 'activo' => true],
+            $reposteria = CategoriaModelo::query()->firstOrCreate(
+                ['categoria_padre_id' => null, 'nombre' => 'Repostería'],
+                ['activo' => true],
             );
+            $tortas = CategoriaModelo::query()->firstOrCreate(
+                ['categoria_padre_id' => $reposteria->id, 'nombre' => 'Tortas'],
+                ['activo' => true],
+            );
+
+            $torta = ProductoModelo::query()
+                ->where(['categoria_id' => $categoria->id, 'nombre' => 'DEMO Torta chocolate', 'tipo' => 'TORTA'])
+                ->first();
+
+            if ($torta !== null) {
+                $torta->categoria_id = $tortas->id;
+                $torta->save();
+            } else {
+                $torta = ProductoModelo::query()->firstOrCreate(
+                    ['categoria_id' => $tortas->id, 'nombre' => 'DEMO Torta chocolate', 'tipo' => 'TORTA'],
+                    ['descripcion' => 'Torta con diseno del catalogo.', 'precio_base' => '20.00', 'activo' => true],
+                );
+            }
             TortaModelo::query()->firstOrCreate(['producto_id' => $torta->id], ['tamano' => 'Mediana', 'porciones' => 12, 'sabor' => 'Chocolate']);
             DisenoTortaModelo::query()->firstOrCreate(
                 ['torta_id' => $torta->id, 'nombre' => 'DEMO Flores'],
@@ -87,10 +105,13 @@ class IntegrationDemoSeeder extends Seeder
             );
 
             foreach (range(1, 30) as $dia) {
-                ConfiguracionProduccionModelo::query()->firstOrCreate(
-                    ['fecha' => now()->addDays($dia)->toDateString(), 'categoria_id' => $categoria->id],
-                    ['capacidad_maxima' => 50, 'activo' => true],
-                );
+                $fecha = now()->addDays($dia)->toDateString();
+                foreach ([$categoria->id, $tortas->id] as $categoriaId) {
+                    ConfiguracionProduccionModelo::query()->firstOrCreate(
+                        ['fecha' => $fecha, 'categoria_id' => $categoriaId],
+                        ['capacidad_maxima' => 50, 'activo' => true],
+                    );
+                }
             }
         });
     }
