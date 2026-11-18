@@ -38,6 +38,11 @@ class MultimediaRepositorioEloquent implements MultimediaRepositorioInterface
         MultimediaModelo::where('id', $id)->update(['activo' => false]);
     }
 
+    public function activar(int $id): void
+    {
+        MultimediaModelo::where('id', $id)->update(['activo' => true]);
+    }
+
     public function estaEnUsoRestrict(int $id): bool
     {
         // Tablas con ON DELETE RESTRICT sobre multimedia_id

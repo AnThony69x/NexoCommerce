@@ -27,6 +27,9 @@ interface MultimediaRepositorioInterface
      */
     public function desactivar(int $id): void;
 
+    /** Marca `activo = true` en la fila indicada. */
+    public function activar(int $id): void;
+
     /**
      * Comprueba si la fila esta referenciada por tablas con ON DELETE RESTRICT
      * (`comprobantes_pago`, `disenos_personalizados`).

@@ -577,6 +577,29 @@ paths:
       responses:
         '200': { description: Archivos paginados; url null para destinos privados }
 
+  /admin/multimedia/{id}/estado:
+    patch:
+      tags: [Multimedia]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [activo]
+              properties:
+                activo: { type: boolean }
+      responses:
+        '200': { description: Estado del archivo actualizado }
+        '400': { description: No se puede desactivar un archivo en uso }
+        '401': { description: No autenticado }
+        '403': { description: Rol ADMIN requerido }
+        '404': { description: Archivo inexistente }
+        '422': { description: Estado requerido y booleano }
+
   /admin/dashboard:
     get:
       tags: [Administracion]

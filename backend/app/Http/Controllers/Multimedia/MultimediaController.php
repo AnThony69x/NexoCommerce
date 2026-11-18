@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Multimedia;
 
+use App\Aplicacion\Multimedia\CasosUso\ActivarMultimedia;
 use App\Aplicacion\Multimedia\CasosUso\DesactivarMultimedia;
 use App\Aplicacion\Multimedia\CasosUso\DescargarMultimedia;
 use App\Aplicacion\Multimedia\CasosUso\ObtenerMultimedia;
 use App\Aplicacion\Multimedia\CasosUso\SubirArchivoMultimedia;
 use App\Aplicacion\Multimedia\DTOs\SubirMultimediaDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\CambiarEstadoMultimediaAdminRequest;
 use App\Http\Requests\Multimedia\SubirMultimediaRequest;
 use App\Http\Resources\MultimediaResource;
 use App\Infraestructura\Persistencia\Eloquent\Modelos\UsuarioModelo;
@@ -27,6 +29,7 @@ class MultimediaController extends Controller
         private readonly SubirArchivoMultimedia $subirArchivo,
         private readonly ObtenerMultimedia $obtener,
         private readonly DesactivarMultimedia $desactivar,
+        private readonly ActivarMultimedia $activar,
         private readonly DescargarMultimedia $descargar,
     ) {}
 
@@ -117,6 +120,25 @@ class MultimediaController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Archivo desactivado correctamente.',
+        ]);
+    }
+
+    public function cambiarEstadoAdmin(CambiarEstadoMultimediaAdminRequest $request, int $id): JsonResponse
+    {
+        $activo = $request->boolean('activo');
+
+        if ($activo) {
+            $this->activar->execute($id);
+        } else {
+            /** @var UsuarioModelo $usuario */
+            $usuario = $request->user();
+            $this->desactivar->execute($id, (int) $usuario->id, true);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $activo ? 'Archivo activado correctamente.' : 'Archivo desactivado correctamente.',
+            'data' => ['id' => $id, 'activo' => $activo],
         ]);
     }
 }

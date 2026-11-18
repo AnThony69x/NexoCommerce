@@ -79,6 +79,34 @@ class ConsultasAdminTest extends TestCase
             ->assertJsonPath('data.0.url', null);
     }
 
+    public function test_admin_puede_desactivar_y_reactivar_multimedia_con_estado_confirmado(): void
+    {
+        $medio = MultimediaModelo::factory()->pdf()->create();
+        $admin = $this->admin();
+        $token = $admin->createToken('test')->plainTextToken;
+
+        $this->patchJson('/api/v1/admin/multimedia/'.$medio->id.'/estado', ['activo' => false], [
+            'Authorization' => 'Bearer '.$token,
+        ])->assertOk()->assertJsonPath('data.activo', false);
+
+        $this->getJson('/api/v1/admin/multimedia?activo=0', [
+            'Authorization' => 'Bearer '.$token,
+        ])->assertOk()->assertJsonPath('data.0.id', $medio->id)
+            ->assertJsonPath('data.0.activo', false);
+
+        $this->patchJson('/api/v1/admin/multimedia/'.$medio->id.'/estado', ['activo' => true], [
+            'Authorization' => 'Bearer '.$token,
+        ])->assertOk()->assertJsonPath('data.activo', true);
+        $this->getJson('/api/v1/admin/multimedia?activo=1', [
+            'Authorization' => 'Bearer '.$token,
+        ])->assertOk()->assertJsonPath('data.0.id', $medio->id)
+            ->assertJsonPath('data.0.activo', true);
+
+        $this->patchJson('/api/v1/admin/multimedia/'.$medio->id.'/estado', ['activo' => 'maybe'], [
+            'Authorization' => 'Bearer '.$token,
+        ])->assertUnprocessable();
+    }
+
     public function test_dashboard_y_consultas_de_pedido_incluyen_datos_admin(): void
     {
         $cliente = UsuarioModelo::factory()->verificado()->create([
