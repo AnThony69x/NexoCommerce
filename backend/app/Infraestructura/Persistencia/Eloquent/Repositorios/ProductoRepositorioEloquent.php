@@ -35,11 +35,16 @@ final class ProductoRepositorioEloquent implements ProductoRepositorioInterface
 {
     public function listar(array $filtros): array
     {
-        $query = $this->consultaConRelaciones()->where('activo', true);
+        $query = $this->consultaConRelaciones();
+        if (! ($filtros['admin'] ?? false)) {
+            $query->where('activo', true);
+        } elseif (array_key_exists('activo', $filtros) && $filtros['activo'] !== null) {
+            $query->where('activo', $filtros['activo']);
+        }
 
         $this->aplicarFiltros($query, $filtros);
 
-        $paginador = $query->paginate(12, ['*'], 'page', (int) ($filtros['page'] ?? 1));
+        $paginador = $query->orderByDesc('creado_en')->orderByDesc('id')->paginate(12, ['*'], 'page', (int) ($filtros['page'] ?? 1));
 
         return [
             'datos' => array_map(

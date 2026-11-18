@@ -26,6 +26,7 @@ use App\Http\Requests\Productos\ActualizarProductoRequest;
 use App\Http\Requests\Productos\CrearDisenoRequest;
 use App\Http\Requests\Productos\CrearProductoRequest;
 use App\Http\Requests\Productos\ListarProductosRequest;
+use App\Http\Requests\Productos\ListarProductosAdminRequest;
 use App\Http\Resources\DisenoResource;
 use App\Http\Resources\ProductoDetalleResource;
 use App\Http\Resources\ProductoListadoResource;
@@ -76,6 +77,39 @@ class ProductoController extends Controller
                 'total' => $resultado['total'],
                 'total_paginas' => $resultado['total_paginas'],
             ],
+        ]);
+    }
+
+    public function adminIndex(ListarProductosAdminRequest $request): JsonResponse
+    {
+        $datos = $request->validated();
+        $datos['admin'] = true;
+        $resultado = $this->listarProductos->execute(new FiltrosProductoDTO(
+            categoria_id: isset($datos['categoria_id']) ? (int) $datos['categoria_id'] : null,
+            tipo: $datos['tipo'] ?? null,
+            buscar: $datos['buscar'] ?? null,
+            page: (int) ($datos['page'] ?? 1),
+            admin: true,
+            activo: isset($datos['activo']) ? (bool) $datos['activo'] : null,
+        ));
+
+        return response()->json([
+            'success' => true,
+            'data' => array_map(static fn (Producto $producto): array => (new ProductoListadoResource($producto))->toArray($request), $resultado['datos']),
+            'meta' => [
+                'pagina_actual' => $resultado['pagina_actual'],
+                'por_pagina' => $resultado['por_pagina'],
+                'total' => $resultado['total'],
+                'total_paginas' => $resultado['total_paginas'],
+            ],
+        ]);
+    }
+
+    public function adminShow(Request $request, int $id): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data' => (new ProductoDetalleResource($this->consultarProducto->execute($id, false)))->toArray($request),
         ]);
     }
 

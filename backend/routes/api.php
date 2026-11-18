@@ -75,6 +75,8 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('categorias/{id}', [CategoriaController::class, 'destroy']);
 
             // Modulo 04: Productos y personalizacion
+            Route::get('productos', [ProductoController::class, 'adminIndex']);
+            Route::get('productos/{id}', [ProductoController::class, 'adminShow']);
             Route::post('productos', [ProductoController::class, 'store']);
             Route::put('productos/{id}', [ProductoController::class, 'update']);
             Route::delete('productos/{id}', [ProductoController::class, 'destroy']);
