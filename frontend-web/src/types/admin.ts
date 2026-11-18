@@ -10,6 +10,15 @@ export interface AdminSummaryItem {
   detalle: string
 }
 
+export interface AdminDashboard {
+  productos_activos: number
+  pedidos_pendientes: number
+  pagos_pendientes: number
+  usuarios_registrados: number
+  pedidos_recientes: Array<{ id: string; estado: PedidoEstado }>
+  productos_stock_bajo: Array<{ id: string; nombre: string; stock: number }>
+}
+
 export type ProductoTipo = 'TORTA' | 'DETALLE' | 'SUBLIMACION'
 export type PedidoEstado =
   | 'PENDIENTE'

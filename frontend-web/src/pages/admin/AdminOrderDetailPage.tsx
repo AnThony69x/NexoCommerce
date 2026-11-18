@@ -15,7 +15,7 @@ import { config } from '../../config/app'
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { obtenerPedido, avanzarPedido, usuarios, cargando } = useAdminMock()
+  const { obtenerPedido, avanzarPedido, cargando } = useAdminMock()
   const [confirmando, setConfirmando] = useState(false)
   const [mensaje, setMensaje] = useState<AdminFeedbackMessage | null>(null)
   const [pedidoDetalle, setPedidoDetalle] = useState<ReturnType<typeof obtenerPedido>>()
@@ -29,20 +29,14 @@ export default function AdminOrderDetailPage() {
     obtenerPedidoAdmin(id)
       .then((detalle) => {
         if (cancelado) return
-        const cliente = usuarios.find((usuario) => usuario.id === detalle.clienteId)
-        setPedidoDetalle(cliente ? {
-          ...detalle,
-          clienteNombre: cliente.nombre_completo,
-          clienteCorreo: cliente.correo,
-          clienteTelefono: cliente.telefono,
-        } : detalle)
+        setPedidoDetalle(detalle)
       })
       .catch((error: unknown) => {
         if (!cancelado) setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cargar el pedido.' })
       })
       .finally(() => { if (!cancelado) setCargandoDetalle(false) })
     return () => { cancelado = true }
-  }, [id, usuarios])
+  }, [id])
 
   const pedido = pedidoDetalle ?? (id ? obtenerPedido(id) : undefined)
 
@@ -110,8 +104,8 @@ export default function AdminOrderDetailPage() {
         <div className="rounded-2xl border border-stone-200 bg-white p-5">
           <h2 className="text-sm font-semibold text-stone-800">Cliente</h2>
           <p className="mt-2 text-sm text-stone-700">{pedido.clienteNombre}</p>
-          <p className="text-sm text-stone-600">{pedido.clienteCorreo || 'El contrato actual no incluye el correo del cliente.'}</p>
-          <p className="text-sm text-stone-600">{pedido.clienteTelefono || 'El contrato actual no incluye el teléfono del cliente.'}</p>
+          <p className="text-sm text-stone-600">{pedido.clienteCorreo || 'Correo no registrado.'}</p>
+          <p className="text-sm text-stone-600">{pedido.clienteTelefono || 'Teléfono no registrado.'}</p>
         </div>
         <div className="rounded-2xl border border-stone-200 bg-white p-5">
           <h2 className="text-sm font-semibold text-stone-800">Entrega y total</h2>

@@ -3,6 +3,7 @@ import type { ApiEnvelope, ApiEnvelopePaginado } from '../types/api'
 import { config } from '../config/app'
 import type {
   AdminCategory,
+  AdminDashboard,
   AdminMedia,
   AdminOrder,
   AdminOrderDetail,
@@ -95,13 +96,14 @@ function aProducto(api: ApiRecord): AdminProduct {
 }
 
 function aPedidoResumen(api: ApiRecord): AdminOrder {
+  const cliente = (api.cliente ?? {}) as ApiRecord
   return {
     id: String(api.id),
     numero: `PED-${String(api.id).padStart(5, '0')}`,
     clienteId: api.usuario_id === undefined ? undefined : String(api.usuario_id),
-    clienteNombre: `Usuario ${String(api.usuario_id ?? '')}`,
-    clienteCorreo: '',
-    clienteTelefono: '',
+    clienteNombre: String(cliente.nombre_completo ?? 'Cliente sin nombre'),
+    clienteCorreo: String(cliente.correo ?? ''),
+    clienteTelefono: String(cliente.telefono ?? ''),
     fecha_entrega: String(api.fecha_entrega ?? ''),
     subtotal: Number(api.subtotal ?? api.total ?? 0),
     total: Number(api.total ?? 0),
@@ -126,6 +128,9 @@ function aPedidoDetalle(api: ApiRecord): AdminOrder {
           .filter((valor) => typeof valor === 'string' && valor.trim() !== '')
           .join(' · ') || undefined,
     })),
+    clienteNombre: String(((api.cliente ?? {}) as ApiRecord).nombre_completo ?? pedido.clienteNombre),
+    clienteCorreo: String(((api.cliente ?? {}) as ApiRecord).correo ?? ''),
+    clienteTelefono: String(((api.cliente ?? {}) as ApiRecord).telefono ?? ''),
     direccion: String(api.direccion_entrega ?? ''),
     referencia: String(api.referencia_entrega ?? ''),
     tipo_entrega: api.tipo_entrega as AdminOrder['tipo_entrega'],
@@ -134,13 +139,14 @@ function aPedidoDetalle(api: ApiRecord): AdminOrder {
   }
 }
 
-function aPago(api: ApiRecord, pedido: AdminOrder): AdminPayment {
+function aPago(api: ApiRecord): AdminPayment {
   const comprobante = (api.comprobante ?? null) as ApiRecord | null
   const multimediaId = comprobante?.multimedia_id
+  const pedidoId = String(api.pedido_id ?? '')
   return {
     id: String(api.id),
-    pedidoId: String(api.pedido_id ?? pedido.id),
-    pedidoNumero: pedido.numero,
+    pedidoId,
+    pedidoNumero: `PED-${pedidoId.padStart(5, '0')}`,
     metodo: api.metodo as AdminPayment['metodo'],
     monto: Number(api.monto ?? 0),
     estado: api.estado as PagoEstado,
@@ -207,12 +213,12 @@ export async function listarCategoriasAdmin() {
 }
 
 export async function listarProductosAdmin() {
-  const productos = await listarTodas<ApiRecord>('/productos')
+  const productos = await listarTodas<ApiRecord>('/admin/productos')
   return productos.map(aProducto)
 }
 
 export async function obtenerProductoAdmin(id: string, categorias: AdminCategory[]) {
-  const { data } = await apiClient.get<ApiEnvelope<ApiRecord>>(`/productos/${id}`)
+  const { data } = await apiClient.get<ApiEnvelope<ApiRecord>>(`/admin/productos/${id}`)
   const producto = aProducto(data.data)
   return {
     ...producto,
@@ -290,22 +296,51 @@ export async function cambiarEstadoPedido(id: string, estado: PedidoEstado) {
   await apiClient.patch(`/admin/pedidos/${id}/estado`, { estado })
 }
 
-export async function listarPagosAdmin(pedidos: AdminOrder[]) {
-  const pagos: Array<AdminPayment | null> = []
-  for (let inicio = 0; inicio < pedidos.length; inicio += 8) {
-    const lote = await Promise.all(pedidos.slice(inicio, inicio + 8).map(async (pedido) => {
-      try {
-        const { data } = await apiClient.get<ApiEnvelope<ApiRecord>>(`/pedidos/${pedido.id}/pago`)
-        return data.data ? aPago(data.data, pedido) : null
-      } catch (error) {
-        // Pedidos sin pago todavía son válidos en el flujo.
-        if (typeof error === 'object' && error !== null && 'status' in error && error.status === 404) return null
-        throw error
-      }
-    }))
-    pagos.push(...lote)
+export async function listarPagosAdmin() {
+  return (await listarTodas<ApiRecord>('/admin/pagos')).map(aPago)
+}
+
+function aMultimedia(api: ApiRecord): AdminMedia {
+  return {
+    id: String(api.id),
+    nombre: String(api.nombre_archivo ?? ''),
+    tipoMime: String(api.tipo_mime ?? ''),
+    tamanoKb: Math.ceil(Number(api.tamano_bytes ?? 0) / 1024),
+    ancho: api.ancho == null ? undefined : Number(api.ancho),
+    alto: api.alto == null ? undefined : Number(api.alto),
+    rutaArchivo: String(api.ruta_archivo ?? ''),
+    url: typeof api.url === 'string' ? api.url : '',
+    destino: String(api.destino ?? ''),
+    activo: Boolean(api.activo),
   }
-  return pagos.filter((pago): pago is AdminPayment => pago !== null)
+}
+
+export async function listarMultimediaAdmin() {
+  const [activos, inactivos] = await Promise.all([
+    listarTodas<ApiRecord>('/admin/multimedia', { activo: 1 }),
+    listarTodas<ApiRecord>('/admin/multimedia', { activo: 0 }),
+  ])
+  return [...activos, ...inactivos].map(aMultimedia)
+}
+
+export async function obtenerDashboardAdmin() {
+  const { data } = await apiClient.get<ApiEnvelope<ApiRecord>>('/admin/dashboard')
+  const dashboard = data.data
+  return {
+    productos_activos: Number(dashboard.productos_activos ?? 0),
+    pedidos_pendientes: Number(dashboard.pedidos_pendientes ?? 0),
+    pagos_pendientes: Number(dashboard.pagos_pendientes ?? 0),
+    usuarios_registrados: Number(dashboard.usuarios_registrados ?? 0),
+    pedidos_recientes: (dashboard.pedidos_recientes as ApiRecord[] ?? []).map((item) => ({
+      id: String(item.id),
+      estado: item.estado as PedidoEstado,
+    })),
+    productos_stock_bajo: (dashboard.productos_stock_bajo as ApiRecord[] ?? []).map((item) => ({
+      id: String(item.id),
+      nombre: String(item.nombre ?? ''),
+      stock: Number(item.stock ?? 0),
+    })),
+  } satisfies AdminDashboard
 }
 
 export async function verificarPago(id: string, estado: 'APROBADO' | 'RECHAZADO') {

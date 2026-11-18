@@ -6,41 +6,35 @@ import { useAdminMock } from '../../contexts/AdminMockContext'
 import { adminQuickAccessMock } from '../../data/adminDashboard.mock'
 
 export default function AdminDashboardPage() {
-  const { productos, pedidos, pagos, usuarios } = useAdminMock()
-
-  const pedidosPendientes = pedidos.filter((p) => p.estado === 'PENDIENTE')
-  const pagosPendientes = pagos.filter((p) => p.estado === 'PENDIENTE')
-  const pocoStock = productos.filter(
-    (p) => p.tipo === 'DETALLE' && (p.stock ?? 0) <= 5,
-  )
-  const pedidosRecientes = [...pedidos].slice(0, 5)
+  const { dashboard, recargar, cargando } = useAdminMock()
 
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         titulo="Panel de administración"
         descripcion="Resumen operativo de pedidos, pagos, usuarios y catálogo."
+        accion={<button type="button" disabled={cargando} onClick={() => void recargar()} className="min-h-10 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 disabled:opacity-50">Actualizar</button>}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <AdminStatCard
           etiqueta="Total de productos"
-          valor={String(productos.length)}
+          valor={String(dashboard.productos_activos)}
           detalle="Productos activos visibles en el catálogo"
         />
         <AdminStatCard
           etiqueta="Pedidos pendientes"
-          valor={String(pedidosPendientes.length)}
+          valor={String(dashboard.pedidos_pendientes)}
           detalle="Estado PENDIENTE"
         />
         <AdminStatCard
           etiqueta="Pagos pendientes"
-          valor={String(pagosPendientes.length)}
+          valor={String(dashboard.pagos_pendientes)}
           detalle="Por verificar"
         />
         <AdminStatCard
           etiqueta="Usuarios registrados"
-          valor={String(usuarios.length)}
+          valor={String(dashboard.usuarios_registrados)}
           detalle="Requieren seguimiento"
         />
       </div>
@@ -50,13 +44,13 @@ export default function AdminDashboardPage() {
           <h2 className="text-base font-semibold text-stone-800">
             Productos con poco stock
           </h2>
-          {pocoStock.length === 0 ? (
+          {dashboard.productos_stock_bajo.length === 0 ? (
             <p className="mt-2 text-sm text-stone-600">
               Sin alertas de stock por ahora.
             </p>
           ) : (
             <ul className="mt-3 space-y-2 text-sm text-stone-700">
-              {pocoStock.map((item) => (
+              {dashboard.productos_stock_bajo.map((item) => (
                 <li key={item.id} className="flex justify-between gap-2">
                   <span>{item.nombre}</span>
                   <span className="font-semibold">Stock: {item.stock}</span>
@@ -71,13 +65,13 @@ export default function AdminDashboardPage() {
             Pedidos recientes
           </h2>
           <ul className="mt-3 space-y-2 text-sm text-stone-700">
-            {pedidosRecientes.map((item) => (
+            {dashboard.pedidos_recientes.map((item) => (
               <li key={item.id} className="flex justify-between gap-2">
                 <Link
                   to={`/admin/pedidos/${item.id}`}
                   className="font-medium text-stone-800 hover:underline"
                 >
-                  {item.numero}
+                  PED-{item.id.padStart(5, '0')}
                 </Link>
                 <span>{item.estado}</span>
               </li>

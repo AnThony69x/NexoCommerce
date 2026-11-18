@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react'
 import type {
   AdminCategory,
+  AdminDashboard,
   AdminMedia,
   AdminOrder,
   AdminPayment,
@@ -39,6 +40,7 @@ export type AdminMockContextValue = {
   cargando: boolean
   error: string | null
   recargar: () => Promise<void>
+  dashboard: AdminDashboard
   productos: AdminProduct[]
   crearProducto: (dato: Omit<AdminProduct, 'id'>) => void | Promise<void>
   actualizarProducto: (id: string, dato: Omit<AdminProduct, 'id'>) => void | Promise<void>
@@ -95,6 +97,17 @@ function AdminMockDataProvider({ children }: { children: ReactNode }) {
       cargando: false,
       error: null,
       recargar: async () => {},
+      dashboard: {
+        productos_activos: productos.filter((item) => item.activo).length,
+        pedidos_pendientes: pedidos.filter((item) => item.estado === 'PENDIENTE').length,
+        pagos_pendientes: pagos.filter((item) => item.estado === 'PENDIENTE').length,
+        usuarios_registrados: usuarios.length,
+        pedidos_recientes: pedidos.slice(0, 5).map((item) => ({ id: item.id, estado: item.estado })),
+        productos_stock_bajo: productos
+          .filter((item) => item.activo && item.tipo === 'DETALLE' && (item.stock ?? 0) <= 5)
+          .map((item) => ({ id: item.id, nombre: item.nombre, stock: item.stock ?? 0 }))
+          .slice(0, 10),
+      },
       productos,
       crearProducto: (dato) =>
         setProductos((actual) => [...actual, { ...dato, id: crearId('prod') }]),
@@ -243,6 +256,14 @@ function AdminBackendProvider({ children }: { children: ReactNode }) {
   const [multimedia, setMultimedia] = useState<AdminMedia[]>([])
   const [produccion, setProduccion] = useState<AdminProductionConfig[]>([])
   const [tienda, setTienda] = useState<StoreConfiguration>(storeConfigurationMock)
+  const [dashboard, setDashboard] = useState<AdminDashboard>({
+    productos_activos: 0,
+    pedidos_pendientes: 0,
+    pagos_pendientes: 0,
+    usuarios_registrados: 0,
+    pedidos_recientes: [],
+    productos_stock_bajo: [],
+  })
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -251,29 +272,21 @@ function AdminBackendProvider({ children }: { children: ReactNode }) {
     setError(null)
     try {
       const [categoriasNuevas, productosNuevos, pedidosNuevos, usuariosNuevos,
-        publicacionesNuevas, tiendaNueva] = await Promise.all([
+        publicacionesNuevas, tiendaNueva, multimediaNueva, dashboardNuevo, pagosNuevos] = await Promise.all([
         adminApi.listarCategoriasAdmin(),
         adminApi.listarProductosAdmin(),
         adminApi.listarPedidosAdmin(),
         adminApi.listarUsuariosAdmin(),
         adminApi.listarPublicacionesAdmin(),
         adminApi.obtenerConfiguracionTienda(),
+        adminApi.listarMultimediaAdmin(),
+        adminApi.obtenerDashboardAdmin(),
+        adminApi.listarPagosAdmin(),
       ])
-      const [produccionNueva, pagosNuevos] = await Promise.all([
-        adminApi.listarProduccionAdmin(categoriasNuevas),
-        adminApi.listarPagosAdmin(pedidosNuevos),
-      ])
+      const produccionNueva = await adminApi.listarProduccionAdmin(categoriasNuevas)
       setCategorias(categoriasNuevas)
       setProductos(productosNuevos)
-      setPedidos(pedidosNuevos.map((pedido) => {
-        const cliente = usuariosNuevos.find((usuario) => usuario.id === pedido.clienteId)
-        return cliente ? {
-          ...pedido,
-          clienteNombre: cliente.nombre_completo,
-          clienteCorreo: cliente.correo,
-          clienteTelefono: cliente.telefono,
-        } : pedido
-      }))
+      setPedidos(pedidosNuevos)
       setUsuarios(usuariosNuevos)
       setPublicaciones(publicacionesNuevas.map((publicacion) => ({
         ...publicacion,
@@ -283,6 +296,8 @@ function AdminBackendProvider({ children }: { children: ReactNode }) {
       setTienda(tiendaNueva)
       setProduccion(produccionNueva)
       setPagos(pagosNuevos)
+      setMultimedia(multimediaNueva)
+      setDashboard(dashboardNuevo)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No se pudieron cargar los datos administrativos.')
     } finally {
@@ -301,6 +316,7 @@ function AdminBackendProvider({ children }: { children: ReactNode }) {
     cargando,
     error,
     recargar,
+    dashboard,
     productos,
     crearProducto: (dato) => ejecutarYRecargar(() => adminApi.guardarProducto(undefined, dato)),
     actualizarProducto: (id, dato) => ejecutarYRecargar(() => adminApi.guardarProducto(id, dato)),
@@ -364,7 +380,7 @@ function AdminBackendProvider({ children }: { children: ReactNode }) {
       await adminApi.actualizarConfiguracionTienda(dato)
       setTienda(dato)
     }),
-  }), [cargando, error, recargar, productos, categorias, pedidos, pagos, usuarios, publicaciones, multimedia, produccion, tienda, ejecutarYRecargar, user?.id])
+  }), [cargando, error, recargar, dashboard, productos, categorias, pedidos, pagos, usuarios, publicaciones, multimedia, produccion, tienda, ejecutarYRecargar, user?.id])
 
   return <AdminMockContext.Provider value={valor}>{children}</AdminMockContext.Provider>
 }
