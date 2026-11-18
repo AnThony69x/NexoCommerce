@@ -564,7 +564,7 @@ paths:
         - { name: pedido_id, in: query, schema: { type: integer } }
         - { name: page, in: query, schema: { type: integer, minimum: 1 } }
       responses:
-        '200': { description: Intentos de pago paginados por id descendente }
+        '200': { description: Intentos de pago paginados por id descendente. Cada intento incluye creado_en (ISO 8601 UTC) y fecha_pago (fecha de aprobación o null). }
 
   /admin/multimedia:
     get:
@@ -605,7 +605,7 @@ paths:
       tags: [Administracion]
       security: [{ bearerAuth: [] }]
       responses:
-        '200': { description: Conteos operativos, pedidos recientes y productos con stock bajo }
+        '200': { description: Conteos operativos con pedidos_listos y total_productos_stock_bajo. Incluye cinco pedidos recientes con cliente_nombre, fecha_entrega y total, y hasta diez productos activos de tipo DETALLE con stock de 0 a 5. }
 
   /admin/pedidos/{id}/estado:
     patch:

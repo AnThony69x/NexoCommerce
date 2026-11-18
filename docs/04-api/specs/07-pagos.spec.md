@@ -185,4 +185,4 @@ La notificacion al cliente se implementara en Fase 11 (spec 10).
 * [x] **TC-09:** Dos registros simultaneos del mismo pedido no crean dos pagos activos.
 
 ### 4.4 Listar pagos (ADMIN)
-`GET /api/v1/admin/pagos` requiere Sanctum y rol ADMIN. Admite filtros `estado`, `metodo`, `pedido_id` y `page`. Devuelve 15 resultados por página en orden de `id` descendente, incluidos intentos rechazados. Cada elemento conserva los campos del recurso de pago e incluye su comprobante si existe.
+`GET /api/v1/admin/pagos` requiere Sanctum y rol ADMIN. Admite filtros `estado`, `metodo`, `pedido_id` y `page`. Devuelve 15 resultados por página en orden de `id` descendente, incluidos intentos rechazados. Cada elemento conserva los campos del recurso de pago e incluye su comprobante si existe. `creado_en` es la fecha de registro del intento en ISO 8601 (UTC). `fecha_pago` corresponde a la aprobación y es nula en los intentos pendientes o rechazados.

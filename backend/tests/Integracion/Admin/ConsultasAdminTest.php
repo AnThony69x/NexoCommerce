@@ -56,7 +56,7 @@ class ConsultasAdminTest extends TestCase
             'subtotal' => '12.00',
             'total' => '12.00',
         ]);
-        PagoModelo::create([
+        $pago = PagoModelo::create([
             'pedido_id' => $pedido->id,
             'metodo' => 'PASARELA',
             'estado' => 'RECHAZADO',
@@ -72,7 +72,9 @@ class ConsultasAdminTest extends TestCase
         $this->getJson('/api/v1/admin/pagos?estado=RECHAZADO')
             ->assertOk()->assertJsonPath('meta.total', 1)
             ->assertJsonPath('data.0.pedido_id', $pedido->id)
-            ->assertJsonPath('data.0.pedido_estado', 'PENDIENTE');
+            ->assertJsonPath('data.0.pedido_estado', 'PENDIENTE')
+            ->assertJsonPath('data.0.creado_en', $pago->creado_en->toISOString())
+            ->assertJsonPath('data.0.fecha_pago', null);
         $this->getJson('/api/v1/admin/multimedia?destino=comprobantes')
             ->assertOk()->assertJsonPath('meta.total', 1)
             ->assertJsonPath('data.0.destino', 'comprobantes')
@@ -113,13 +115,31 @@ class ConsultasAdminTest extends TestCase
         $pedidosPendientesPrevios = PedidoModelo::query()->where('estado', 'PENDIENTE')->count();
         $pagosPendientesPrevios = PagoModelo::query()->where('estado', 'PENDIENTE')->count();
         $usuariosPrevios = UsuarioModelo::query()->count();
+        $listosPrevios = PedidoModelo::query()->where('estado', 'LISTO')->count();
+        $stockBajoPrevio = DetalleModelo::query()
+            ->join('catalogo.productos', 'catalogo.productos.id', '=', 'catalogo.detalles.producto_id')
+            ->where('catalogo.productos.activo', true)->whereBetween('stock', [0, 5])->count();
         $cliente = UsuarioModelo::factory()->verificado()->create([
             'nombre_completo' => 'Cliente de prueba',
             'correo' => 'cliente.contratos@example.test',
             'telefono' => '+593999123456',
         ]);
-        $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'nombre' => 'Caja pequeña']);
-        DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 2]);
+        foreach (range(1, 12) as $indice) {
+            $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'activo' => true]);
+            DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => $indice % 6]);
+        }
+        $inactivo = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'activo' => false]);
+        DetalleModelo::factory()->create(['producto_id' => $inactivo->id, 'stock' => 1]);
+        $listo = PedidoModelo::create([
+            'usuario_id' => $cliente->id, 'fecha_entrega' => now()->addDay()->toDateString(),
+            'estado' => 'PENDIENTE', 'subtotal' => '20.00', 'total' => '20.00',
+        ]);
+        PagoModelo::create([
+            'pedido_id' => $listo->id, 'metodo' => 'PASARELA', 'estado' => 'APROBADO',
+            'monto' => '20.00', 'referencia_pasarela' => 'ADMIN-DASH-LISTO',
+        ]);
+        $listo->update(['estado' => 'EN_PREPARACION']);
+        $listo->update(['estado' => 'LISTO']);
         $pedido = PedidoModelo::create([
             'usuario_id' => $cliente->id,
             'fecha_entrega' => now()->addDay()->toDateString(),
@@ -138,11 +158,18 @@ class ConsultasAdminTest extends TestCase
         $this->withToken($admin->createToken('test')->plainTextToken);
 
         $this->getJson('/api/v1/admin/dashboard')
-            ->assertOk()->assertJsonPath('data.productos_activos', $productosActivosPrevios + 1)
+            ->assertOk()->assertJsonPath('data.productos_activos', $productosActivosPrevios + 12)
             ->assertJsonPath('data.pedidos_pendientes', $pedidosPendientesPrevios + 1)
             ->assertJsonPath('data.pagos_pendientes', $pagosPendientesPrevios + 1)
             ->assertJsonPath('data.usuarios_registrados', $usuariosPrevios + 2)
-            ->assertJsonPath('data.productos_stock_bajo.0.stock', 2);
+            ->assertJsonPath('data.pedidos_listos', $listosPrevios + 1)
+            ->assertJsonPath('data.total_productos_stock_bajo', $stockBajoPrevio + 12)
+            ->assertJsonCount(10, 'data.productos_stock_bajo')
+            ->assertJsonPath('data.productos_stock_bajo.0.stock', 0)
+            ->assertJsonPath('data.pedidos_recientes.0.id', $pedido->id)
+            ->assertJsonPath('data.pedidos_recientes.0.cliente_nombre', 'Cliente de prueba')
+            ->assertJsonPath('data.pedidos_recientes.0.fecha_entrega', $pedido->fecha_entrega->toDateString())
+            ->assertJsonPath('data.pedidos_recientes.0.total', 20);
         $this->getJson('/api/v1/admin/pedidos')
             ->assertOk()->assertJsonPath('data.0.cliente.id', $cliente->id)
             ->assertJsonPath('data.0.cliente.nombre_completo', 'Cliente de prueba');
