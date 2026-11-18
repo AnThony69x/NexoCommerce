@@ -69,7 +69,7 @@ export default function ProductForm({
       categoriaNombre: categoria?.nombre ?? 'Sin categoría',
       tipo: valores.tipo,
       precio_base: Number(valores.precio_base),
-      activo: valores.activo,
+      activo: inicial?.activo ?? valores.activo,
       imagenes,
       imagenIds: imagenes.map((url) => {
         const indiceInicial = inicial?.imagenes.indexOf(url) ?? -1
@@ -202,10 +202,16 @@ export default function ProductForm({
           )}
         </div>
         <div className="flex items-end gap-2 pb-2">
-          <input id="prod-activo" type="checkbox" {...register('activo')} />
-          <label htmlFor="prod-activo" className={claseLabel}>
+          {inicial ? (
+          <span className={claseLabel}>Estado: {inicial.activo ? 'Activo' : 'Inactivo'}</span>
+        ) : (
+          <>
+            <input id="prod-activo" type="checkbox" {...register('activo')} />
+            <label htmlFor="prod-activo" className={claseLabel}>
             Activo
-          </label>
+            </label>
+          </>
+        )}
         </div>
       </div>
 

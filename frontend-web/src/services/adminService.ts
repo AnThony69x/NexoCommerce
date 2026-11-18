@@ -226,13 +226,13 @@ export async function obtenerProductoAdmin(id: string, categorias: AdminCategory
   }
 }
 
-function payloadProducto(dato: Omit<AdminProduct, 'id'>) {
+function payloadProducto(dato: Omit<AdminProduct, 'id'>, incluirEstado = true) {
   return {
     categoria_id: Number(dato.categoriaId),
     nombre: dato.nombre,
     descripcion: dato.descripcion,
     precio_base: dato.precio_base,
-    activo: dato.activo,
+    ...(incluirEstado ? { activo: dato.activo } : {}),
     tipo: dato.tipo,
     ...(dato.tipo === 'TORTA'
       ? { torta: { tamano: dato.tamano ?? '', porciones: dato.porciones ?? 1, sabor: dato.sabor ?? '' } }
@@ -248,7 +248,7 @@ function payloadProducto(dato: Omit<AdminProduct, 'id'>) {
 }
 
 export async function guardarProducto(id: string | undefined, dato: Omit<AdminProduct, 'id'>) {
-  const payload = payloadProducto(dato)
+  const payload = payloadProducto(dato, id === undefined)
   if (id) await apiClient.put(`/admin/productos/${id}`, payload)
   else await apiClient.post('/admin/productos', payload)
 }
@@ -258,17 +258,17 @@ export async function alternarProducto(id: string, activo: boolean) {
   else await apiClient.put(`/admin/productos/${id}`, { activo: true })
 }
 
-function payloadCategoria(dato: Omit<AdminCategory, 'id'>) {
+function payloadCategoria(dato: Omit<AdminCategory, 'id'>, incluirEstado = true) {
   return {
     nombre: dato.nombre,
     descripcion: dato.descripcion,
     categoria_padre_id: dato.categoria_padre_id ? Number(dato.categoria_padre_id) : null,
-    activo: dato.activo,
+    ...(incluirEstado ? { activo: dato.activo } : {}),
   }
 }
 
 export async function guardarCategoria(id: string | undefined, dato: Omit<AdminCategory, 'id'>) {
-  const payload = payloadCategoria(dato)
+  const payload = payloadCategoria(dato, id === undefined)
   if (id) await apiClient.put(`/admin/categorias/${id}`, payload)
   else await apiClient.post('/admin/categorias', payload)
 }
@@ -359,7 +359,7 @@ export async function listarPublicacionesAdmin() {
   return (await listarTodas<ApiRecord>('/publicaciones')).map(aPublicacion)
 }
 
-function payloadPublicacion(dato: Omit<AdminPublication, 'id'>, incluirImagenes = true) {
+function payloadPublicacion(dato: Omit<AdminPublication, 'id'>, incluirImagenes = true, incluirEstado = true) {
   const mediaId = dato.multimediaUrl?.trim()
   const multimediaId = mediaId && /^\d+$/.test(mediaId) ? Number(mediaId) : undefined
   return {
@@ -367,20 +367,20 @@ function payloadPublicacion(dato: Omit<AdminPublication, 'id'>, incluirImagenes 
     descripcion: dato.descripcion,
     categoria_id: dato.categoriaId ? Number(dato.categoriaId) : null,
     producto_id: dato.productoId ? Number(dato.productoId) : null,
-    activo: dato.activo,
+    ...(incluirEstado ? { activo: dato.activo } : {}),
     ...(incluirImagenes ? { imagenes: multimediaId ? [{ multimedia_id: multimediaId, orden: 0 }] : [] } : {}),
   }
 }
 
 export async function guardarPublicacion(id: string | undefined, dato: Omit<AdminPublication, 'id'>) {
-  const payload = payloadPublicacion(dato)
+  const payload = payloadPublicacion(dato, true, id === undefined)
   if (id) {
     const seleccion = dato.multimediaUrl?.trim()
     if (seleccion && /^\d+$/.test(seleccion)) {
       const { data } = await apiClient.get<ApiEnvelope<ApiRecord>>(`/publicaciones/${id}`)
       const actual = Array.isArray(data.data.imagenes) ? data.data.imagenes as ApiRecord[] : []
       if (Number(actual[0]?.id) === Number(seleccion)) {
-        await apiClient.put(`/admin/publicaciones/${id}`, payloadPublicacion(dato, false))
+        await apiClient.put(`/admin/publicaciones/${id}`, payloadPublicacion(dato, false, false))
         return
       }
     }
@@ -400,17 +400,17 @@ export async function listarProduccionAdmin(categorias: AdminCategory[]) {
   return data.data.map((item) => aProduccion(item, categorias))
 }
 
-function payloadProduccion(dato: Omit<AdminProductionConfig, 'id'>) {
+function payloadProduccion(dato: Omit<AdminProductionConfig, 'id'>, incluirEstado = true) {
   return {
     fecha: dato.fecha,
     categoria_id: dato.categoriaId ? Number(dato.categoriaId) : null,
     capacidad_maxima: dato.capacidad_maxima,
-    activo: dato.activo,
+    ...(incluirEstado ? { activo: dato.activo } : {}),
   }
 }
 
 export async function guardarProduccion(id: string | undefined, dato: Omit<AdminProductionConfig, 'id'>) {
-  const payload = payloadProduccion(dato)
+  const payload = payloadProduccion(dato, id === undefined)
   if (id) await apiClient.put(`/admin/produccion/${id}`, payload)
   else await apiClient.post('/admin/produccion', payload)
 }

@@ -62,7 +62,7 @@ export default function PublicationForm({
         valores.multimediaUrl.trim() === ''
           ? undefined
           : valores.multimediaUrl.trim(),
-      activo: valores.activo,
+      activo: inicial?.activo ?? valores.activo,
     })
   }
 
@@ -150,10 +150,16 @@ export default function PublicationForm({
       </div>
 
       <div className="flex items-center gap-2">
-        <input id="pub-activo" type="checkbox" {...register('activo')} />
-        <label htmlFor="pub-activo" className={claseLabel}>
-          Activa
-        </label>
+        {inicial ? (
+          <span className={claseLabel}>Estado: {inicial.activo ? 'Activo' : 'Inactivo'}</span>
+        ) : (
+          <>
+            <input id="pub-activo" type="checkbox" {...register('activo')} />
+            <label htmlFor="pub-activo" className={claseLabel}>
+            Activa
+            </label>
+          </>
+        )}
       </div>
 
       <div className="flex justify-end gap-2">

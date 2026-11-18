@@ -68,7 +68,7 @@ export default function CategoryForm({
       descripcion: valores.descripcion.trim(),
       categoria_padre_id:
         valores.categoria_padre_id === '' ? null : valores.categoria_padre_id,
-      activo: valores.activo,
+      activo: inicial?.activo ?? valores.activo,
     })
   }
 
@@ -138,10 +138,16 @@ export default function CategoryForm({
       </div>
 
       <div className="flex items-center gap-2">
-        <input id="cat-activo" type="checkbox" {...register('activo')} />
-        <label htmlFor="cat-activo" className={claseLabel}>
-          Activa
-        </label>
+        {inicial ? (
+          <span className={claseLabel}>Estado: {inicial.activo ? 'Activo' : 'Inactivo'}</span>
+        ) : (
+          <>
+            <input id="cat-activo" type="checkbox" {...register('activo')} />
+            <label htmlFor="cat-activo" className={claseLabel}>
+            Activa
+            </label>
+          </>
+        )}
       </div>
 
       <div className="flex justify-end gap-2">

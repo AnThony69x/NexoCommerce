@@ -51,7 +51,7 @@ export default function ProductionForm({
       categoriaNombre: categoria?.nombre ?? 'Todas',
       capacidad_maxima: Number(valores.capacidad_maxima),
       capacidad_ocupada: inicial?.capacidad_ocupada ?? 0,
-      activo: valores.activo,
+      activo: inicial?.activo ?? valores.activo,
     })
   }
 
@@ -136,10 +136,16 @@ export default function ProductionForm({
       </div>
 
       <div className="flex items-center gap-2">
-        <input id="cap-activo" type="checkbox" {...register('activo')} />
-        <label htmlFor="cap-activo" className={claseLabel}>
-          Activo
-        </label>
+        {inicial ? (
+          <span className={claseLabel}>Estado: {inicial.activo ? 'Activo' : 'Inactivo'}</span>
+        ) : (
+          <>
+            <input id="cap-activo" type="checkbox" {...register('activo')} />
+            <label htmlFor="cap-activo" className={claseLabel}>
+            Activo
+            </label>
+          </>
+        )}
       </div>
 
       <div className="flex justify-end gap-2">
