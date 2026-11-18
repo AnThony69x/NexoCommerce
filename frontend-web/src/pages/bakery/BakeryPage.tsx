@@ -1,58 +1,118 @@
-import BakeryCategoryCard from '../../components/bakery/BakeryCategoryCard'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import BakeryHero from '../../components/bakery/BakeryHero'
 import BakeryProductGrid from '../../components/bakery/BakeryProductGrid'
 import { ApiErrorState, LoadingState } from '../../components/common/RequestState'
 import { useAsync } from '../../hooks/useAsync'
-import {
-  CATEGORIA_REPOSTERIA,
-  listarPorCategoria,
-} from '../../services/productsRepository'
+import { listarCategorias } from '../../services/categoriesRepository'
+import { CATEGORIA_REPOSTERIA, listarProductos } from '../../services/productsRepository'
+import type { CategoryNode } from '../../types/category'
+
+function incluirCategoriasActivas(categoria: CategoryNode, ids: Set<number>) {
+  if (!categoria.activo) return
+
+  ids.add(categoria.id)
+  for (const hija of categoria.subcategorias) {
+    incluirCategoriasActivas(hija, ids)
+  }
+}
+
+async function cargarReposteria() {
+  const [categorias, catalogo] = await Promise.all([listarCategorias(), listarProductos()])
+  const raiz = categorias.find(
+    (categoria) => categoria.activo
+      && categoria.categoria_padre_id === null
+      && categoria.nombre === CATEGORIA_REPOSTERIA,
+  )
+  const ids = new Set<number>()
+  if (raiz) incluirCategoriasActivas(raiz, ids)
+
+  return {
+    subcategorias: raiz?.subcategorias.filter((categoria) => categoria.activo) ?? [],
+    productos: catalogo.filter((producto) => ids.has(producto.categoria.id)),
+  }
+}
+
+const claseAccion = 'font-medium text-rose-800 underline underline-offset-4 hover:text-rose-950'
 
 export default function BakeryPage() {
-  const {
-    data: productos,
-    loading,
-    error,
-    recargar,
-  } = useAsync(() => listarPorCategoria(CATEGORIA_REPOSTERIA), [])
+  const { data, loading, error, recargar } = useAsync(cargarReposteria)
+  const [categoriaId, setCategoriaId] = useState<number | null>(null)
+  const seleccion = data?.subcategorias.find((categoria) => categoria.id === categoriaId)
+  const productos = data?.productos ?? []
+  const idsSeleccionados = new Set<number>()
+  if (seleccion) incluirCategoriasActivas(seleccion, idsSeleccionados)
+  const visibles = seleccion
+    ? productos.filter((producto) => idsSeleccionados.has(producto.categoria.id))
+    : productos
 
   return (
     <main>
-        <BakeryHero />
+      <BakeryHero />
 
-        <section className="border-b border-stone-200 bg-white px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-          <div className="mx-auto">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-stone-800 sm:text-3xl">
-              Encuentra algo especial
-            </h2>
-            <div className="grid gap-5 md:grid-cols-3">
-              <BakeryCategoryCard
-                title="Tortas"
-                description="Creaciones para cumpleaños y celebraciones especiales."
-              />
-              <BakeryCategoryCard
-                title="Cheesecakes"
-                description="Texturas suaves y sabores para compartir."
-              />
-              <BakeryCategoryCard
-                title="Postres y tartas"
-                description="Pequeños detalles dulces para cualquier momento."
-              />
-            </div>
-          </div>
-        </section>
-
+      <div className="mx-auto px-4 pt-8 sm:px-6 lg:px-8">
         {loading ? (
-          <div className="mx-auto px-4 py-10 sm:px-6 lg:px-8">
-            <LoadingState mensaje="Cargando repostería…" />
-          </div>
+          <LoadingState mensaje="Cargando repostería…" />
         ) : error ? (
-          <div className="mx-auto px-4 py-10 sm:px-6 lg:px-8">
-            <ApiErrorState mensaje={error} onReintentar={recargar} />
-          </div>
+          <ApiErrorState mensaje={error} onReintentar={recargar} />
         ) : (
-          <BakeryProductGrid products={productos ?? []} />
+          <>
+            <div role="group" aria-label="Subcategorías de repostería" className="flex flex-wrap gap-2">
+              <FiltroCategoria activo={!seleccion} onClick={() => setCategoriaId(null)}>
+                Todas
+              </FiltroCategoria>
+              {data?.subcategorias.map((categoria) => (
+                <FiltroCategoria
+                  key={categoria.id}
+                  activo={seleccion?.id === categoria.id}
+                  onClick={() => setCategoriaId(categoria.id)}
+                >
+                  {categoria.nombre}
+                </FiltroCategoria>
+              ))}
+            </div>
+
+            {visibles.length === 0 && (
+              <div className="my-8 rounded-xl border border-stone-200 p-8 text-center text-sm text-stone-600">
+                {productos.length === 0 ? (
+                  <>
+                    <p className="mb-3">Aún no hay productos de repostería disponibles.</p>
+                    <Link to="/catalogo" className={claseAccion}>Explorar catálogo</Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="mb-3">Aún no hay productos en esta subcategoría.</p>
+                    <button type="button" className={claseAccion} onClick={() => setCategoriaId(null)}>
+                      Ver todos los productos de repostería
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </>
         )}
+      </div>
+
+      {!loading && !error && visibles.length > 0 && <BakeryProductGrid products={visibles} />}
     </main>
+  )
+}
+
+function FiltroCategoria({ activo, children, onClick }: {
+  activo: boolean
+  children: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={activo}
+      onClick={onClick}
+      className={`min-h-10 rounded-full border px-4 py-2 text-sm font-medium ${
+        activo ? 'border-rose-800 bg-rose-800 text-white' : 'border-stone-300 bg-white text-stone-700 hover:border-rose-800'
+      }`}
+    >
+      {children}
+    </button>
   )
 }
