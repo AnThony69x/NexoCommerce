@@ -272,10 +272,14 @@ final class ProductoRepositorioEloquent implements ProductoRepositorioInterface
 
         if (! empty($filtros['buscar'])) {
             $termino = '%'.mb_strtolower((string) $filtros['buscar']).'%';
-            $query->where(function (Builder $subquery) use ($termino): void {
-                $subquery->whereRaw('LOWER(nombre) LIKE ?', [$termino])
-                    ->orWhereRaw('LOWER(COALESCE(descripcion, ?)) LIKE ?', ['', $termino]);
-            });
+            if ($filtros['admin'] ?? false) {
+                $query->whereRaw('LOWER(nombre) LIKE ?', [$termino]);
+            } else {
+                $query->where(function (Builder $subquery) use ($termino): void {
+                    $subquery->whereRaw('LOWER(nombre) LIKE ?', [$termino])
+                        ->orWhereRaw('LOWER(COALESCE(descripcion, ?)) LIKE ?', ['', $termino]);
+                });
+            }
         }
 
         if (isset($filtros['precio_min'])) {
