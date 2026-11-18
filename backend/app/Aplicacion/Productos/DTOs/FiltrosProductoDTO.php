@@ -17,6 +17,8 @@ final readonly class FiltrosProductoDTO
         public ?string $sabor = null,
         public string $ordenar = 'recientes',
         public int $page = 1,
+        public bool $admin = false,
+        public ?bool $activo = null,
     ) {}
 
     /** @return array<string, int|float|string|null> */

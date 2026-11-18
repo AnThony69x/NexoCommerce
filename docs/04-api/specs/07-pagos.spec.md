@@ -183,3 +183,6 @@ La notificacion al cliente se implementara en Fase 11 (spec 10).
 * [x] **TC-07:** Archivo ajeno, inactivo, fuera de `comprobantes/` o reutilizado se rechaza sin inserciones parciales.
 * [x] **TC-08:** Pago rechazado permite nuevo intento; referencia PASARELA ya usada no se reutiliza.
 * [x] **TC-09:** Dos registros simultaneos del mismo pedido no crean dos pagos activos.
+
+### 4.4 Listar pagos (ADMIN)
+`GET /api/v1/admin/pagos` requiere Sanctum y rol ADMIN. Admite filtros `estado`, `metodo`, `pedido_id` y `page`. Devuelve 15 resultados por página en orden de `id` descendente, incluidos intentos rechazados. Cada elemento conserva los campos del recurso de pago e incluye su comprobante si existe.

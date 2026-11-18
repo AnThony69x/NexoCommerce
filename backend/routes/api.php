@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ConsultaAdminController;
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Carrito\CarritoController;
@@ -65,6 +66,10 @@ Route::prefix('v1')->group(function (): void {
             // Modulo 02: Usuarios — gestion administrativa
             Route::get('usuarios', [AdminUsuarioController::class, 'index']);
             Route::patch('usuarios/{id}', [AdminUsuarioController::class, 'update']);
+            Route::get('pagos', [ConsultaAdminController::class, 'pagos']);
+            Route::get('multimedia', [ConsultaAdminController::class, 'multimedia']);
+            Route::patch('multimedia/{id}/estado', [MultimediaController::class, 'cambiarEstadoAdmin'])->whereNumber('id');
+            Route::get('dashboard', [ConsultaAdminController::class, 'dashboard']);
 
             // Modulo 09: Tienda — configuracion
             Route::put('tienda/configuracion', [ConfiguracionTiendaController::class, 'actualizar']);
@@ -75,6 +80,8 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('categorias/{id}', [CategoriaController::class, 'destroy']);
 
             // Modulo 04: Productos y personalizacion
+            Route::get('productos', [ProductoController::class, 'adminIndex']);
+            Route::get('productos/{id}', [ProductoController::class, 'adminShow']);
             Route::post('productos', [ProductoController::class, 'store']);
             Route::put('productos/{id}', [ProductoController::class, 'update']);
             Route::delete('productos/{id}', [ProductoController::class, 'destroy']);
