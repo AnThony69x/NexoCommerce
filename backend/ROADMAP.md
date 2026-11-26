@@ -397,6 +397,10 @@ Dependencias: Fase 12. Guia: `../docs/04-api/plan-alineacion-backend.md`
 
 ---
 
+## Practica 3.2: Enrutamiento de avisos de pedidos
+
+- [x] Validar el mensaje de cambio de estado, filtrar el aviso inicial y enrutar a preparacion, entrega o cancelacion. Verificar seis casos de la guia, la compatibilidad de ENTREGADO y las pruebas HTTP de Pedidos y Notificaciones (2026-11-25 21:43, Guayaquil).
+
 ## Mapa rapido spec → fase
 
 | Spec | Fase |

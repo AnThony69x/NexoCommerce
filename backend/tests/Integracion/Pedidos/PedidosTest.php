@@ -241,7 +241,7 @@ class PedidosTest extends TestCase
 
     public function test_entrega_domicilio_exige_direccion_y_cancelar_restaura_stock(): void
     {
-        $this->autenticarCliente();
+        $cliente = $this->autenticarCliente();
         $producto = ProductoModelo::factory()->create(['tipo' => 'DETALLE', 'precio_base' => '5.00']);
         DetalleModelo::factory()->create(['producto_id' => $producto->id, 'stock' => 5]);
         $this->postJson('/api/v1/carrito/items', ['producto_id' => $producto->id, 'cantidad' => 2])->assertCreated();
@@ -265,6 +265,9 @@ class PedidosTest extends TestCase
         $admin = UsuarioModelo::factory()->admin()->create();
         $this->withToken($admin->createToken('test')->plainTextToken);
         $this->patchJson('/api/v1/admin/pedidos/'.$id.'/estado', ['estado' => 'CANCELADO'])->assertOk()->assertJsonPath('data.estado', 'CANCELADO');
+        $this->assertDatabaseHas('notificaciones.notificaciones', [
+            'usuario_id' => $cliente->id, 'pedido_id' => $id, 'tipo' => 'PEDIDO_CANCELADO',
+        ]);
         $this->assertDatabaseHas('catalogo.detalles', ['producto_id' => $producto->id, 'stock' => 5]);
         $this->patchJson('/api/v1/admin/pedidos/'.$id.'/estado', ['estado' => 'EN_PREPARACION'])->assertBadRequest()->assertJsonPath('codigo_error', 'PED_ESTADO_INVALIDO');
     }

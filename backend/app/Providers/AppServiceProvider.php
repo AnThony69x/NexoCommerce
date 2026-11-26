@@ -8,6 +8,7 @@ use App\Aplicacion\Autenticacion\Contratos\NotificacionServiceInterface;
 use App\Aplicacion\Autenticacion\Contratos\TokenServiceInterface;
 use App\Aplicacion\Multimedia\Contratos\AlmacenamientoArchivosInterface;
 use App\Aplicacion\Notificaciones\Listeners\CrearAvisos;
+use App\Aplicacion\Notificaciones\Listeners\DistribuirAvisoEstadoPedido;
 use App\Dominio\Autenticacion\Repositorios\CuentaOAuthRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\UsuarioRepositorioInterface;
 use App\Dominio\Autenticacion\Repositorios\VerificacionCorreoRepositorioInterface;
@@ -103,6 +104,6 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(PedidoCreado::class, [CrearAvisos::class, 'pedidoCreado']);
         Event::listen(PagoRegistrado::class, [CrearAvisos::class, 'pagoRegistrado']);
         Event::listen(PagoVerificado::class, [CrearAvisos::class, 'pagoVerificado']);
-        Event::listen(EstadoPedidoCambiado::class, [CrearAvisos::class, 'estadoPedidoCambiado']);
+        Event::listen(EstadoPedidoCambiado::class, [DistribuirAvisoEstadoPedido::class, 'handle']);
     }
 }

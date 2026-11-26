@@ -15,13 +15,14 @@ Buzon persistente. FKs opcionales `pedido_id` y `pago_id` (no hay `referencia_id
 ---
 
 ## 2. Reglas de Negocio e Invariantes
-* **RN-NOT-01:** El cliente recibe avisos cuando: se crea su pedido; su pago pasa a `APROBADO` o `RECHAZADO`; su pedido cambia a `EN_PREPARACION`, `LISTO` o `ENTREGADO`.
+* **RN-NOT-01:** El cliente recibe avisos cuando: se crea su pedido; su pago pasa a `APROBADO` o `RECHAZADO`; su pedido cambia a `EN_PREPARACION`, `LISTO`, `ENTREGADO` o `CANCELADO`.
 * **RN-NOT-02:** Cada ADMIN activo recibe avisos cuando: hay un pedido nuevo; un cliente registra un pago `PENDIENTE` (comprobante).
 * **RN-NOT-03:** `tipo` es VARCHAR(50). Valores de aplicacion:
   * `PEDIDO_CREADO`
   * `PEDIDO_EN_PREPARACION`
   * `PEDIDO_LISTO`
   * `PEDIDO_ENTREGADO`
+  * `PEDIDO_CANCELADO`
   * `PAGO_REGISTRADO`
   * `PAGO_APROBADO`
   * `PAGO_RECHAZADO`
@@ -32,6 +33,23 @@ Buzon persistente. FKs opcionales `pedido_id` y `pago_id` (no hay `referencia_id
 * **RN-NOT-08:** La lectura repetida conserva la primera `fecha_lectura`. `leer-todas` cambia solo las no leidas del usuario y devuelve cuantas actualizo.
 
 No se notifica un estado `enviado` porque no existe en `pedidos`.
+
+### Enrutamiento interno de cambios de estado
+
+El evento `EstadoPedidoCambiado` genera un mensaje JSON con `id` (cadena de hasta 100 caracteres), `tipo` (cadena de hasta 50 caracteres), `prioridad` (`normal` o `alta`) y `datos` (objeto con `pedido_id` y `usuario_id`, ambos enteros positivos). El productor identifica el mensaje con el pedido y el estado y asigna prioridad alta a la cancelación.
+
+El listener conserva `X-Request-Id` como `correlacion_id` en el mensaje y la traza si el encabezado contiene entre 1 y 100 bytes y tiene algún carácter distinto de espacios.
+
+| Condición | Destino o resultado | Justificación |
+| --- | --- | --- |
+| Campo obligatorio ausente o inválido | `invalido` | Evita procesar mensajes incompletos. |
+| `PEDIDO_PENDIENTE` | `filtrado` | El aviso inicial se genera con `PedidoCreado`. |
+| `PEDIDO_EN_PREPARACION` | `preparacion` | Comunica el inicio de la preparación. |
+| `PEDIDO_LISTO` o `PEDIDO_ENTREGADO` | `entrega` | Comunica que el pedido está listo o que la entrega ya se completó. |
+| `PEDIDO_CANCELADO` | `cancelacion` | Comunica la cancelación al titular del pedido. |
+| Otro tipo válido | `no_enrutables` | Deja un registro para revisión sin invocar consumidores. |
+
+La prioridad es informativa. Los tres destinos ejecutan servicios Laravel de forma síncrona. La distribución a consumidores simula la entrega por mensajería y el guardado del aviso usa el repositorio real dentro de la transacción de RN-NOT-06.
 
 ---
 

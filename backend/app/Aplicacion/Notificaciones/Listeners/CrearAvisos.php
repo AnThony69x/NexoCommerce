@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Aplicacion\Notificaciones\Listeners;
 
-use App\Dominio\Notificaciones\Eventos\EstadoPedidoCambiado;
 use App\Dominio\Notificaciones\Eventos\PagoRegistrado;
 use App\Dominio\Notificaciones\Eventos\PagoVerificado;
 use App\Dominio\Notificaciones\Eventos\PedidoCreado;
@@ -42,20 +41,6 @@ final readonly class CrearAvisos
             $aprobado ? 'PAGO_APROBADO' : 'PAGO_RECHAZADO',
             $aprobado ? 'Pago verificado' : 'Pago rechazado',
             "Tu pago del pedido {$evento->pedidoId} fue ".($aprobado ? 'aprobado.' : 'rechazado.'),
-        );
-    }
-
-    public function estadoPedidoCambiado(EstadoPedidoCambiado $evento): void
-    {
-        $titulos = [
-            'EN_PREPARACION' => 'Pedido en preparacion',
-            'LISTO' => 'Pedido listo',
-            'ENTREGADO' => 'Pedido entregado',
-            'CANCELADO' => 'Pedido cancelado',
-        ];
-        $this->repositorio->guardar(
-            $evento->usuarioId, $evento->pedidoId, null, 'PEDIDO_'.$evento->estado,
-            $titulos[$evento->estado], "Tu pedido {$evento->pedidoId} ahora esta {$evento->estado}.",
         );
     }
 }
